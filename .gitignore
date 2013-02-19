@@ -1,0 +1,12 @@
+# OS X is not nice
+.DS_Store
+
+# Do not version temporary LaTeX files
+.texpadtmp/
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
