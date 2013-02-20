@@ -26,19 +26,23 @@ High confidentiality is achieved by using a block cipher. The real time input st
 
 The blocks of bits are first encoded using AES. Although being widely used, AES has the disadvantage of generating the same ciphertext when the same input plaintext is used. This property can be exploited by possible eavedroppers, when the same input data has to be sent multiple times during the same session. To resolve this issue a cipher mode has to be used to randomize the encrypted data. 
 
-
-
 \section{Authentication}
 
-A Message Authentication Code (MAC) is used to verify the sender's identity. This means it affirms the message's origin. There are both hash-based and cipher-based implementations. The former calculate a unique code from the given message using a supplied key and hashing function, while the latter uses a cryptographic cipher to this end.\\
+A Message Authentication Code (MAC) is used to verify the sender's identity. This means it affirms the message's origin. There are both hash-based and cipher-based implementations. The former calculate a unique hash from the given message using a supplied key and hashing function, while the latter uses a cryptographic cipher to this end. The main difference between the two is that a hashing function works one-way: the original data cannot be recovered from the hash.\\
 
 We decided to use the hash-based approach, because the ciphers introduce data dependencies between messages, which cannot be allowed in our implementation. Because we are working on a realtime audio streaming application, dropped packets are not really an issue. Because the audio is streamed, we cannot stop receiving and ask for a retransmit, as this would produce lag which is very annoying to the user.\\
 
-Finally, we decided to use a hashing function from the SHA family. Both SHA-2 and SHA-3 (which is brand-new) are strong functions that do not yet have known vulnerabilities. During the implementation phase, we will select one of these functions based on performance.
+Finally, need to choose a hashing function. We decided to use the SHA family. Both SHA-2 and SHA-3 (which is brand-new) are strong functions that do not yet have known vulnerabilities. During the implementation phase, we will select one of these functions based on performance.
 
 \section{Integrity}
 
+To make sure the data is not modified mid-stream by a man-in-the-middle, we need a Modification Detection Code (MDC). Luckily, the HMAC performs this function as well. As we create a keyed hash of the ciphertext, the data cannot be modified without us detecting it. This only holds if the attacker does not know the key used to create the hash. If someone were to change the packet's contents and hash, the hash we calculate from the new ciphertext in the packet will not match the hash inserted by the attacker.\\
+
+A second problem is that data could be reordered or replayed. To keep track of these changes, we will implement a counter. At the receiver we keep track of the number of the packet that was received last. Subsequent packets will only be accepted if they have a higher number. This approach protects us against both re-order and replay of packets. The only difficuly we have to take into account is when the counter wraps around. We will devise a mechanism to handle this problem in a later phase.
+
 \section{Perfect Forward Secrecy}
+
+STS generates a new shared secret when the connection is set-up. This means all encrypted data is independent across all sessions, but dependent within one session. So, when one session is compromised, all the sessions that came before or after are still secure.
 
 \section{Performance}
 
