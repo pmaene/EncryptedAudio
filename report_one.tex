@@ -40,7 +40,7 @@ A second problem is that data could be reordered or replayed. To keep track of t
 
 \section{Perfect Forward Secrecy}
 
-
+STS generates a new shared secret when the connection is set-up. This means all encrypted data is independent across all sessions, but dependent within one session. So, when one session is compromised, all the sessions that came before or after are still secure.
 
 \section{Performance}
 
