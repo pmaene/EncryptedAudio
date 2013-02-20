@@ -24,10 +24,6 @@
 \subsection{Overview}
 High confidentiality is achieved by using a block cipher. The real time input stream is chopped into data blocks consisting of a fixed number of bits and then encrypted under a single symmetric key. Symmetric refers to the fact that the key is known to both the sending and the receiving DSP. The symmetric key is changed on every new session of data transmission. The symmetric key is negotiated using the Station-to-Station protocol which is based on exponential Diffie-Helman.\\
 
-
-
-
-
 \section{Authentication}
 
 A Message Authentication Code (MAC) is used to verify the sender's identity. This means it affirms the message's origin. There are both hash-based and cipher-based implementations. The former calculate a unique hash from the given message using a supplied key and hashing function, while the latter uses a cryptographic cipher to this end. The main difference between the two is that a hashing function works one-way: the original data cannot be recovered from the hash.\\
@@ -38,7 +34,13 @@ Finally, need to choose a hashing function. We decided to use the SHA family. Bo
 
 \section{Integrity}
 
+To make sure the data is not modified mid-stream by a man-in-the-middle, we need a Modification Detection Code (MDC). Luckily, the HMAC performs this function as well. As we create a keyed hash of the ciphertext, the data cannot be modified without us detecting it. This only holds if the attacker does not know the key used to create the hash. If someone were to change the packet's contents and hash, the hash we calculate from the new ciphertext in the packet will not match the hash inserted by the attacker.\\
+
+A second problem is that data could be reordered or replayed. To keep track of these changes, we will implement a counter. At the receiver we keep track of the number of the packet that was received last. Subsequent packets will only be accepted if they have a higher number. This approach protects us against both re-order and replay of packets. The only difficuly we have to take into account is when the counter wraps around. We will devise a mechanism to handle this problem in a later phase.
+
 \section{Perfect Forward Secrecy}
+
+
 
 \section{Performance}
 
