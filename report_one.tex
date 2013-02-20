@@ -21,6 +21,11 @@
 
 \section{Confidentiality}
 
+\subsection{Overview}
+High confidentiality is achieved by using a block cipher. The real time input stream is chopped into data blocks consisting of a fixed number of bits and then encrypted under a single symmetric key. Symmetric refers to the fact that the key is known to both the sending and the receiving DSP. The symmetric key is changed on every new session of data transmission. The symmetric key is negotiated using the Station-to-Station protocol which is based on exponential Diffie-Helman.
+
+
+
 \section{Authentication}
 
 A Message Authentication Code (MAC) is used to verify the sender's identity. A Modification Detection Code (MDC) is needed when we want to ensure data integrity. A keyed hashing function can be used to both ends.
