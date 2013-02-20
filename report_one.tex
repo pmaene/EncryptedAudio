@@ -23,11 +23,11 @@
 
 \section{Authentication}
 
-A Message Authentication Code (MAC) is used to verify the sender's identity. This means it affirms the message's origin. There are both hash-based and cipher-based implementations. The former calculate a unique code from the given message using a supplied key and hashing function, while the latter uses a cryptographic cipher to this end.\\
+A Message Authentication Code (MAC) is used to verify the sender's identity. This means it affirms the message's origin. There are both hash-based and cipher-based implementations. The former calculate a unique hash from the given message using a supplied key and hashing function, while the latter uses a cryptographic cipher to this end. The main difference between the two is that a hashing function works one-way: the original data cannot be recovered from the hash.\\
 
 We decided to use the hash-based approach, because the ciphers introduce data dependencies between messages, which cannot be allowed in our implementation. Because we are working on a realtime audio streaming application, dropped packets are not really an issue. Because the audio is streamed, we cannot stop receiving and ask for a retransmit, as this would produce lag which is very annoying to the user.\\
 
-Finally, we decided to use a hashing function from the SHA family. Both SHA-2 and SHA-3 (which is brand-new) are strong functions that do not yet have known vulnerabilities. During the implementation phase, we will select one of these functions based on performance.
+Finally, need to choose a hashing function. We decided to use the SHA family. Both SHA-2 and SHA-3 (which is brand-new) are strong functions that do not yet have known vulnerabilities. During the implementation phase, we will select one of these functions based on performance.
 
 \section{Integrity}
 
