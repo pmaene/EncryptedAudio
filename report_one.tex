@@ -27,9 +27,13 @@ High confidentiality is achieved by using a block cipher. The real time input st
 The blocks of bits are first encoded using AES. Although being widely used, AES has the disadvantage of generating the same ciphertext when the same input plaintext is used. This property can be exploited by possible eavedroppers, when the same input data has to be sent multiple times during the same session. To resolve this issue a cipher mode has to be used to randomize the encrypted data. CTR cipher mode is used to achieve this. 
 
 \subsection{Station-To-Station Protocol}
+The Station-to-Station protocol (STS) allows to generate a shared secret based on two random numbers originating from the two sending and the receiving DSP. Both parties generate a random number. In the next step one of both parties computes the shared key based on the previously received random key of the other party. Both exponentials are then concatenated and signed using an asymetric key. To do the signing of the concatenated exponentials an asymmetric encryption algorithm like RSA can be used. After both parties know the shared key, a symmetric encryption algorithm like AES can be used to do the further encryption.
+
+STS is the scheme that is used to ensure perfect forward secrecy as each session a new shared key can be negotiated between both parties by combining a symmetric and an asymetric algorithm.
 
 
 \subsection{Cipher Mode}
+\label{par:cipher_mode}
 Because of the real-time character of the assignment, it is not possible to use the widely applied ECB, CBC, PCBC and CFB cipher modes as they introduce a dependency between previously encrypted blocks. During transmission some blocks might get lost. In a speech application lost blocks are not an obstacle as long as enough blocks still arive at the receiver. This implies that lost blocks do not require to be resent which is a great advantage in real-time applications. Using a cipher block would destroy this property.\\
 
 OFB and CTR are the two remaining alternatives which are commonly accepted. OFB has to know the block cipher encryption of the previous block. This means that the previous ciphertext does not have to be known, but the encryption has to be done in a deterministic way which makes it possible to determine the block cipher encryption of a lost packet. Furthermore OFB can not be used in parallel because of this dependency.\\
