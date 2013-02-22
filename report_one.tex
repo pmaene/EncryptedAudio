@@ -24,7 +24,17 @@
 \subsection{Overview}
 High confidentiality is achieved by using a block cipher. The real time input stream is chopped into data blocks consisting of a fixed number of bits and then encrypted under a single symmetric key. Symmetric refers to the fact that the key is known to both the sending and the receiving DSP. The symmetric key is changed on every new session of data transmission. The symmetric key is negotiated using the Station-to-Station protocol which is based on exponential Diffie-Hellman.\\
 
-The blocks of bits are first encoded using AES. Although being widely used, AES has the disadvantage of generating the same ciphertext when the same input plaintext is used. This property can be exploited by possible eavedroppers, when the same input data has to be sent multiple times during the same session. To resolve this issue a cipher mode has to be used to randomize the encrypted data. 
+The blocks of bits are first encoded using AES. Although being widely used, AES has the disadvantage of generating the same ciphertext when the same input plaintext is used. This property can be exploited by possible eavedroppers, when the same input data has to be sent multiple times during the same session. To resolve this issue a cipher mode has to be used to randomize the encrypted data. CTR cipher mode is used to achieve this. \\
+
+\subsection{Station-To-Station Protocol}
+
+
+\subsection{Cipher Mode}
+Because of the real-time character of the assignment, it is not possible to use the widely applied ECB, CBC, PCBC and CFB cipher modes as they introduce a dependency between previously encrypted blocks. During transmission some blocks might get lost. In a speech application lost blocks are not an obstacle as long as enough blocks still arive at the receiver. This implies that lost blocks do not require to be resent which is a great advantage in real-time applications. Using a cipher block would destroy this property.
+
+OFB and CTR are the two remaining alternatives which are commonly accepted. OFB has to know the block cipher encryption of the previous block. This means that the previous ciphertext does not have to be known, but the encryption has to be done in a deterministic way which makes it possible to determine the block cipher encryption of a lost packet. Furthermore OFB can not be used in parallel because of this dependency.
+
+CTR can be used in parallel because the cipher mode uses a simple deterministic counter. This usage of a counter allows random access. Consequently a parallel implementation of CTR is possible.
 
 \section{Authentication}
 
