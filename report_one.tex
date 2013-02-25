@@ -58,6 +58,6 @@ STS generates a new shared secret when the connection is set-up. This means all 
 
 At this part of the design, the main performance measure we took is allowing for dropped packets. By doing this, we won't introduce lag into the system. However, we had to take this property into account when selecting encryption algorithms.\\
 
-Secondly, as we saw in Paragraph~\ref{par:cipher_mode}, the CTR mode can be used in parallel. This is important because this allows us to leverage the two cores that are available in the DSP, and thus increase performance.
+Secondly, as we saw in Paragraph~\ref{par:cipher_mode}, the CTR mode can be used for parallel processing. This is important because this allows us to leverage the two cores that are available in the DSP, and thus increase performance.
 
 \end{document}
