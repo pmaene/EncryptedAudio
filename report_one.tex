@@ -9,6 +9,7 @@
 \usepackage{hyperref}
 
 \marginsize{2.5cm}{2.5cm}{1.5cm}{1.5cm}
+\setlength{\parindent}{0pt}
 
 \graphicspath{{./images/}}
 
@@ -22,33 +23,34 @@
 \section{Confidentiality}
 
 \subsection{Overview}
-High confidentiality is achieved by using a block cipher. The real time input stream is chopped into data blocks consisting of a fixed number of bits and then encrypted under a single symmetric key. Symmetric refers to the fact that the key is known to both the sending and the receiving DSP. The symmetric key is changed on every new session of data transmission. The symmetric key is negotiated using the Station-to-Station protocol which is based on exponential Diffie-Hellman.\\
+High confidentiality is achieved by using a block cipher. The realtime input stream is chopped into data blocks consisting of a fixed number of bits and then encrypted under a single symmetric key. Symmetric refers to the fact that the key is known to both the sending and the receiving DSP. The symmetric key is changed with every new data tranmission session. The symmetric key is negotiated using the Station-to-Station protocol which is based on exponential Diffie-Hellman.\\
 
-The blocks of bits are first encoded using AES. Although being widely used, AES has the disadvantage of generating the same ciphertext when the same input plaintext is used. This property can be exploited by possible eavedroppers, when the same input data has to be sent multiple times during the same session. To resolve this issue a cipher mode has to be used to randomize the encrypted data. CTR cipher mode is used to achieve this. 
+The blocks of bits are first encoded using AES. Although widely used, AES has the disadvantage that it generates the same ciphertext when the same input plaintext is used. This property can be exploited by possible eavedroppers, when the same input data has to be sent multiple times during the same session. To resolve this issue a cipher mode has to be used to randomize the encrypted data. CTR cipher mode will be used to achieve this. 
 
 \subsection{Station-To-Station Protocol}
+The Station-to-Station protocol (STS) allows us to generate a shared secret based on two random numbers originating from the sending and the receiving DSP. Both parties generate a random number. In the next step one of them computes the shared key based on the previously received random key of the other party. Both exponentials are then concatenated and signed using an asymetric key. To do the signing of the concatenated exponentials, an asymmetric encryption algorithm like RSA can be used. After both parties know the shared key, a symmetric encryption algorithm like AES can be used to do the further encryption.\\
 
+STS is the scheme that is used to ensure perfect forward secrecy as for each session a new shared key can be negotiated between both parties by combining a symmetric and an asymetric algorithm.
 
 \subsection{Cipher Mode}
-Because of the real-time character of the assignment, it is not possible to use the widely applied ECB, CBC, PCBC and CFB cipher modes as they introduce a dependency between previously encrypted blocks. During transmission some blocks might get lost. In a speech application lost blocks are not an obstacle as long as enough blocks still arive at the receiver. This implies that lost blocks do not require to be resent which is a great advantage in real-time applications. Using a cipher block would destroy this property.\\
+\label{par:cipher_mode}
+Because of the realtime character of the assignment, it is not possible to use the widely applied ECB, CBC, PCBC or CFB cipher modes as they introduce a dependency between previously encrypted blocks. During transmission some blocks might get lost. In a speech application lost blocks are not an obstacle as long as enough blocks still arive at the receiver. This implies that lost blocks do not require to be present which is a great advantage in realtime applications. Using one of the mentioned cipher modes would destroy this property.\\
 
-OFB and CTR are the two remaining alternatives which are commonly accepted. OFB has to know the block cipher encryption of the previous block. This means that the previous ciphertext does not have to be known, but the encryption has to be done in a deterministic way which makes it possible to determine the block cipher encryption of a lost packet. Furthermore OFB can not be used in parallel because of this dependency.\\
+OFB and CTR are the two remaining alternatives which are commonly accepted. OFB has to know the block cipher encryption of the previous block. This means that the previous ciphertext does not have to be known, but the encryption has to be done in a deterministic way to make it possible to determine the block cipher encryption of a lost packet. Furthermore OFB can not be used in parallel because of this dependency.\\
 
 CTR can be used in parallel because the cipher mode uses a simple deterministic counter. This usage of a counter allows random access. Consequently a parallel implementation of CTR is possible.
 
 \section{Authentication}
 
-A Message Authentication Code (MAC) is used to verify the sender's identity. This means it affirms the message's origin. There are both hash-based and cipher-based implementations. The former calculate a unique hash from the given message using a supplied key and hashing function, while the latter uses a cryptographic cipher to this end. The main difference between the two is that a hashing function works one-way: the original data cannot be recovered from the hash.\\
+A Message Authentication Code (MAC) is used to verify the sender's identity. There are both hash-based and cipher-based implementations. The former calculate a unique hash from the given message using a supplied key and hashing function, while the latter use a cryptographic cipher to this end. The main difference between the two is that a hashing function works one-way: the original data cannot be recovered from the hash.\\
 
-We decided to use the hash-based approach, because the ciphers introduce data dependencies between messages, which cannot be allowed in our implementation. Because we are working on a realtime audio streaming application, dropped packets are not really an issue. Because the audio is streamed, we cannot stop receiving and ask for a retransmit, as this would produce lag which is very annoying to the user.\\
-
-Finally, need to choose a hashing function. We decided to use the SHA family. Both SHA-2 and SHA-3 (which is brand-new) are strong functions that do not yet have known vulnerabilities. During the implementation phase, we will select one of these functions based on performance.
+We decided to use the hash-based approach, because the ciphers introduce data dependencies between messages, which cannot be allowed in our implementation. As we mentioned before, dropped packets are not really an issue for a realtime audio streaming application.
 
 \section{Integrity}
 
-To make sure the data is not modified mid-stream by a man-in-the-middle, we need a Modification Detection Code (MDC). Luckily, the HMAC performs this function as well. As we create a keyed hash of the ciphertext, the data cannot be modified without us detecting it. This only holds if the attacker does not know the key used to create the hash. If someone were to change the packet's contents and hash, the hash we calculate from the new ciphertext in the packet will not match the hash inserted by the attacker.\\
+To make sure the data is not modified mid-stream by a man-in-the-middle, we need a Modification Detection Code (MDC). Luckily, the HMAC performs this function as well. As we create a keyed hash of the ciphertext, the data cannot be modified without us detecting it. Of course, this only holds if the attacker does not know the key used to create the hash. If someone were to change the packet's contents and hash, the hash we calculate from the new ciphertext in the packet will not match the hash inserted by the attacker.\\
 
-A second problem is that data could be reordered or replayed. To keep track of these changes, we will implement a counter. At the receiver we keep track of the number of the packet that was received last. Subsequent packets will only be accepted if they have a higher number. This approach protects us against both re-order and replay of packets. The only difficuly we have to take into account is when the counter wraps around. We will devise a mechanism to handle this problem in a later phase.
+A second problem is that data could be reordered or replayed. To keep track of these changes, we will implement a counter. At the receiver we keep track of the number of the packet that was received last. Subsequent packets will only be accepted if they have a higher number. This approach protects us against both re-order and replay of packets. One difficuly we have to take into account is when the counter wraps around.
 
 \section{Perfect Forward Secrecy}
 
