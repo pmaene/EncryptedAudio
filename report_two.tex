@@ -1,0 +1,73 @@
+\documentclass[a4paper]{article}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{hyperref}
+\usepackage{anysize}
+\usepackage{hyperref}
+\usepackage{SIunits}
+\usepackage{color}
+
+\marginsize{2.5cm}{2.5cm}{1.5cm}{1.5cm}
+\setlength{\parindent}{0pt}
+
+\graphicspath{{./images/}}
+
+\title{P\&D Encryption---Phase Two}
+\author{Pieter Maene en Stijn Meul}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Key Exchange and Authentication}
+
+\section{Key Derivation}
+
+STS will result in a long RSA key at bode sides (because RSA is based on the factorisation of large primes). However, for AES and the hash-functions, we need keys that are a lot shorter. To find these, we can simply chop the long RSA key in two and subsequently hash these two parts using a non-keyed hash function. In doing this, we obtain two shorter keys that are derived from the longer one. Because hashing is a one-way process, it will be impossible to reconstruct the negotiated session key from the derived keys.\\
+
+Furthermore, this process is deterministic. So when we do the same operations on the same negotiated session key at both the sender and receiver, we will obtain the same encryption and hashing keys. This is important, because otherwise it would be impossible to verify the identity or decrypt the received data.\\
+
+\section{Confidentiality and Integrity}
+
+\subsection{Cipher Mode}
+
+The performance of several AES modes is listed on the following page: \url{http://www.cryptopp.com/benchmarks.html}. From this data and what we learned during the previous phase, we decided to use the CTR mode because it's the fastest. The set-up and IV initialisation times are a bit longer than for other modes, but this is not really a problem: the IV initilisation (which has to be redone for every packet) is neglible in this time. This means we the main drawback is that we will have a setup penalty on the order on one {\micro\second} for each session.\\
+
+We decided on 128-bit keys because this is the smallest length defined by the NIST standard and is still higher than our required security level of 80 bits.
+
+\subsection{Hash Function}
+
+We focused on two hash functions: the SHA-2 family and RIPEMD-160. We decided not to look at SHA-3 because from \url{http://bench.cr.yp.to/graph-sha3/long.png} (Keccak was chosen by NIST to become SHA-3) we learned that the performance is roughly the same as for the SHA-2 family, but with longer hashes. However, our application does not benefit from this (to achieve the 80-bit security, we need 160-bit hashes).\\
+
+Again using the benchmark from \textit{Crypto++} we compared SHA-256 to RIPEMD-160 in terms of performance. Both offer roughly the same speeds, so the main advantage RIPEMD-160 has is the fact that's the hash is a bit shorter, leaving more room for data in the packet.\\
+
+In the implementation phase, we try to build a generic interface to the hashing functions so that we can switch out the algorithms and compare performances. However, we will start out our implementation with SHA-2 because it is a widely used and popular hash function.
+
+\subsection{Data Packet}
+
+\begin{table}[h]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & SEQ NR & LENGTH & DATA & MAC \\ \hline
+            1B & 4B & 2B & (1) & 32B (2) \\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Data Packet}
+\end{table}
+
+\begin{itemize}
+  \item (1) The length depends on what the speech groups tell us. The larger the packet, the bigger the influence of a dropped packet on the received audio, so this is a limiting factor. A good reference is the size of an Ethernet frame, which is 1500 bytes (for the entire packet).
+  \item (2) For the MAC, we will calculate the keyed hash of the entire packet (except for the MAC field, of course). The size of this hash will depend on the chosen algorithm. As we discussed earlier, we are currently looking at RIPEMD-160 and SHA-2. To accomodate for both algorithms, we will decided on a 32-byte field (the size of the SHA hash, which is the largest). 
+\end{itemize}
+
+\textcolor{red}{@TODO} The SEQ NR is a 32-bit counter so that it will not be likely that there is wrap-around in a single session.\\
+
+We note that it might be possible that we will not even need the length field at all. If the speech buffer is always full when we send the packet, the length will be constant and the receiving side can use this information. In this situation, the packet rate is not constant. However, if the data length is variable (for example because we send packets at a constant rate, regardless of whether or not we have a full buffer), the length field will be required to signal to the receiver how much data is present in the packet.
+
+\end{document}
