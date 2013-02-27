@@ -24,22 +24,73 @@
 
 \section{Key Exchange and Authentication}
 
-\begin{table}[h]
+\begin{table}[H]
     \begin{center}
         \begin{tabular}{| c | c | c | c | c |}
             \hline
-            TAG & SEQ NR & LENGTH & KEY + SIGNATURE \\ \hline
-            1B & 4B & 1B & 128B + 32B (1) \\
+            TAG & SEQ NR & KEY & SIGNATURE \\ \hline
+            1B & 4B & 256B & 20B \\
             \hline
         \end{tabular}
     \end{center}
     
-    \caption{Data Packet}
+    \caption{Key Exchange Packet}
+    \label{tab:key_exchange_packet}
+\end{table}
+
+\section{Protocol Messages}
+In the Station-to-Station protocol 3 messages will be exchanged between the two DSPs:
+
+\begin{enumerate}
+ \item DSP A generates a random number x and then sends $\alpha^x mod p$ to DSP B. This is shown in \ref{tab:key_exchange_packet_senderhello}.
+ \item DSP B generates a random number y and sends $\alpha^y mod p$ to DSP A. B signs the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of B. This is shown in \ref{tab:key_exchange_packet_receiverhello}.
+ \item DSP A acknowledges the message from DSP B by sending its signature to DSP B. This signature is obtained by the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of A. This is shown in \ref{tab:key_exchange_packet_senderacknowledge}.
+\end{enumerate}
+This procedure is safe because DSP A and DSP B know both their own random generated number and factorisation of large primes is a computationally intensive task. As alpha to the power of the other random number is sent, both DSPs are able to calculate $\left(alpha^{x}\right)^{y}$ mod $p = \left(alpha^{y}\right)^{x}$ mod $p$. These calculations are used as the shared key.
+
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & KEY & SIGNATURE \\ \hline
+            0x00 & $\alpha^x mod p$ & \\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Key Exchange Packet -- SenderHello}
+    \label{tab:key_exchange_packet_senderhello}
+\end{table}
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & KEY & SIGNATURE \\ \hline
+            0x01 & $\alpha^y mod p$ & HMAC($\alpha^y \big| \alpha^x$)\\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Key Exchange Packet -- ReceiverHello}
+    \label{tab:key_exchange_packet_receiverhello}
+\end{table}
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & KEY & SIGNATURE \\ \hline
+            0x02 & $\alpha^y mod p$ & HMAC($\alpha^x \big| \alpha^y$)\\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Key Exchange Packet -- SenderAcknowledge}
+    \label{tab:key_exchange_packet_senderacknowledge}
 \end{table}
 
 \section{Key Derivation}
 
-The result of the STS function is a very long key. The length of this key will be 2048 bit. To shorten this key with enough randomness, it is used as the input of a hash function. The result of the hash function is then truncated to obtain a shorter more useable key.\\
+The result of the STS protocol is a very long key that is shared between both DSPs. The length of this key will be 2048 bit. To shorten this key with enough randomness, it is used as the input of a hash function. The result of the hash function is then truncated to obtain a shorter more useable key.\\
 
 SHA-3 will be used for the Hash function. The resulting keys will consequently be 512 or 1024 bits long. For performance reasons the 512 bit version is prefered. This 512 bit key is then split in four equal parts of 128 bits. The first 128 bits sequence corresponds to the first key. The second 128 bits sequence corresponds to the second key.\\
 
@@ -67,22 +118,23 @@ The input key $k$ has a required length of 80 bits. The two padding strings $p_1
 
 \subsection{Data Packet}
 
-\begin{table}[h]
+\begin{table}[H]
     \begin{center}
         \begin{tabular}{| c | c | c | c | c |}
             \hline
             TAG & SEQ NR & LENGTH & DATA & HMAC \\ \hline
-            1B & 4B & 2B & (1) & 20B (2) \\
+            1B (1) & 4B & 2B & (2) & 20B (3) \\
             \hline
         \end{tabular}
     \end{center}
     
     \caption{Data Packet}
+    \label{tab:data_packet}
 \end{table}
 
 \begin{itemize}
-  \item (1) The length depends on what the speech groups tell us. The larger the packet, the bigger the influence of a dropped packet on the received audio, so this is a limiting factor. A good reference is the size of an Ethernet frame, which is 1500 bytes (for the entire packet).
-  \item (2) For the HMAC, we will calculate the keyed hash of the entire packet (except for the HMAC field itself, of course). We will use a keyed SHA-3 hash here as well, truncated to 20 bytes which is the minimum required length for 80-bit security.
+  \item (2) The length depends on what the speech groups tell us. The larger the packet, the bigger the influence of a dropped packet on the received audio, so this is a limiting factor. A good reference is the size of an Ethernet frame, which is 1500 bytes (for the entire packet).
+  \item (3) For the HMAC, we will calculate the keyed hash of the entire packet (except for the HMAC field itself, of course). We will use a keyed SHA-3 hash here as well, truncated to 20 bytes which is the minimum required length for 80-bit security.
 \end{itemize}
 
 The SEQ NR is a 32-bit counter so that it will not be likely that there is wrap-around in a single session. The duration of the session obviously depends on the length of the complete packet as well. If a 1000 bytes frame would be used, this would correspond to a duration of 0.26 seconds. Using a 32-bit counter would then correspond to a session duration of several days. The maximum size of the sequence number is recommended to be 32-bit as it is the maximum workable word size to create counters in. A bigger sequence number would require a double which would make the code more bulky and the performance less efficient as every time 2 words need to be fetched.\\
