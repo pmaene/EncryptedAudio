@@ -34,7 +34,7 @@ Furthermore, this process is deterministic. So when we do the same operations on
 
 \subsection{Cipher Mode}
 
-The performance of several AES modes is listed on the following page: \url{http://www.cryptopp.com/benchmarks.html}. From this data and what we learned during the previous phase, we decided to use the CTR mode because it's the fastest. The set-up and IV initialisation times are a bit longer than for other modes, but this is not really a problem: the IV initilisation (which has to be redone for every packet) is neglible in this time. This means we the main drawback is that we will have a setup penalty on the order on one {\micro\second} for each session.\\
+The performance of several AES modes is listed on the following page: \url{http://www.cryptopp.com/benchmarks.html}. These processors are not the DSPs we are going to use are not the ones mentioned on the benchmark page, but it gives an idea which algorithm has an intrinsic better performance. From this data and what we learned during the previous phase, we decided to use the CTR mode because it's the fastest. The set-up and IV initialisation times are a bit longer than for other modes, but this is not really a problem: the IV initilisation (which has to be redone for every packet) is neglible in this time. This means we the main drawback is that we will have a setup penalty on the order on one {\micro\second} for each session.\\
 
 We decided on 128-bit keys because this is the smallest length defined by the NIST standard and is still higher than our required security level of 80 bits.
 
@@ -66,7 +66,7 @@ In the implementation phase, we try to build a generic interface to the hashing 
   \item (2) For the MAC, we will calculate the keyed hash of the entire packet (except for the MAC field, of course). The size of this hash will depend on the chosen algorithm. As we discussed earlier, we are currently looking at RIPEMD-160 and SHA-2. To accomodate for both algorithms, we will decided on a 32-byte field (the size of the SHA hash, which is the largest). 
 \end{itemize}
 
-\textcolor{red}{@TODO} The SEQ NR is a 32-bit counter so that it will not be likely that there is wrap-around in a single session.\\
+The SEQ NR is a 32-bit counter so that it will not be likely that there is wrap-around in a single session. The duration of the session obviously depends on the length of the complete packet as well. If a 1000 bytes frame would be used, this would correspond to a duration of 0.26 seconds. Using a 32-bit counter would then correspond to a session duration of several days. The maximum size of the sequence number is recommended to be 32-bit as it is the maximum workable word size to create counters in. A bigger sequence number would require a double which would make the code more bulky and the performance less efficient as every time 2 words need to be fetched.\\
 
 We note that it might be possible that we will not even need the length field at all. If the speech buffer is always full when we send the packet, the length will be constant and the receiving side can use this information. In this situation, the packet rate is not constant. However, if the data length is variable (for example because we send packets at a constant rate, regardless of whether or not we have a full buffer), the length field will be required to signal to the receiver how much data is present in the packet.
 
