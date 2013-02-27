@@ -55,11 +55,15 @@ We decided on 128-bit keys because this is the smallest length defined by the NI
 
 \subsection{HMAC}
 
-We use to following formula to calculate the HMAC.
+We define our SHA-3 based keyed hash function as in Equation~\ref{eq:hmac_sha3}. In this equation, $k$ is the key, $x$ the data that should be hashed and $p_1$ and $p_2$ are padding strings.
 
-\subsubsection{Hash Function}
+\begin{equation} \label{eq:hmac_sha3}
+    \text{HMAC-SHA3}(k, x) = \text{SHA3}(k | p_1 | \text{SHA3}(k | p_2 | x))
+\end{equation}
 
+A benchmark\footnote{\url{http://bench.cr.yp.to/graph-sha3/long.png}} of the different SHA-3 finalists reveals that Keccak---the winner of the competition---has rouhgly the same performance as SHA-2. However, the produced hashes are twice as long. This is the main reason we chose this hashing function.\\
 
+The input key $k$ has a required length of 80 bits. The two padding strings $p_1$ and $p_2$ are required to 
 
 \subsection{Data Packet}
 
