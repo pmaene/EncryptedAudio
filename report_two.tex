@@ -24,6 +24,19 @@
 
 \section{Key Exchange and Authentication}
 
+\begin{table}[h]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & SEQ NR & LENGTH & KEY + SIGNATURE \\ \hline
+            1B & 4B & 1B & 128B + 32B (1) \\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Data Packet}
+\end{table}
+
 \section{Key Derivation}
 
 STS will result in a long RSA key at both sides (because RSA is based on the factorisation of large primes). However, for AES and the hash-functions, we need keys that are a lot shorter. To find these, we can simply chop the long RSA key in two and subsequently hash these two parts using a non-keyed hash function. In doing this, we obtain two shorter keys that are derived from the longer one. Because hashing is a one-way process, it will be impossible to reconstruct the negotiated session key from the derived keys.\\
@@ -38,13 +51,13 @@ The performance of several AES modes is listed on the following page: \url{http:
 
 We decided on 128-bit keys because this is the smallest length defined by the NIST standard and is still higher than our required security level of 80 bits.
 
-\subsection{Hash Function}
+\subsection{HMAC}
 
-We focused on two hash functions: the SHA-2 family and RIPEMD-160. We decided not to look at SHA-3 because from \url{http://bench.cr.yp.to/graph-sha3/long.png} (Keccak was chosen by NIST to become SHA-3) we learned that the performance is roughly the same as for the SHA-2 family, but with longer hashes. However, our application does not benefit from this (to achieve the 80-bit security, we need 160-bit hashes).\\
+We use to following formula to calculate the HMAC.
 
-Again using the benchmark from \textit{Crypto++} we compared SHA-256 to RIPEMD-160 in terms of performance. Both offer roughly the same speeds, so the main advantage RIPEMD-160 has is the fact that's the hash is a bit shorter, leaving more room for data in the packet.\\
+\subsubsection{Hash Function}
 
-In the implementation phase, we try to build a generic interface to the hashing functions so that we can switch out the algorithms and compare performances. However, we will start out our implementation with SHA-2 because it is a widely used and popular hash function.
+
 
 \subsection{Data Packet}
 
@@ -52,8 +65,8 @@ In the implementation phase, we try to build a generic interface to the hashing 
     \begin{center}
         \begin{tabular}{| c | c | c | c | c |}
             \hline
-            TAG & SEQ NR & LENGTH & DATA & MAC \\ \hline
-            1B & 4B & 2B & (1) & 32B (2) \\
+            TAG & SEQ NR & LENGTH & DATA & HMAC \\ \hline
+            1B & 4B & 2B & (1) & 20B (2) \\
             \hline
         \end{tabular}
     \end{center}
@@ -63,7 +76,7 @@ In the implementation phase, we try to build a generic interface to the hashing 
 
 \begin{itemize}
   \item (1) The length depends on what the speech groups tell us. The larger the packet, the bigger the influence of a dropped packet on the received audio, so this is a limiting factor. A good reference is the size of an Ethernet frame, which is 1500 bytes (for the entire packet).
-  \item (2) For the MAC, we will calculate the keyed hash of the entire packet (except for the MAC field, of course). The size of this hash will depend on the chosen algorithm. As we discussed earlier, we are currently looking at RIPEMD-160 and SHA-2. To accomodate for both algorithms, we will decided on a 32-byte field (the size of the SHA hash, which is the largest). 
+  \item (2) For the HMAC, we will calculate the keyed hash of the entire packet (except for the HMAC field itself, of course). We will use a keyed SHA-3 hash here as well, truncated to 20 bytes which is the minimum required length for 80-bit security.
 \end{itemize}
 
 The SEQ NR is a 32-bit counter so that it will not be likely that there is wrap-around in a single session. The duration of the session obviously depends on the length of the complete packet as well. If a 1000 bytes frame would be used, this would correspond to a duration of 0.26 seconds. Using a 32-bit counter would then correspond to a session duration of several days. The maximum size of the sequence number is recommended to be 32-bit as it is the maximum workable word size to create counters in. A bigger sequence number would require a double which would make the code more bulky and the performance less efficient as every time 2 words need to be fetched.\\
