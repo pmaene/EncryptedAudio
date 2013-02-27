@@ -39,7 +39,7 @@
 \end{table}
 
 \section{Protocol Messages}
-In the Station-to-Station protocol 3 messages will be exchanged between the two DSPs:
+In the Station-to-Station protocol three messages will be exchanged between the two DSPs:
 
 \begin{enumerate}
  \item DSP A generates a random number x and then sends $\alpha^x mod p$ to DSP B. This is shown in \ref{tab:key_exchange_packet_senderhello}.
@@ -112,9 +112,13 @@ We define our SHA-3 based keyed hash function as in Equation~\ref{eq:hmac_sha3}.
     \text{HMAC-SHA3}(k, x) = \text{SHA3}(k | p_1 | \text{SHA3}(k | p_2 | x))
 \end{equation}
 
-A benchmark\footnote{\url{http://bench.cr.yp.to/graph-sha3/long.png}} of the different SHA-3 finalists reveals that Keccak---the winner of the competition---has rouhgly the same performance as SHA-2. However, the produced hashes are twice as long. This is the main reason we chose this hashing function.\\
+A benchmark\footnote{\url{http://bench.cr.yp.to/graph-sha3/long.png}} of the different SHA-3 finalists reveals that Keccak---the winner of the competition---has roughly the same performance as SHA-2. We will use a 256-bit hash which is defined by the standard as given in Equation~\ref{eq:keccak_256}\footnote{\url{http://keccak.noekeon.org/Keccak-submission-3.pdf}}. In this expression, $r$ is the bitrate and $c$ the capacity (the algorithm's security parameter). ${\lfloor}{\ }{\rfloor}_n$ indicates a truncation to the first n bits.
 
-The input key $k$ has a required length of 80 bits. The two padding strings $p_1$ and $p_2$ are required to 
+\begin{equation} \label{eq:keccak_256}
+    {\lfloor}\text{Keccak}(r = 1088, c = 512){\rfloor}_{256}
+\end{equation}
+
+The input key $k$ has a required length of 80 bits. The two padding strings $p_1$ and $p_2$ are required to make sure our input data has the required length for one block of the hash function. Keccak requires a 10*1-padding pattern: a 1, followed by a number of zeroes (at most r-1) followed by a final 1.
 
 \subsection{Data Packet}
 
@@ -132,9 +136,12 @@ The input key $k$ has a required length of 80 bits. The two padding strings $p_1
     \label{tab:data_packet}
 \end{table}
 
+The data packet can be seen in Table~\ref{tab:data_packet}. We start by giving an explanation for the choices we made:
+
 \begin{itemize}
-  \item (2) The length depends on what the speech groups tell us. The larger the packet, the bigger the influence of a dropped packet on the received audio, so this is a limiting factor. A good reference is the size of an Ethernet frame, which is 1500 bytes (for the entire packet).
-  \item (3) For the HMAC, we will calculate the keyed hash of the entire packet (except for the HMAC field itself, of course). We will use a keyed SHA-3 hash here as well, truncated to 20 bytes which is the minimum required length for 80-bit security.
+    \item (1) We define the TAG for this packet to be 0x03.
+    \item (2) The length depends on what the speech groups tell us. The larger the packet, the bigger the influence of a dropped packet on the received audio, so this is a limiting factor. A good reference is the size of an Ethernet frame, which is 1500 bytes (for the entire packet).
+    \item (3) For the HMAC, we will calculate the keyed hash of the entire packet (except for the HMAC field itself, of course). We will use a keyed SHA-3 hash here as well, truncated to 20 bytes which is the minimum required length for 80-bit secur
 \end{itemize}
 
 The SEQ NR is a 32-bit counter so that it will not be likely that there is wrap-around in a single session. The duration of the session obviously depends on the length of the complete packet as well. If a 1000 bytes frame would be used, this would correspond to a duration of 0.26 seconds. Using a 32-bit counter would then correspond to a session duration of several days. The maximum size of the sequence number is recommended to be 32-bit as it is the maximum workable word size to create counters in. A bigger sequence number would require a double which would make the code more bulky and the performance less efficient as every time 2 words need to be fetched.\\
