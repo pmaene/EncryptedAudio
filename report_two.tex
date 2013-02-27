@@ -44,8 +44,9 @@ In the Station-to-Station protocol 3 messages will be exchanged between the two 
 \begin{enumerate}
  \item DSP A generates a random number x and then sends $\alpha^x mod p$ to DSP B. This is shown in \ref{tab:key_exchange_packet_senderhello}.
  \item DSP B generates a random number y and sends $\alpha^y mod p$ to DSP A. B signs the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of B. This is shown in \ref{tab:key_exchange_packet_receiverhello}.
- \item DSP A acknowledges the message from DSP B by sending $\alpha^y mod p$ to DSP B. This message is again signed by the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of A. This is shown in \ref{tab:key_exchange_packet_senderacknowledge}.
+ \item DSP A acknowledges the message from DSP B by sending its signature to DSP B. This signature is obtained by the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of A. This is shown in \ref{tab:key_exchange_packet_senderacknowledge}.
 \end{enumerate}
+This procedure is safe because DSP A and DSP B know both their own random generated number and factorisation of large primes is a computationally intensive task. As alpha to the power of the other random number is sent, both DSPs are able to calculate $\left(alpha^{x}\right)^{y}$ mod $p = \left(alpha^{y}\right)^{x}$ mod $p$. These calculations are used as the shared key.
 
 \begin{table}[H]
     \begin{center}
@@ -89,7 +90,7 @@ In the Station-to-Station protocol 3 messages will be exchanged between the two 
 
 \section{Key Derivation}
 
-The result of the STS function is a very long key. The length of this key will be 2048 bit. To shorten this key with enough randomness, it is used as the input of a hash function. The result of the hash function is then truncated to obtain a shorter more useable key.\\
+The result of the STS protocol is a very long key that is shared between both DSPs. The length of this key will be 2048 bit. To shorten this key with enough randomness, it is used as the input of a hash function. The result of the hash function is then truncated to obtain a shorter more useable key.\\
 
 SHA-3 will be used for the Hash function. The resulting keys will consequently be 512 or 1024 bits long. For performance reasons the 512 bit version is prefered. This 512 bit key is then split in four equal parts of 128 bits. The first 128 bits sequence corresponds to the first key. The second 128 bits sequence corresponds to the second key.\\
 
