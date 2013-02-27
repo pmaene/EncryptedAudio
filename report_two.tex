@@ -26,7 +26,7 @@
 
 \section{Key Derivation}
 
-STS will result in a long RSA key at bode sides (because RSA is based on the factorisation of large primes). However, for AES and the hash-functions, we need keys that are a lot shorter. To find these, we can simply chop the long RSA key in two and subsequently hash these two parts using a non-keyed hash function. In doing this, we obtain two shorter keys that are derived from the longer one. Because hashing is a one-way process, it will be impossible to reconstruct the negotiated session key from the derived keys.\\
+STS will result in a long RSA key at both sides (because RSA is based on the factorisation of large primes). However, for AES and the hash-functions, we need keys that are a lot shorter. To find these, we can simply chop the long RSA key in two and subsequently hash these two parts using a non-keyed hash function. In doing this, we obtain two shorter keys that are derived from the longer one. Because hashing is a one-way process, it will be impossible to reconstruct the negotiated session key from the derived keys.\\
 
 Furthermore, this process is deterministic. So when we do the same operations on the same negotiated session key at both the sender and receiver, we will obtain the same encryption and hashing keys. This is important, because otherwise it would be impossible to verify the identity or decrypt the received data.\\
 
