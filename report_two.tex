@@ -22,8 +22,6 @@
 \begin{document}
 \maketitle
 
-\section{Key Exchange and Authentication}
-
 \begin{table}[H]
     \begin{center}
         \begin{tabular}{| c | c | c | c | c |}
@@ -39,14 +37,14 @@
 \end{table}
 
 \section{Protocol Messages}
-In the Station-to-Station protocol three messages will be exchanged between the two DSPs:
+In the Station-to-Station protocol three messages will be exchanged between two DSPs. After this three-way handshake both DSPs will have enough information to calculate the symmetric key:
 
 \begin{enumerate}
  \item DSP A generates a random number $x$ and then sends $\alpha^x mod\ p$ to DSP B. This is shown in Table~\ref{tab:key_exchange_packet_senderhello}.
  \item DSP B generates a random number $y$ and sends $\alpha^y mod\ p$ to DSP A. B signs the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of B. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
  \item DSP A acknowledges the message from DSP B by sending its signature to DSP B. This signature is obtained by the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of A. This is shown in Table~\ref{tab:key_exchange_packet_senderacknowledge}.
 \end{enumerate}
-This procedure is safe because DSP A and DSP B know both their own random generated number and factorisation of large primes is a computationally intensive task. As $\alpha$ to the power of the other random number is sent, both DSPs are able to calculate $\left(\alpha^{x}\right)^{y}\mod{p} = \left(\alpha^{y}\right)^{x}\mod{p}$. These calculations are used as the shared key.
+This procedure works because DSP A and DSP B know both their own random generated number. It is safe because factorisation of large primes is a computationally intensive task. As $\alpha$ to the power of the other random number is sent, both DSPs are able to calculate $\left(\alpha^{x}\right)^{y}\mod{p} = \left(\alpha^{y}\right)^{x}\mod{p}$. The result of these calculations is used as the shared key.
 
 \begin{table}[H]
     \begin{center}
@@ -93,7 +91,7 @@ This procedure is safe because DSP A and DSP B know both their own random genera
 
 The result of the STS protocol is a very long key that is shared between both DSPs. The length of this key will be 2048 bit. To shorten this key with enough randomness, it is used as the input of a hash function. The result of the hash function is then truncated to obtain a shorter more useable key.\\
 
-SHA-3 will be used as the hash function. The resulting keys will be 256 bits long. This 256-bit key is then truncated to 128 bits to generate a useable key. We then hash the previous hash and truncate this one to 80 bits.\\
+SHA-3 will be used as the hash function. The resulting keys will be 256 bits long. This 256-bit key is then truncated to 128 bits to generate a useable key. The truncated 128 bits can be truncated again to 80 bits which will serve as the second key.\\
 
 The first key can then be used as the input for the AES encryption algorithm while the second key is used as the key for the keyed hash function to generate the MAC. The reason to use different keys for the encryption and the MAC is to avoid correlation between these parts of the packet.
 
@@ -101,9 +99,9 @@ The first key can then be used as the input for the AES encryption algorithm whi
 
 \subsection{Cipher Mode}
 
-The performance of several AES modes is listed on the following page: \url{http://www.cryptopp.com/benchmarks.html}. The DSPs we are going to use are not the ones mentioned on the benchmark page, but it gives an idea which algorithm has an intrinsically better performance. From this data and what we learned during the previous phase, we decided to use the CTR mode because it's the fastest. The set-up and IV initialisation times are a bit longer than for other modes, but this is not really a problem: the IV initilisation (which has to be redone for every packet) is neglible. This means the main drawback is that we will have a setup penalty on the order on one {\micro\second} for each session.\\
+Data packets will be encrypted using the AES algorithm. The performance of several AES modes is listed on the following page: \url{http://www.cryptopp.com/benchmarks.html}. The DSPs we are going to use are not the ones mentioned on the benchmark page, but it gives an idea which algorithm has an intrinsically better performance. From this data and what we learned during the previous phase, we decided to use the CTR mode because it's the fastest. The set-up and IV initialisation times are a bit longer than for other modes, but this is not really a problem: the IV initilisation (which has to be redone for every packet) is neglible. This means the main drawback is that we will have a setup penalty on the order on one {\micro\second} for each session.\\
 
-We decided on 128-bit keys because this is the smallest length defined by the NIST standard which is still higher than our required security level of 80 bits.
+We decided on 128-bit keys because this is the smallest length defined by the NIST standard which is still higher than our required security level of 80 bits. {\color{red}@TODO:We zeggen in de vorige paragraaf dat we toch wel 80 bits gebruiken?}
 
 \subsection{HMAC}
 
@@ -113,7 +111,7 @@ We define our SHA-3 based keyed hash function as given in Equation~\ref{eq:hmac_
     \text{HMAC-SHA3}(k, x) = \text{SHA3}(k | p_1 | \text{SHA3}(k | p_2 | x))
 \end{equation}
 
-A benchmark\footnote{\url{http://bench.cr.yp.to/graph-sha3/long.png}} of the different SHA-3 finalists reveals that Keccak---the winner of the competition---has roughly the same performance as SHA-2. We will use a 256-bit hash which is defined by the standard as given in Equation~\ref{eq:keccak_256}\footnote{\url{http://keccak.noekeon.org/Keccak-submission-3.pdf}}. In this expression, $r$ is the bitrate and $c$ the capacity (the algorithm's security parameter). ${\lfloor}{\ }{\rfloor}_n$ indicates a truncation to the first n bits.
+A benchmark \footnote{\url{http://bench.cr.yp.to/graph-sha3/long.png}} of the different SHA-3 finalists reveals that Keccak---the winner of the competition---has roughly the same performance as SHA-2. We will use a 256-bit hash which is defined by the standard as given in Equation~\ref{eq:keccak_256}\footnote{\url{http://keccak.noekeon.org/Keccak-submission-3.pdf}}. In this expression, $r$ is the bitrate and $c$ the capacity (the algorithm's security parameter). ${\lfloor}{\ }{\rfloor}_n$ indicates a truncation to the first n bits.
 
 \begin{equation} \label{eq:keccak_256}
     {\lfloor}\text{Keccak}(r = 1088, c = 512){\rfloor}_{256}
@@ -142,7 +140,7 @@ The data packet can be seen in Table~\ref{tab:data_packet}. We start by giving a
 \begin{itemize}
     \item (1) We define the TAG for this packet to be 0x03.
     \item (2) The length depends on what the speech groups tell us. The larger the packet, the bigger the influence of a dropped packet on the received audio, so this is a limiting factor. A good reference is the size of an Ethernet frame, which is 1500 bytes (for the entire packet).
-    \item (3) For the HMAC, we will calculate the keyed hash of the entire packet (except for the HMAC field itself, of course). We will use a keyed SHA-3 hash here as well, truncated to 20 bytes which is the minimum required length for 80-bit security.
+    \item (3) For the HMAC, we will calculate the keyed hash of the entire packet (except for the HMAC field itself, of course). This means that the AES encrypted packet will be used as an iput for the hash function.{\color{red}@TODO:is dit juist?} We will use a keyed SHA-3 hash here as well, truncated to 20 bytes which is the minimum required length for 80-bit security.
 \end{itemize}
 
 The SEQ NR is a 32-bit counter so that it will not be likely that there is wrap-around in a single session. The duration of the session obviously depends on the size of the packet as well. If a 1000 bytes frame would be used, this would correspond to a duration of 0.26 seconds. Using a 32-bit counter would then correspond to a session duration of several days. The maximum size of the sequence number is recommended to be 32-bit as it is the maximum workable word size most counters operate on. A bigger sequence number would require a double which would make the code more bulky and the performance less efficient as every time 2 words need to be fetched.\\
