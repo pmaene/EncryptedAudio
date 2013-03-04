@@ -41,8 +41,8 @@ In the Station-to-Station protocol three messages will be exchanged between two 
 
 \begin{enumerate}
  \item DSP A generates a random number $x$ and then sends $\alpha^x mod\ p$ to DSP B. This is shown in Table~\ref{tab:key_exchange_packet_senderhello}.
- \item DSP B generates a random number $y$ and sends $\alpha^y mod\ p$ to DSP A. B signs the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of B. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
- \item DSP A acknowledges the message from DSP B by sending its signature to DSP B. This signature is obtained by the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of A. This is shown in Table~\ref{tab:key_exchange_packet_senderacknowledge}.
+ \item DSP B generates a random number $y$ and sends $\alpha^y mod\ p$ to DSP A. B signs the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of B and then applying RSA on it. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
+ \item DSP A acknowledges the message from DSP B by sending its signature to DSP B. This signature is obtained by the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of A and then applying RSA on it.  This is shown in Table~\ref{tab:key_exchange_packet_senderacknowledge}. This last acknowledgement is the most fundamental part of the STS protocol as DSP A can only acknowledge DSP B if it has sucessfully decrypted everything.
 \end{enumerate}
 \begin{center}
   \texttt{ \\
@@ -55,7 +55,7 @@ In the Station-to-Station protocol three messages will be exchanged between two 
   }
 \end{center}
 
-This procedure works because DSP A and DSP B know both their own random generated number. It is safe because factorisation of large primes is a computationally intensive task. As $\alpha$ to the power of the other random number is sent, both DSPs are able to calculate $\left(\alpha^{x}\right)^{y}\mod{p} = \left(\alpha^{y}\right)^{x}\mod{p}$. The result of these calculations is used as the shared key.
+This procedure works because DSP A and DSP B know both their own random generated number. It is safe because factorisation of the product of large primes is a computationally intensive task. As $\alpha$ to the power of the other random number is sent, both DSPs are able to calculate $\left(\alpha^{x}\right)^{y}\mod{p} = \left(\alpha^{y}\right)^{x}\mod{p}$. The result of these calculations is used as the shared key.
 
 \begin{table}[H]
     \begin{center}
