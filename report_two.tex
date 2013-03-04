@@ -91,9 +91,9 @@ This procedure works because DSP A and DSP B know both their own random generate
 
 The result of the STS protocol is a very long key that is shared between both DSPs. The length of this key will be 2048 bit. To shorten this key with enough randomness, it is used as the input of a hash function. The result of the hash function is then truncated to obtain a shorter more useable key.\\
 
-SHA-3 will be used as the hash function. The resulting keys will be 256 bits long. This 256-bit key is then truncated to 128 bits to generate a useable key. The truncated 128 bits can be truncated again to 80 bits which will serve as the second key.\\
+SHA-3 will be used as the hash function. The resulting keys will be 256 bits long. This 256-bit key is then truncated to 128 bits to generate a useable key. The other 128 bits will serve as the second key.\\
 
-The first key (128-bit) will be used as the input for the AES encryption algorithm while the second key (80-bit) is used as the key for the keyed hash function to generate the MAC. The reason to use different keys for the encryption and the MAC is to avoid correlation between these parts of the packet.
+The first key will be used as the input for the AES encryption algorithm while the second key is used as the key for the keyed hash function to generate the MAC. The reason to use different keys for the encryption and the MAC is to avoid correlation between these parts of the packet.
 
 \section{Confidentiality and Integrity}
 
