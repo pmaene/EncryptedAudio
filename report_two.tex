@@ -37,7 +37,7 @@
 \end{table}
 
 \section{Protocol Messages}
-In the Station-to-Station protocol three messages will be exchanged between two DSPs. After this three-way handshake both DSPs will have enough information to calculate the symmetric key:
+In the Station-to-Station protocol three messages will be exchanged between two DSPs. Table~\ref{tab:key_exchange_packet} shows the general layout used for all key exchange packets. After this three-way handshake both DSPs will have enough information to calculate the symmetric key:
 
 \begin{enumerate}
  \item DSP A generates a random number $x$ and then sends $\alpha^x mod\ p$ to DSP B. This is shown in Table~\ref{tab:key_exchange_packet_senderhello}.
@@ -64,7 +64,7 @@ This procedure works because DSP A and DSP B know both their own random generate
         \begin{tabular}{| c | c | c | c | c |}
             \hline
             TAG & KEY & SIGNATURE \\ \hline
-            0x01 & $\alpha^y\mod{p}$ & HMAC-SHA3($\alpha^y \big| \alpha^x$)\\
+            0x01 & $\alpha^y\mod{p}$ & $\left(\text{SHA3}\left(\alpha^y \big| \alpha^x \big| \text{padding} \right)\right)^{d_R}\mod{n_R}}$\\
             \hline
         \end{tabular}
     \end{center}
@@ -77,7 +77,7 @@ This procedure works because DSP A and DSP B know both their own random generate
         \begin{tabular}{| c | c | c | c | c |}
             \hline
             TAG & KEY & SIGNATURE \\ \hline
-            0x02 & $\alpha^y\mod{p}$ & HMAC-SHA3($\alpha^x \big| \alpha^y$)\\
+            0x02 & $\alpha^y\mod{p}$ & $\left(\text{SHA3}\left(\alpha^x \big| \alpha^y \big| \text{padding} \right)\right)^{d_S}\mod{n_S}}$\\
             \hline
         \end{tabular}
     \end{center}
@@ -117,7 +117,7 @@ A benchmark \footnote{\url{http://bench.cr.yp.to/graph-sha3/long.png}} of the di
     {\lfloor}\text{Keccak}(r = 1088, c = 512){\rfloor}_{256}
 \end{equation}
 
-The input key $k$ has a length of 80 bits (see Paragraph~\ref{sec:key_derivation}). The two padding strings $p_1$ and $p_2$ are required to make sure our input data has the required length for one block of the hash function. Keccak requires a 10*1-padding pattern: a 1, followed by a number of zeroes (at most r-1) followed by a final 1.
+The input key $k$ has a length of 128 bits (see Paragraph~\ref{sec:key_derivation}). The two padding strings $p_1$ and $p_2$ are required to make sure our input data has the required length for one block of the hash function. Keccak requires a 10*1-padding pattern: a 1, followed by a number of zeroes (at most r-1) followed by a final 1.
 
 \subsection{Data Packet}
 
