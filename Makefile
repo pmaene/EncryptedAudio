@@ -2,8 +2,7 @@ CC=gcc
 CFLAGS=-Wall
 CFILES=
 
-all: encryption
+all: crypto
 
-encrypion: $(CFILES)
-           $(CC) $(CFILES) $^ -o $@
-
+crypto:	$(CFILES)
+	$(CC) $(CFLAGS) $^ -o $@
