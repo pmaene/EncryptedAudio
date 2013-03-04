@@ -44,6 +44,17 @@ In the Station-to-Station protocol three messages will be exchanged between two 
  \item DSP B generates a random number $y$ and sends $\alpha^y mod\ p$ to DSP A. B signs the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of B. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
  \item DSP A acknowledges the message from DSP B by sending its signature to DSP B. This signature is obtained by the concatenation of both exponentials by calculating the HMAC based on the asymmetric key of A. This is shown in Table~\ref{tab:key_exchange_packet_senderacknowledge}.
 \end{enumerate}
+\begin{center}
+  \texttt{ \\
+  DSP A ---------> DSP B\\
+  SenderHello (Table~\ref{tab:key_exchange_packet_senderhello})\\
+  DSP A <--------- DSP B\\
+  ReceiverHello (Table~\ref{tab:key_exchange_packet_receiverhello})\\
+  DSP A ---------> DSP B\\
+  SenderAcknowledge (Table~\ref{tab:key_exchange_packet_senderacknowledge})\\
+  }
+\end{center}
+
 This procedure works because DSP A and DSP B know both their own random generated number. It is safe because factorisation of large primes is a computationally intensive task. As $\alpha$ to the power of the other random number is sent, both DSPs are able to calculate $\left(\alpha^{x}\right)^{y}\mod{p} = \left(\alpha^{y}\right)^{x}\mod{p}$. The result of these calculations is used as the shared key.
 
 \begin{table}[H]
@@ -64,7 +75,7 @@ This procedure works because DSP A and DSP B know both their own random generate
         \begin{tabular}{| c | c | c | c | c |}
             \hline
             TAG & KEY & SIGNATURE \\ \hline
-            0x01 & $\alpha^y\mod{p}$ & $\left(\text{SHA3}\left(\alpha^y \big| \alpha^x \big| \text{padding} \right)\right)^{d_R}\mod{n_R}}$\\
+            0x01 & $\alpha^y\mod{p}$ & $\left(\text{SHA3}\left(\alpha^y \big| \alpha^x \big| \text{padding} \right)\right)^{d_R}\mod{n_R}$\\
             \hline
         \end{tabular}
     \end{center}
@@ -77,7 +88,7 @@ This procedure works because DSP A and DSP B know both their own random generate
         \begin{tabular}{| c | c | c | c | c |}
             \hline
             TAG & KEY & SIGNATURE \\ \hline
-            0x02 & $\alpha^y\mod{p}$ & $\left(\text{SHA3}\left(\alpha^x \big| \alpha^y \big| \text{padding} \right)\right)^{d_S}\mod{n_S}}$\\
+            0x02 & $\alpha^y\mod{p}$ & $\left(\text{SHA3}\left(\alpha^x \big| \alpha^y \big| \text{padding} \right)\right)^{d_S}\mod{n_S}$\\
             \hline
         \end{tabular}
     \end{center}
