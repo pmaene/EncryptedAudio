@@ -7,4 +7,3 @@ all: encryption
 encrypion: $(CFILES)
            $(CC) $(CFILES) $^ -o $@
 
-
