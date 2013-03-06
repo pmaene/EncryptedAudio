@@ -31,19 +31,22 @@ const unsigned char     Enc_Prime[ENC_KEY_CHARS] =
 const unsigned char Enc_PublicExp[ENC_KEY_CHARS] =
     "\x01\x00\x01";
 
-void senderHello(word_t *sendPacket) {
-    sendPacket[0] = 0x01;
+void senderHello(field_t *sendPacket) {
+	char i;
+	digit_t prime[ENC_KEY_DIGITS];
+	digit_t senderKey[32];
 
-    DIGIT_T prime[ENC_KEY_DIGITS];
     mpConvFromOctets(prime, ENC_KEY_DIGITS, Enc_Prime, ENC_KEY_CHARS);
-    mpPrintNL(prime, ENC_KEY_DIGITS);
+
+    for (i = 0; i < 32; i++)
+    	senderKey[i] = spSimpleRand(0, MAX_DIGIT);
 }
 
-void receiverHello(word_t *sendPacket, word_t *receivedPacket) {
+void receiverHello(field_t *sendPacket, field_t *receivedPacket) {
 }
 
-void senderAcknowledge(word_t *sendPacket, word_t *receivedPacket) {
+void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket) {
 }
 
-void sendData(word_t *sendPacket) {
+void sendData(field_t *sendPacket) {
 }

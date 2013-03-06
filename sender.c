@@ -27,6 +27,6 @@ const unsigned char Enc_SenderPrivateExp[ENC_KEY_CHARS] =
 	"\x4f\x85\x17\x63\xce\xf1\x7a\xe6\xb1\xde\xb0\xb9\x65\xfd\x2a"
 	"\x83\xeb\x6d\xf6\x5a\x41";
 
-void sender_senderHello(word_t *sendPacket) {
+void sender_senderHello(field_t *sendPacket) {
     senderHello(sendPacket);
 }

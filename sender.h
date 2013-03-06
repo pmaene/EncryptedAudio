@@ -3,6 +3,6 @@
 
 #include "protocol.h"
 
-void sender_senderHello(word_t *sendPacket);
+void sender_senderHello(field_t *sendPacket);
 
 #endif

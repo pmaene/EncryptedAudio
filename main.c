@@ -4,7 +4,7 @@
 #include "sender.h"
 
 int main() {
-    word_t senderKeyExchangePacket[ENC_KEY_PACKET_SIZE];
+    field_t senderKeyExchangePacket[ENC_KEY_PACKET_SIZE];
     sender_senderHello(senderKeyExchangePacket);
 
     exit(EXIT_SUCCESS);
