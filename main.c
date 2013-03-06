@@ -6,14 +6,13 @@
 int main() {
     short i = 0;
 
-    printf("- Key Exchange\n\n");
-    printf("-- sender_senderHello\n");
+    printf("# Key Exchange\n\n");
 
-    field_t senderKeyExchangePacket[ENC_KEY_PACKET_SIZE];
+    field_t senderKeyExchangePacket[ENC_KEY_PACKET_CHARS];
     sender_senderHello(senderKeyExchangePacket);
 
-    printf("--- senderKeyExchangePacket\n");
-    for (i = 0; i < ENC_KEY_PACKET_SIZE; i++)
+    printf("-| senderKeyExchangePacket\n");
+    for (i = 0; i < ENC_KEY_PACKET_CHARS; i++)
         printf("%x", senderKeyExchangePacket[i]);
 
     printf("\n\n");
