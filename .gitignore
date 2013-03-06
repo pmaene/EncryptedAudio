@@ -13,3 +13,6 @@
 *.log
 *.out
 *.pdf
+
+# Ignore comipiled binaries
+main

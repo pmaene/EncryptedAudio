@@ -3,5 +3,5 @@ CFLAGS=-Wall
 
 all:	main
 
-main:	main.c
+main:	main.c protocol.c receiver.c sender.c
 	$(CC) $(CFLAGS) $^ -o $@
