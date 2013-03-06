@@ -6,7 +6,7 @@
 int main() {
     word_t senderKeyExchangePacket[ENC_KEY_PACKET_SIZE];
     sender_senderHello(senderKeyExchangePacket);
-    printf("%d\n", senderKeyExchangePacket[0]);
+    printf("%x\n", senderKeyExchangePacket[0]);
 
     exit(EXIT_SUCCESS);
 }

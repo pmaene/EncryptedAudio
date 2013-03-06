@@ -1,8 +1,12 @@
-# OS X is not nice
-.DS_Store
+# Do not version SublimeText's configuration and workspace
+*.sublime-project
+*.sublime-workspace
 
-# Irritating GEdit files
+# Gedit isn't very nice
 *~
+
+# Exclude the custom folder attributes file
+.DS_Store
 
 # Do not version temporary LaTeX files
 .texpadtmp/

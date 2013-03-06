@@ -48,7 +48,7 @@ typedef uint16_t HALF_DIGIT_T;
 	Only applicable to mp functions. Do not use with bd.
 */
 /* Specify the maximum number of digits allowed in a temp mp array
-   -- ignored unless NO_ALLOCS is defined */ 
+   -- ignored unless NO_ALLOCS is defined */
 #ifdef NO_ALLOCS
 #define MAX_FIXED_DIGITS (8192 / BITS_PER_DIGIT)
 #endif
@@ -56,7 +56,7 @@ typedef uint16_t HALF_DIGIT_T;
 /**** END OF USER CONFIGURABLE SECTION ****/
 
 /**** OPTIONAL PREPROCESSOR DEFINITIONS ****/
-/* 
+/*
    Choose one of:
    USE_SPASM: to use the faster ASM routines (if __asm option is available with your compiler).
    USE_64WITH32: to use the 64-bit integers if available (e.g. long long).
@@ -87,8 +87,8 @@ extern "C" {
 volatile char *copyright_notice(void);
 	/* Forces linker to include copyright notice in executable */
 
-/*	
- * Multiple precision calculations	
+/*
+ * Multiple precision calculations
  * Using known, equal ndigits
  * except where noted
 */
@@ -104,17 +104,17 @@ DIGIT_T mpSubtract(DIGIT_T w[], const DIGIT_T u[], const DIGIT_T v[], size_t ndi
 	/* Computes w = u - v, returns borrow */
 
 int mpMultiply(DIGIT_T w[], const DIGIT_T u[], const DIGIT_T v[], size_t ndigits);
-	/* Computes product w = u * v 
+	/* Computes product w = u * v
 	   u, v = ndigits long; w = 2 * ndigits long */
 
-int mpDivide(DIGIT_T q[], DIGIT_T r[], const DIGIT_T u[], 
+int mpDivide(DIGIT_T q[], DIGIT_T r[], const DIGIT_T u[],
 	size_t udigits, DIGIT_T v[], size_t vdigits);
-	/* Computes quotient q = u / v and remainder r = u mod v 
+	/* Computes quotient q = u / v and remainder r = u mod v
 	   q, r, u = udigits long; v = vdigits long
 	   Warning: Trashes q and r first */
 
 int mpModulo(DIGIT_T r[], const DIGIT_T u[], size_t udigits, DIGIT_T v[], size_t vdigits);
-	/* Computes r = u mod v 
+	/* Computes r = u mod v
 	   u = udigits long; r, v = vdigits long */
 
 int mpSquare(DIGIT_T w[], const DIGIT_T x[], size_t ndigits);
@@ -232,11 +232,11 @@ size_t mpSizeof(const DIGIT_T a[], size_t ndigits);
 	/* Returns size i.e. number of significant non-zero digits in a */
 
 int mpIsPrime(DIGIT_T w[], size_t ndigits, size_t t);
-	/* Returns true if w > 2 is a probable prime 
+	/* Returns true if w > 2 is a probable prime
 	   t tests using FIPS-186-2/Rabin-Miller */
 
 int mpRabinMiller(DIGIT_T w[], size_t ndigits, size_t t);
-	/* Just the FIPS-186-2/Rabin-Miller test 
+	/* Just the FIPS-186-2/Rabin-Miller test
 	   without trial division by small primes */
 
 /**********************************************/
@@ -266,7 +266,7 @@ int mpShortCmp(const DIGIT_T a[], DIGIT_T d, size_t ndigits);
 /* (double where necessary)           */
 /**************************************/
 
-/* NOTE spMultiply and spDivide are used by almost all mp functions. 
+/* NOTE spMultiply and spDivide are used by almost all mp functions.
 */
 
 int spMultiply(DIGIT_T p[2], DIGIT_T x, DIGIT_T y);
@@ -319,14 +319,14 @@ size_t mpConvFromDecimal(DIGIT_T a[], size_t ndigits, const char *s);
 	/* Convert a string in decimal format to a big digit.
 	   Return actual number of (possibly zero) digits set. */
 size_t mpConvToDecimal(const DIGIT_T a[], size_t ndigits, char *s, size_t smax);
-	/* Convert big digit a into a string in decimal format, 
+	/* Convert big digit a into a string in decimal format,
 	   where s has size smax including the terminating zero.
 	   Return number of chars required excluding leading zeroes. */
 size_t mpConvFromHex(DIGIT_T a[], size_t ndigits, const char *s);
 	/* Convert a string in hexadecimal format to a big digit.
 	   Return actual number of (possibly zero) digits set. */
 size_t mpConvToHex(const DIGIT_T a[], size_t ndigits, char *s, size_t smax);
-	/* Convert big digit a into a string in hexadecimal format, 
+	/* Convert big digit a into a string in hexadecimal format,
 	   where s has size smax including the terminating zero.
 	   Return number of chars required excluding leading zeroes. */
 
@@ -334,7 +334,7 @@ size_t mpConvToHex(const DIGIT_T a[], size_t ndigits, char *s, size_t smax);
 /* VERSION INFO */
 /****************/
 int mpVersion(void);
-	/* Returns version number = major*1000+minor*100+release*10+uses_asm(0|1)+uses_64(0|2)+uses_noalloc(0|5) 
+	/* Returns version number = major*1000+minor*100+release*10+uses_asm(0|1)+uses_64(0|2)+uses_noalloc(0|5)
 		 E.g. Version 2.3.0 will return 230x where x denotes the preprocessor options
 		 x | USE_SPASM | USE_64WITH32 | NO_ALLOCS
 		 ----------------------------------------

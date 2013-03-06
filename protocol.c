@@ -1,7 +1,7 @@
 #include "protocol.h"
 
 // Diffie-Hellman
-const unsigned char generator[ENC_KEY_DIGITS] =
+const char Enc_Generator[ENC_KEY_DIGITS] =
 	"\x82\xc1\x57\x1c\xf6\x8d\x59\xaa\xc1\x93\x67\xc7\xde\x23\x4b"
 	"\xe8\xc3\xb9\x20\xb8\x36\x2d\x21\xf5\x3e\x3c\x6b\xc8\x4e\xaa"
 	"\x5c\x54\x8d\x84\x88\x73\x3a\xc3\x27\x8b\xcf\x66\xe6\x35\xbe"
@@ -14,7 +14,7 @@ const unsigned char generator[ENC_KEY_DIGITS] =
 	"\x62\x5e\xc0\x33\x7d\xea\xe4\x70\xa6\x79\x9c\x05\x87\xbb\xed"
 	"\x9a\xcc\xf1\x0d\xf0\x8b";
 
-const unsigned char prime[ENC_KEY_DIGITS] =
+const char     Enc_Prime[ENC_KEY_DIGITS] =
 	"\xd0\xa8\x73\x80\x04\xa3\x5f\x3d\x10\xf9\x34\x92\x24\xcc\x66"
 	"\xb8\xdf\x41\x6e\x9b\x8a\x09\x79\x4d\x69\x35\xf7\x12\xa3\x32"
 	"\x46\xc6\x43\x51\xef\x3b\xdb\xad\x21\xcb\xf7\x54\x52\x56\x20"
@@ -28,11 +28,14 @@ const unsigned char prime[ENC_KEY_DIGITS] =
 	"\x6b\x03\xc7\x98\xac\x43";
 
 // RSA
-const char            PublicExp[ENC_KEY_DIGITS] =
+const char Enc_PublicExp[ENC_KEY_DIGITS] =
     "\x01\x00\x01";
 
 void senderHello(word_t *sendPacket) {
     sendPacket[0] = 0x01;
+
+    DIGIT_T prime[ENC_KEY_DIGITS];
+    mpConvFromHex(prime, ENC_KEY_DIGITS, Enc_Prime);
 }
 
 void receiverHello(word_t *sendPacket, word_t *receivedPacket) {
@@ -43,4 +46,3 @@ void senderAcknowledge(word_t *sendPacket, word_t *receivedPacket) {
 
 void sendData(word_t *sendPacket) {
 }
-

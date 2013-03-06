@@ -27,8 +27,8 @@ This notice must always be retained in any copy.
 #include "bigdigits.h"
 
 /* For debugging - these are NOOPs */
-#define DPRINTF0(s) 
-#define DPRINTF1(s, a1) 
+#define DPRINTF0(s)
+#define DPRINTF1(s, a1)
 
 /***************************************/
 /* VERSION NUMBERS - USED IN MPVERSION */
@@ -114,7 +114,7 @@ void mpFree(DIGIT_T **p)
 /* Force linker to include copyright notice in executable object image */
 volatile char *copyright_notice(void)
 {
-	return 
+	return
 "Contains multiple-precision arithmetic code originally written by David Ireland,"
 " copyright (c) 2001-11 by D.I. Management Services Pty Limited <www.di-mgt.com.au>,"
 " and is used with permission.";
@@ -122,9 +122,9 @@ volatile char *copyright_notice(void)
 
 /* To use, include this statement somewhere in the final code:
 
-	copyright_notice();	
-	
-It has no real effect at run time. 
+	copyright_notice();
+
+It has no real effect at run time.
 Thanks to Phil Zimmerman for this idea.
 */
 
@@ -143,7 +143,7 @@ int mpVersion(void)
 
 /* [v2.2] Moved these functions into main file
 	and added third option using 64-bit arithmetic if available.
-OPTIONS: 
+OPTIONS:
 1. define USE_64WITH32 to use 64-bit types on a 32-bit machine; or
 2. define USE_SPASM to use Intel ASM (32-bit Intel compilers with __asm support); or
 3. use default "long" calculations (any platform)
@@ -253,7 +253,7 @@ int spMultiply(DIGIT_T p[2], DIGIT_T x, DIGIT_T y)
 
 static void spMultSub(DIGIT_T uu[2], DIGIT_T qhat, DIGIT_T v1, DIGIT_T v0)
 {
-	/*	Compute uu = uu - q(v1v0) 
+	/*	Compute uu = uu - q(v1v0)
 		where uu = u3u2u1u0, u3 = 0
 		and u_n, v_n are all half-digits
 		even though v1, v2 are passed as full digits.
@@ -295,7 +295,7 @@ DIGIT_T spDivide(DIGIT_T *q, DIGIT_T *r, const DIGIT_T u[2], DIGIT_T v)
 		*q = *r = 0;
 		return MAX_DIGIT;
 	}
-	
+
 	/* Split up into half-digits */
 	v0 = LOHALF(v);
 	v1 = HIHALF(v);
@@ -307,7 +307,7 @@ DIGIT_T spDivide(DIGIT_T *q, DIGIT_T *r, const DIGIT_T u[2], DIGIT_T v)
 	/* Do three rounds of Knuth Algorithm D Vol 2 p272 */
 
 	/*	ROUND 1. Set j = 2 and calculate q2 */
-	/*	Estimate qhat = (u4u3)/v1  = 0 or 1 
+	/*	Estimate qhat = (u4u3)/v1  = 0 or 1
 		then set (u4u3u2) -= qhat(v1v0)
 		where u4 = 0.
 	*/
@@ -347,7 +347,7 @@ DIGIT_T spDivide(DIGIT_T *q, DIGIT_T *r, const DIGIT_T u[2], DIGIT_T v)
 	q2 = qhat;
 
 	/*	ROUND 2. Set j = 1 and calculate q1 */
-	/*	Estimate qhat = (u3u2) / v1 
+	/*	Estimate qhat = (u3u2) / v1
 		then set (u3u2u1) -= qhat(v1v0)
 	*/
 	t = uu[0];
@@ -364,8 +364,8 @@ DIGIT_T spDivide(DIGIT_T *q, DIGIT_T *r, const DIGIT_T u[2], DIGIT_T v)
 			qhat--;
 	}
 
-	/*	Multiply and subtract 
-		(u3u2u1)' = (u3u2u1) - qhat(v1v0)	
+	/*	Multiply and subtract
+		(u3u2u1)' = (u3u2u1) - qhat(v1v0)
 	*/
 	uu[1] = HIHALF(uu[0]);	/* (0u3) */
 	uu[0] = TOHIGH(LOHALF(uu[0])) | u1;	/* (u2u1) */
@@ -398,7 +398,7 @@ DIGIT_T spDivide(DIGIT_T *q, DIGIT_T *r, const DIGIT_T u[2], DIGIT_T v)
 			qhat--;
 	}
 
-	/*	Multiply and subtract 
+	/*	Multiply and subtract
 		(u2u1u0)" = (u2u1u0)' - qhat(v1v0)
 	*/
 	uu[1] = HIHALF(uu[0]);	/* (0u2) */
@@ -451,7 +451,7 @@ DIGIT_T mpAdd(DIGIT_T w[], const DIGIT_T u[], const DIGIT_T v[], size_t ndigits)
 			k = 1;
 		else
 			k = 0;
-		
+
 		w[j] += v[j];
 		if (w[j] < v[j])
 			k++;
@@ -488,7 +488,7 @@ DIGIT_T mpSubtract(DIGIT_T w[], const DIGIT_T u[], const DIGIT_T v[], size_t ndi
 			k = 1;
 		else
 			k = 0;
-		
+
 		w[j] -= v[j];
 		if (w[j] > MAX_DIGIT - v[j])
 			k++;
@@ -544,7 +544,7 @@ int mpMultiply(DIGIT_T w[], const DIGIT_T u[], const DIGIT_T v[], size_t ndigits
 
 				w[i+j] = t[0];
 				k = t[1];
-			}	
+			}
 			/* Step M5. Loop on i, set w_(j+m) = k */
 			w[j+m] = k;
 		}
@@ -704,7 +704,7 @@ int mpDivide(DIGIT_T q[], DIGIT_T r[], const DIGIT_T u[],
 	/* Step D2. Initialise j. Set j = m */
 	for (j = m; j >= 0; j--)
 	{
-		/* Step D3. Set Qhat = [(b.Uj+n + Uj+n-1)/Vn-1] 
+		/* Step D3. Set Qhat = [(b.Uj+n + Uj+n-1)/Vn-1]
 		   and Rhat = remainder */
 		qhatOK = 0;
 		t[1] = t[0];	/* This is Uj+n */
@@ -722,7 +722,7 @@ int mpDivide(DIGIT_T q[], DIGIT_T r[], const DIGIT_T u[],
 		}
 		/* [VERSION 2: Added extra test "qhat && "] */
 		if (qhat && !qhatOK && QhatTooBig(qhat, rhat, v[n-2], uu[j+n-2]))
-		{	/* If Qhat.Vn-2 > b.Rhat + Uj+n-2 
+		{	/* If Qhat.Vn-2 > b.Rhat + Uj+n-2
 			   decrease Qhat by one, increase Rhat by Vn-1
 			*/
 			qhat--;
@@ -790,7 +790,7 @@ int mpSquare(DIGIT_T w[], const DIGIT_T x[], size_t ndigits)
 	/* 2. For i from 0 to (t-1) do: */
 	for (i = 0; i < t; i++)
 	{
-		/* 2.1 (uv) = w_2i + x_i * x_i, w_2i = v, c = u 
+		/* 2.1 (uv) = w_2i + x_i * x_i, w_2i = v, c = u
 		   Careful, w_2i may be double-prec
 		*/
 		i2 = i << 1; /* 2*i */
@@ -813,7 +813,7 @@ int mpSquare(DIGIT_T w[], const DIGIT_T x[], size_t ndigits)
 		/* 2.2 for j from (i+1) to (t-1) do:
 		   (uv) = w_{i+j} + 2x_j * x_i + c,
 		   w_{i+j} = v, c = u,
-		   u is double-prec 
+		   u is double-prec
 		   w_{i+j} is dbl if [i+j] == cpos
 		*/
 		k = 0;
@@ -861,7 +861,7 @@ int mpSquare(DIGIT_T w[], const DIGIT_T x[], size_t ndigits)
 		/* 2.3 w_{i+t} = u */
 		w[i+t] = u[0];
 		/* remember overflow in w_{i+t} */
-		carry = u[1];	
+		carry = u[1];
 		cpos = i+t;
 	}
 
@@ -925,7 +925,7 @@ int mpIsZero(const DIGIT_T a[], size_t ndigits)
 
 size_t mpSizeof(const DIGIT_T a[], size_t ndigits)
 {	/* Returns size of significant digits in a */
-	
+
 	while(ndigits--)
 	{
 		if (a[ndigits] != 0)
@@ -960,7 +960,7 @@ size_t mpBitLength(const DIGIT_T d[], size_t ndigits)
 void mpSetEqual(DIGIT_T a[], const DIGIT_T b[], size_t ndigits)
 {	/* Sets a = b */
 	size_t i;
-	
+
 	for (i = 0; i < ndigits; i++)
 	{
 		a[i] = b[i];
@@ -976,7 +976,7 @@ volatile DIGIT_T mpSetZero(volatile DIGIT_T a[], size_t ndigits)
 
 	while (ndigits--)
 		a[ndigits] = 0;
-	
+
 	optdummy = *p;
 	return optdummy;
 }
@@ -984,7 +984,7 @@ volatile DIGIT_T mpSetZero(volatile DIGIT_T a[], size_t ndigits)
 void mpSetDigit(DIGIT_T a[], DIGIT_T d, size_t ndigits)
 {	/* Sets a = d where d is a single digit */
 	size_t i;
-	
+
 	for (i = 1; i < ndigits; i++)
 	{
 		a[i] = 0;
@@ -1017,7 +1017,7 @@ DIGIT_T mpShiftLeft(DIGIT_T a[], const DIGIT_T *b,
 		/* Call again to shift bits inside digits */
 		bits = shift % BITS_PER_DIGIT;
 		carry = b[ndigits-nw] << bits;
-		if (bits) 
+		if (bits)
 			carry |= mpShiftLeft(a, a, bits, ndigits);
 		return carry;
 	}
@@ -1028,7 +1028,7 @@ DIGIT_T mpShiftLeft(DIGIT_T a[], const DIGIT_T *b,
 
 	/* Construct mask = high bits set */
 	mask = ~(~(DIGIT_T)0 >> bits);
-	
+
 	y = BITS_PER_DIGIT - bits;
 	carry = 0;
 	for (i = 0; i < ndigits; i++)
@@ -1061,7 +1061,7 @@ DIGIT_T mpShiftRight(DIGIT_T a[], const DIGIT_T b[], size_t shift, size_t ndigit
 		/* Call again to shift bits inside digits */
 		bits = shift % BITS_PER_DIGIT;
 		carry = b[nw-1] >> bits;
-		if (bits) 
+		if (bits)
 			carry |= mpShiftRight(a, a, bits, ndigits);
 		return carry;
 	}
@@ -1073,7 +1073,7 @@ DIGIT_T mpShiftRight(DIGIT_T a[], const DIGIT_T b[], size_t shift, size_t ndigit
 	/* Construct mask to set low bits */
 	/* (thanks to Jesse Chisholm for suggesting this improved technique) */
 	mask = ~(~(DIGIT_T)0 << bits);
-	
+
 	y = BITS_PER_DIGIT - bits;
 	carry = 0;
 	i = ndigits;
@@ -1181,7 +1181,7 @@ void mpNotBits(DIGIT_T a[], const DIGIT_T b[], size_t ndigits)
 /*****************************************/
 /* FUNCTIONS WITH A SINGLE (SHORT) DIGIT */
 /*****************************************/
-DIGIT_T mpShortAdd(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v, 
+DIGIT_T mpShortAdd(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v,
 			   size_t ndigits)
 {
 	/*	Calculates w = u + v
@@ -1217,7 +1217,7 @@ DIGIT_T mpShortAdd(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v,
 	return k;
 }
 
-DIGIT_T mpShortSub(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v, 
+DIGIT_T mpShortSub(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v,
 			   size_t ndigits)
 {
 	/*	Calculates w = u - v
@@ -1253,7 +1253,7 @@ DIGIT_T mpShortSub(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v,
 	return k;
 }
 
-DIGIT_T mpShortMult(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v, 
+DIGIT_T mpShortMult(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v,
 					size_t ndigits)
 {
 	/*	Computes product w = u * v
@@ -1267,7 +1267,7 @@ DIGIT_T mpShortMult(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v,
 	DIGIT_T k, t[2];
 	size_t j;
 
-	if (v == 0) 
+	if (v == 0)
 	{	/* [2005-08-29] Set w = 0 */
 		for (j = 0; j < ndigits; j++)
 			w[j] = 0;
@@ -1291,7 +1291,7 @@ DIGIT_T mpShortMult(DIGIT_T w[], const DIGIT_T u[], DIGIT_T v,
 	return k;
 }
 
-DIGIT_T mpShortDiv(DIGIT_T q[], const DIGIT_T u[], DIGIT_T v, 
+DIGIT_T mpShortDiv(DIGIT_T q[], const DIGIT_T u[], DIGIT_T v,
 				   size_t ndigits)
 {
 	/*	Calculates quotient q = u div v
@@ -1300,7 +1300,7 @@ DIGIT_T mpShortDiv(DIGIT_T q[], const DIGIT_T u[], DIGIT_T v,
 		and r, v are single precision digits.
 
 		Makes no assumptions about normalisation.
-		
+
 		Ref: Knuth Vol 2 Ch 4.3.1 Exercise 16 p625
 	*/
 	size_t j;
@@ -1327,7 +1327,7 @@ DIGIT_T mpShortDiv(DIGIT_T q[], const DIGIT_T u[], DIGIT_T v,
 	v <<= shift;
 	overflow = mpShiftLeft(q, u, shift, ndigits);
 	uu = q;
-	
+
 	/* Step S1 - modified for extra digit. */
 	r = overflow;	/* New digit Un */
 	j = ndigits;
@@ -1341,7 +1341,7 @@ DIGIT_T mpShortDiv(DIGIT_T q[], const DIGIT_T u[], DIGIT_T v,
 
 	/* Unnormalise */
 	r >>= shift;
-	
+
 	return r;
 }
 
@@ -1598,7 +1598,7 @@ static size_t uiceil(double x)
 }
 
 static size_t conv_to_base(const DIGIT_T a[], size_t ndigits, char *s, size_t smax, int base)
-/* Convert big digit a into a string in given base format, 
+/* Convert big digit a into a string in given base format,
    where s has max size smax.
    Return number of chars set excluding leading zeroes.
    smax can be 0 to find out the required length.
@@ -1692,7 +1692,7 @@ static size_t conv_to_base(const DIGIT_T a[], size_t ndigits, char *s, size_t sm
 }
 
 size_t mpConvToDecimal(const DIGIT_T a[], size_t ndigits, char *s, size_t smax)
-/* Convert big digit a into a string in decimal format, 
+/* Convert big digit a into a string in decimal format,
    where s has max size smax.
    Return number of chars set excluding leading zeroes.
 */
@@ -1701,7 +1701,7 @@ size_t mpConvToDecimal(const DIGIT_T a[], size_t ndigits, char *s, size_t smax)
 }
 
 size_t mpConvToHex(const DIGIT_T a[], size_t ndigits, char *s, size_t smax)
-/* Convert big digit a into a string in hexadecimal format, 
+/* Convert big digit a into a string in hexadecimal format,
    where s has max size smax.
    Return number of chars set excluding leading zeroes.
 */
@@ -1802,7 +1802,7 @@ size_t mpConvFromHex(DIGIT_T a[], size_t ndigits, const char *s)
 /***************************/
 /* NUMBER THEORY FUNCTIONS */
 /***************************/
-int mpModulo(DIGIT_T r[], const DIGIT_T u[], size_t udigits, 
+int mpModulo(DIGIT_T r[], const DIGIT_T u[], size_t udigits,
 			 DIGIT_T v[], size_t vdigits)
 {
 	/*	Computes r = u mod v
@@ -1810,7 +1810,7 @@ int mpModulo(DIGIT_T r[], const DIGIT_T u[], size_t udigits,
 		and u is a multiprecision integer of length udigits.
 		r may overlap v.
 
-		Note that r here is only vdigits long, 
+		Note that r here is only vdigits long,
 		whereas in mpDivide it is udigits long.
 
 		Use remainder from mpDivide function.
@@ -1841,10 +1841,10 @@ int mpModulo(DIGIT_T r[], const DIGIT_T u[], size_t udigits,
 	return 0;
 }
 
-int mpModMult(DIGIT_T a[], const DIGIT_T x[], const DIGIT_T y[], 
+int mpModMult(DIGIT_T a[], const DIGIT_T x[], const DIGIT_T y[],
 			  DIGIT_T m[], size_t ndigits)
 {	/*	Computes a = (x * y) mod m */
-	
+
 /* Double-length temp variable p */
 #ifdef NO_ALLOCS
 	DIGIT_T p[MAX_FIXED_DIGITS * 2];
@@ -1948,10 +1948,10 @@ int mpModInv(DIGIT_T inv[], const DIGIT_T u[], const DIGIT_T v[], size_t ndigits
 }
 
 int mpGcd(DIGIT_T d[], const DIGIT_T aa[], const DIGIT_T bb[], size_t ndigits)
-{	
+{
 	/* Computes d = gcd(a, b) */
-	/* Changed to Binary GCD in [v2.3] 
-	 * Ref: Menezes Algorithm 14.54 plus some of Cohen Algorithm 1.3.5. 
+	/* Changed to Binary GCD in [v2.3]
+	 * Ref: Menezes Algorithm 14.54 plus some of Cohen Algorithm 1.3.5.
 	 */
 
 	unsigned int k;
@@ -1970,7 +1970,7 @@ int mpGcd(DIGIT_T d[], const DIGIT_T aa[], const DIGIT_T bb[], size_t ndigits)
 	r = mpAlloc(ndigits);
 	t = mpAlloc(ndigits);
 #endif
-	
+
 	/* Copy input into temp vars */
 	mpSetEqual(a, aa, ndigits);
 	mpSetEqual(b, bb, ndigits);
@@ -2029,7 +2029,7 @@ int mpGcd(DIGIT_T d[], const DIGIT_T aa[], const DIGIT_T bb[], size_t ndigits)
 		/* 5. [Loop] */
 	}
 	/* Output (2^k.b) and stop */
-	mpShiftLeft(d, b, k, ndigits);	
+	mpShiftLeft(d, b, k, ndigits);
 done:
 
 	mpDESTROY(a, ndigits);
@@ -2041,7 +2041,7 @@ done:
 }
 
 int mpSqrt(DIGIT_T s[], const DIGIT_T n[], size_t ndigits)
-	/* Computes integer square root s = floor(sqrt(n)) i.e. 
+	/* Computes integer square root s = floor(sqrt(n)) i.e.
 	the largest integer whose square is less than or equal to n */
 	/* [Added v2.1, updated v2.3] Ref: H. Cohen Alg 1.7.1 */
 {
@@ -2097,7 +2097,7 @@ done:
 }
 
 int mpCubeRoot(DIGIT_T s[], const DIGIT_T n[], size_t ndigits)
-	/* Computes integer cube root s = floor(cuberoot(n)) i.e. 
+	/* Computes integer cube root s = floor(cuberoot(n)) i.e.
 	the largest integer whose cube is less than or equal to n */
 	/* [Added v2.3] */
 {
@@ -2166,13 +2166,13 @@ OUTPUT: the Jacobi symbol (a/n) (and hence the Legendre symbol when n is prime).
 1. If a = 0 then return(0).
 2. If a = 1 then return(1).
 3. Write a = 2^e.a_1, where a_1 is odd.
-4. If e is even then set s <-- 1. Otherwise set s <-- 1 if n \equiv 1 or 7 (mod 8), 
+4. If e is even then set s <-- 1. Otherwise set s <-- 1 if n \equiv 1 or 7 (mod 8),
 or set s <-- -1 if n \equiv 3 or 5 (mod 8).
 5. If n \equiv 3 (mod 4) and a1 \equiv 3 (mod 4) then set s <-- -s.
 6. Set n1 <-- n mod a1.
 7. If a1 = 1 then return(s); otherwise return(s * JACOBI(n1,a1)).
 */
-	
+
 	int s;
 	DIGIT_T nmod8;
 	unsigned e;
@@ -2207,8 +2207,8 @@ or set s <-- -1 if n \equiv 3 or 5 (mod 8).
 	{
 		 mpShiftRight(a1, a1, 1, ndigits);
 	}
-	/* 4. 
-	If e is even then set s <-- 1. Otherwise set s <-- 1 if n \equiv 1 or 7 (mod 8), 
+	/* 4.
+	If e is even then set s <-- 1. Otherwise set s <-- 1 if n \equiv 1 or 7 (mod 8),
 	or set s <-- -1 if n \equiv 3 or 5 (mod 8). */
 	if (ISEVEN(e))
 		s = 1;
@@ -2223,17 +2223,17 @@ or set s <-- -1 if n \equiv 3 or 5 (mod 8).
 	/* 5. If n \equiv 3 (mod 4) and a1 \equiv 3 (mod 4) then set s <-- -s. */
 	if (mpShortMod(n, 4, ndigits) == 3 && mpShortMod(a1, 4, ndigits) == 3)
 		s = -s;
-	
-	/* 
+
+	/*
 	6. Set n1 <-- n mod a1.
-	7. If a1 = 1 then return(s); otherwise return(s * JACOBI(n1,a1)). 
+	7. If a1 = 1 then return(s); otherwise return(s * JACOBI(n1,a1)).
 	*/
 	if (mpShortCmp(a1, 1, ndigits) != 0)
 	{
 		mpModulo(n1, n, ndigits, a1, ndigits);
 		s = s * mpJacobi(n1, a1, ndigits);
 	}
-	
+
 done:
 	mpDESTROY(a1, ndigits);
 	mpDESTROY(n1, ndigits);
@@ -2242,15 +2242,15 @@ done:
 }
 
 
-/* mpIsPrime: Changes in Version 2: 
+/* mpIsPrime: Changes in Version 2:
    Added mpAlloc for dynamic allocation
    Increased no of small primes
    Broke out mpRabinMiller() as a separate function
 */
 
 static DIGIT_T SMALL_PRIMES[] = {
-	3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 
-	47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 
+	3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
+	47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101,
 	103, 107, 109, 113,
 	127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
 	179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
@@ -2313,7 +2313,7 @@ static void rand_seed(void);
 static DIGIT_T rand_between(DIGIT_T lower, DIGIT_T upper);
 
 int mpRabinMiller(DIGIT_T w[], size_t ndigits, size_t t)
-{	
+{
 /*	Returns true (1) if w is a probable prime using the
 	Rabin-Miller Probabilistic Primality Test.
 	Carries out t iterations specified by user.
@@ -2330,7 +2330,7 @@ int mpRabinMiller(DIGIT_T w[], size_t ndigits, size_t t)
 
 	[v2.1] Updated range of bases from [2, N-1] to [2, N-2]
 	See ANSI 9.42-2003 Annex F.1.1 `Range of bases in Miller-Rabin test'
-	(NB this does not impact existing implementations because N-1 
+	(NB this does not impact existing implementations because N-1
 	is unlikely to be chosen as a base).
 */
 
@@ -2363,19 +2363,19 @@ int mpRabinMiller(DIGIT_T w[], size_t ndigits, size_t t)
 		isprime = 0;
 		goto done;
 	}
-	
+
 	/* Seed the simple RNG for later on */
 	rand_seed();
 
-	/*	Rabin-Miller from FIPS-186-2 Appendix 2. 
+	/*	Rabin-Miller from FIPS-186-2 Appendix 2.
 	    Step 1. Set i = 1 [but do # tests requested by user].
 	  	Step 2. Find a and m where w = 1 + (2^a)m
-		m is odd and 2^a is largest power of 2 dividing w - 1 
+		m is odd and 2^a is largest power of 2 dividing w - 1
 	*/
 	mpShortSub(w1, w, 1, ndigits);	/* Store w1 = w - 1 */
 	mpSetEqual(m, w1, ndigits);		/* Set m = w - 1 */
 	/* for (a = 0; iseven(m); a++) */
-	for (mpSetZero(a, ndigits); mpISEVEN(m, ndigits); 
+	for (mpSetZero(a, ndigits); mpISEVEN(m, ndigits);
 		mpShortAdd(a, a, 1, ndigits))
 	{	/* Divide by 2 until m is odd */
 		mpShiftRight(m, m, 1, ndigits);
@@ -2410,7 +2410,7 @@ int mpRabinMiller(DIGIT_T w[], size_t ndigits, size_t t)
 		{
 			/* Step 5. If j = 0 and z = 1, or if z = w - 1 */
 			/* i.e. if ((j == 0 && z == 1) || (z == w - 1)) */
-			if ((mpIsZero(j, ndigits) 
+			if ((mpIsZero(j, ndigits)
 				&& mpShortCmp(z, 1, ndigits) == 0)
 				|| (mpCompare(z, w1, ndigits) == 0))
 			{	/* Passes on this loop  - go to Step 9 */
@@ -2419,7 +2419,7 @@ int mpRabinMiller(DIGIT_T w[], size_t ndigits, size_t t)
 			}
 
 			/* Step 6. If j > 0 and z = 1 */
-			if (!mpIsZero(j, ndigits) 
+			if (!mpIsZero(j, ndigits)
 				&& (mpShortCmp(z, 1, ndigits) == 0))
 			{	/* Fails - go to Step 8 */
 				failed = 1;
@@ -2505,7 +2505,7 @@ static DIGIT_T rand_between(DIGIT_T lower, DIGIT_T upper)
 
 		d &= mask;
 
-	} while (d > range); 
+	} while (d > range);
 
 	return (lower + d);
 }
@@ -2557,7 +2557,7 @@ int mpModExp(DIGIT_T y[], const DIGIT_T x[], const DIGIT_T n[], DIGIT_T d[], siz
 static int mpModExp_1(DIGIT_T yout[], const DIGIT_T x[], const DIGIT_T e[], DIGIT_T m[], size_t ndigits)
 {	/*	Computes y = x^e mod m */
 	/*	Binary left-to-right method */
-	/*  [v2.2] removed const restriction on m[] to avoid using an extra alloc'd var 
+	/*  [v2.2] removed const restriction on m[] to avoid using an extra alloc'd var
 		(m is changed in-situ during the divide operation then restored) */
 	DIGIT_T mask;
 	size_t n;
@@ -2574,7 +2574,7 @@ static int mpModExp_1(DIGIT_T yout[], const DIGIT_T x[], const DIGIT_T e[], DIGI
 	t2 = mpAlloc(nn);
 	y  = mpAlloc(nn);
 #endif
-	
+
 	assert(ndigits != 0);
 
 	n = mpSizeof(e, ndigits);
@@ -2604,8 +2604,8 @@ static int mpModExp_1(DIGIT_T yout[], const DIGIT_T x[], const DIGIT_T e[], DIGI
 		{	/*	if e(j) == 1 then multiply
 				y = y * x mod n */
 			mpMODMULTTEMP(y, x, m, ndigits, t1, t2);
-		} 
-		
+		}
+
 		/* Move to next bit */
 		mpNEXTBITMASK(mask, n);
 	}
@@ -2645,13 +2645,13 @@ and e_l = 1, and do the following:
 4. Return(A).
 */
 
-/* 
+/*
 Optimal values of k for various exponent sizes.
-	The references on this differ in their recommendations. 
+	The references on this differ in their recommendations.
 	These values reflect experiments we've done on our systems.
 	You can adjust this to suit your own situation.
 */
-static size_t WindowLenTable[] = 
+static size_t WindowLenTable[] =
 {
 /* k=1   2   3   4    5     6     7     8 */
      5, 16, 64, 240, 768, 1024, 2048, 4096
@@ -2659,16 +2659,16 @@ static size_t WindowLenTable[] =
 #define WINLENTBLMAX (sizeof(WindowLenTable)/sizeof(WindowLenTable[0]))
 
 /*	The process used here to read bits into the lookahead buffer could be improved slightly as
-	some bits are read in more than once. But we think this function is tricky enough without 
+	some bits are read in more than once. But we think this function is tricky enough without
 	adding more complexity for marginal benefit.
 */
 
-static int mpModExp_windowed(DIGIT_T yout[], const DIGIT_T g[], 
+static int mpModExp_windowed(DIGIT_T yout[], const DIGIT_T g[],
 			const DIGIT_T e[], DIGIT_T m[], size_t ndigits)
 /* Computes y = g^e mod m using sliding-window exponentiation */
 {
 	size_t nbits;	/* Number of significant bits in e */
-	size_t winlen;	/* Window size */ 
+	size_t winlen;	/* Window size */
 	DIGIT_T mask;	/* Bit mask used for main loop */
 	size_t nwd;		/* Digit counter for main loop */
 	DIGIT_T lkamask;	/* Bit mask for lookahead */
@@ -2685,7 +2685,7 @@ static int mpModExp_windowed(DIGIT_T yout[], const DIGIT_T g[],
 	int aisone;		/* Flag that A == 1 */
 	size_t nn;		/* 2 * ndigits */
 	size_t i;		/* Temp counter */
-	
+
 	/* Get actual size of e */
 	nbits = mpBitLength(e, ndigits);
 	DPRINTF1("nbits=%d\n", nbits);
@@ -2732,7 +2732,7 @@ static int mpModExp_windowed(DIGIT_T yout[], const DIGIT_T g[],
 	ngt = ((size_t)1 << (winlen - 1));
 	for (i = 1; i < ngt; i++)
 	{
-		/* NOTE: we need these elements to be 2n digits long for the mpMODMULTTEMP fn, 
+		/* NOTE: we need these elements to be 2n digits long for the mpMODMULTTEMP fn,
 			but the final result is only n digits long */
 		gtable[i] = mpAlloc(nn);
 		//mpModMult(gtable[i], gtable[i-1], g2, m, ndigits);
@@ -2775,7 +2775,7 @@ static int mpModExp_windowed(DIGIT_T yout[], const DIGIT_T g[],
 				lkamask = mask;
 				lkanwd = nwd;
 				/* Read in this and the next winlen-1 bits into lkabuf */
-				lkabuf = 0x1;	
+				lkabuf = 0x1;
 				for (i = 0; i < winlen-1; i++)
 				{
 					mpNEXTBITMASK(lkamask, lkanwd);
@@ -2786,7 +2786,7 @@ static int mpModExp_windowed(DIGIT_T yout[], const DIGIT_T g[],
 						lkabuf |= 0x1;
 					}
 				}
-				DPRINTF1("(%x)", lkabuf);		
+				DPRINTF1("(%x)", lkabuf);
 				/* Compute this window's length */
 				/* i.e. keep shifting right until we have a '1' bit at the end */
 				for (lkalen = winlen - 1; lkalen > 0; lkalen--, lkabuf >>= 1)
@@ -2827,7 +2827,7 @@ static int mpModExp_windowed(DIGIT_T yout[], const DIGIT_T g[],
 			{
 				mpMODMULTTEMP(a, gtable[idxmult], m, ndigits, temp1, temp2);
 			}
-			DPRINTF1("[%x]", idxmult);		
+			DPRINTF1("[%x]", idxmult);
 			DPRINTF0("/ ");
 			in_window = 0;
 			lkalen = 0;
@@ -2846,7 +2846,7 @@ static int mpModExp_windowed(DIGIT_T yout[], const DIGIT_T g[],
 		{
 			mpMODMULTTEMP(a, gtable[idxmult], m, ndigits, temp1, temp2);
 		}
-		DPRINTF1("[%x]", idxmult);		
+		DPRINTF1("[%x]", idxmult);
 		DPRINTF0("//");
 	}
 	DPRINTF0("\n");

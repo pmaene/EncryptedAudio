@@ -6,11 +6,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "bigdigits.h"
+
 typedef uint8_t word_t;
 
 #define ENC_WORD_SIZE        8
 #define ENC_KEY_SIZE         1248
-#define ENC_KEY_DIGITS       256
+#define ENC_KEY_DIGITS       156
 
 #define ENC_KEY_PACKET_SIZE  277
 #define ENC_DATA_PACKET_SIZE 1500
