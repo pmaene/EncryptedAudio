@@ -15,7 +15,7 @@ typedef uint8_t field_t;
 #define ENC_KEY_CHARS        156
 #define ENC_KEY_DIGITS       39
 
-#define ENC_KEY_PACKET_SIZE  277
+#define ENC_KEY_PACKET_SIZE  177
 #define ENC_DATA_PACKET_SIZE 1500
 
 #define NO_ALLOCS

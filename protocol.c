@@ -32,14 +32,32 @@ const unsigned char Enc_PublicExp[ENC_KEY_CHARS] =
     "\x01\x00\x01";
 
 void senderHello(field_t *sendPacket) {
-	char i;
+	unsigned char i;
+	unsigned char message[ENC_KEY_CHARS];
+
+	digit_t generator[ENC_KEY_DIGITS];
 	digit_t prime[ENC_KEY_DIGITS];
 	digit_t senderKey[32];
+	digit_t modExpResult[ENC_KEY_DIGITS];
 
     mpConvFromOctets(prime, ENC_KEY_DIGITS, Enc_Prime, ENC_KEY_CHARS);
+    mpConvFromOctets(generator, ENC_KEY_DIGITS, Enc_Generator, ENC_KEY_CHARS);
 
     for (i = 0; i < 32; i++)
     	senderKey[i] = spSimpleRand(0, MAX_DIGIT);
+
+    mpModExp(modExpResult, generator, senderKey, prime, ENC_KEY_DIGITS),
+    mpConvToOctets(modExpResult, ENC_KEY_DIGITS, message, ENC_KEY_CHARS);
+
+    printf("--- modExpResult\n");
+    mpPrintNL(modExpResult, ENC_KEY_DIGITS);
+
+    for (i = 0; i < ENC_KEY_PACKET_SIZE; i++)
+    	sendPacket[i] = 0;
+
+    sendPacket[0] = 0x01;
+    for (i = 0; i < ENC_KEY_CHARS; i++)
+    	sendPacket[i+1] = message[i];
 }
 
 void receiverHello(field_t *sendPacket, field_t *receivedPacket) {
