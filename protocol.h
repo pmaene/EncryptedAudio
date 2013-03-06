@@ -10,9 +10,10 @@
 
 typedef uint8_t word_t;
 
-#define ENC_WORD_SIZE        8
-#define ENC_KEY_SIZE         1248
-#define ENC_KEY_DIGITS       156
+#define ENC_KEY_BITS         1248
+#define ENC_KEY_CHARS        156
+#define ENC_KEY_DIGITS       39
+
 
 #define ENC_KEY_PACKET_SIZE  277
 #define ENC_DATA_PACKET_SIZE 1500
