@@ -1,11 +1,7 @@
 CC=gcc
 CFLAGS=-Wall
 
-all: sender receiver
+all:	main
 
-sender:		sender.c
-		$(CC) $(CFLAGS) $^ -o $@
-
-receiver:	receiver.c
-		$(CC) $(CFLAGS) $^ -o $@
-
+main:	main.c
+	$(CC) $(CFLAGS) $^ -o $@
