@@ -1,6 +1,9 @@
 # OS X is not nice
 .DS_Store
 
+# Irritating GEdit files
+*~
+
 # Do not version temporary LaTeX files
 .texpadtmp/
 

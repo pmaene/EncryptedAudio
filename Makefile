@@ -1,8 +1,11 @@
 CC=gcc
 CFLAGS=-Wall
-CFILES=
 
-all: crypto
+all: sender receiver
 
-crypto:	$(CFILES)
-	$(CC) $(CFLAGS) $^ -o $@
+sender:		sender.c
+		$(CC) $(CFLAGS) $^ -o $@
+
+receiver:	receiver.c
+		$(CC) $(CFLAGS) $^ -o $@
+
