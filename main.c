@@ -7,12 +7,16 @@
 void handshake();
 
 int main() {
+    // Construct
+    sender_construct();
+    receiver_construct();
+
     // Handshake
     handshake();
 
-    // Cleanup
-    sender_cleanup();
-    receiver_cleanup();
+    // Destruct
+    sender_destruct();
+    receiver_destruct();
 
     exit(EXIT_SUCCESS);
 }

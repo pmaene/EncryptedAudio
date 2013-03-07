@@ -28,15 +28,34 @@ const unsigned char Enc_ReceiverPrivateExp[ENC_KEY_CHARS] =
 	"\xf9\x03\xb5\xd1\xd3\xc1";
 
 // Memory Pointers
-const int *receiverSecret;
+int *receiverSecret;
+int *senderModExp;
 
-void receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
+void receiver_construct() {
+	receiverSecret = (int *) malloc(sizeof(digit_t) * ENC_DH_SECRET_DIGITS);
+	senderModExp = (int *) malloc(sizeof(field_t) * ENC_KEY_CHARS);
+}
+
+int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
+	unsigned char i = 0;
+
 	printf("--> receiver_receiverHello\n");
 
-	receiverSecret = (int *) malloc(sizeof(digit_t) * ENC_DH_SECRET_DIGITS);
+	if (0x00 != receivedPacket[0])
+		return 0;
+
+	printf("--| senderModExp\n");
+	for (i = 0; i < ENC_KEY_CHARS; i++) {
+		//senderModExp[i] = 0;
+		//senderModExp[i] = receivedPacket[i+1];
+		printf("%x", senderModExp[i]);
+	}
+	printf("\n");
+
     receiverHello(sendPacket, receivedPacket, receiverSecret, Enc_ReceiverModulus, Enc_ReceiverPrivateExp);
 }
 
-void receiver_cleanup() {
+void receiver_destruct() {
 	free(receiverSecret);
+	free(senderModExp);
 }

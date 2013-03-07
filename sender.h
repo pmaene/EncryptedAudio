@@ -3,8 +3,9 @@
 
 #include "protocol.h"
 
-void sender_senderHello(field_t *sendPacket);
+void sender_contruct();
+void sender_destruct();
 
-void sender_cleanup();
+int sender_senderHello(field_t *sendPacket);
 
 #endif

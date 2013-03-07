@@ -17,7 +17,7 @@ typedef uint8_t field_t;
 #define ENC_KEY_DIGITS        39
 
 // Packet Sizes
-#define ENC_KEY_PACKET_CHARS  313
+#define ENC_KEY_PACKET_CHARS  314
 #define ENC_DATA_PACKET_CHARS 1500
 
 // Diffie-Hellman Secrets Size
@@ -26,6 +26,10 @@ typedef uint8_t field_t;
 // Hash Sizes
 #define ENC_HASH_CHARS        20
 #define ENC_HASH_DIGITS       5
+
+// Signature Sizes
+#define ENC_SIGNATURE_CHARS   157
+#define ENC_SIGNATURE_DIGITS  40
 
 #define NO_ALLOCS
 

@@ -30,13 +30,17 @@ const unsigned char Enc_SenderPrivateExp[ENC_KEY_CHARS] =
 // Memory Pointers
 const int *senderSecret;
 
-void sender_senderHello(field_t *sendPacket) {
-	printf("--> sender_senderHello\n");
-
+void sender_construct() {
 	senderSecret = (int *) malloc(sizeof(digit_t) * ENC_DH_SECRET_DIGITS);
-    senderHello(sendPacket, senderSecret);
 }
 
-void sender_cleanup() {
+int sender_senderHello(field_t *sendPacket) {
+	printf("--> sender_senderHello\n");
+    senderHello(sendPacket, senderSecret);
+
+    return 1;
+}
+
+void sender_destruct() {
 	free(senderSecret);
 }

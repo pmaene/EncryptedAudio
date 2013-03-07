@@ -75,7 +75,7 @@ void senderHello(field_t *sendPacket, int *senderSecret) {
 void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSecret, unsigned char *receiverModulus, unsigned char *receiverPrivateExp) {
 	unsigned char i;
 	unsigned char message[ENC_KEY_CHARS];
-	unsigned char signature[ENC_KEY_CHARS];
+	unsigned char signature[ENC_SIGNATURE_CHARS];
 
 	unsigned short j;
 
@@ -119,10 +119,10 @@ void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSe
     mpConvFromOctets(exponent, ENC_HASH_DIGITS, receiverPrivateExp, ENC_HASH_CHARS);
     mpConvFromOctets(modulus, ENC_HASH_DIGITS, receiverModulus, ENC_HASH_CHARS);
     _sign(_signResult, hash, exponent, modulus);
-    mpConvToOctets(_signResult, ENC_KEY_DIGITS, signature, ENC_KEY_CHARS);
+    mpConvToOctets(_signResult, ENC_SIGNATURE_DIGITS, signature, ENC_SIGNATURE_CHARS);
 
     printf("---| signature\n");
-    mpPrintNL(_signResult, ENC_KEY_DIGITS);
+    mpPrintNL(_signResult, ENC_SIGNATURE_DIGITS);
 
     for (j = 0; j < ENC_KEY_PACKET_CHARS; j++)
     	sendPacket[j] = 0;
@@ -141,7 +141,7 @@ void sendData(field_t *sendPacket) {
 }
 
 void _sign(digit_t *signature, digit_t *message, digit_t *exponent, digit_t *modulus) {
-	mpModExp(signature, message, exponent, modulus, ENC_KEY_DIGITS);
+	mpModExp(signature, message, exponent, modulus, ENC_SIGNATURE_DIGITS);
 }
 
 int _verify() {

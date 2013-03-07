@@ -3,8 +3,9 @@
 
 #include "protocol.h"
 
-void receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket);
+void receiver_construct();
+void receiver_destruct();
 
-void receiver_cleanup();
+int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket);
 
 #endif
