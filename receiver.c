@@ -26,3 +26,17 @@ const unsigned char Enc_ReceiverPrivateExp[ENC_KEY_CHARS] =
 	"\xdc\xc3\x6a\x55\xad\x3f\x5f\xfb\x08\xad\x01\x5a\xac\x02\xbc"
 	"\xa1\xaa\xb7\x88\x01\x2b\xbd\x60\x97\x41\xbf\x5b\x6e\x06\x55"
 	"\xf9\x03\xb5\xd1\xd3\xc1";
+
+// Memory Pointers
+const int *receiverSecret;
+
+void receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
+	printf("--> receiver_receiverHello\n");
+
+	receiverSecret = (int *) malloc(sizeof(digit_t) * ENC_DH_SECRET_DIGITS);
+    receiverHello(sendPacket, receivedPacket, receiverSecret);
+}
+
+void receiver_cleanup() {
+	free(receiverSecret);
+}

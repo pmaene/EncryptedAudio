@@ -26,7 +26,7 @@ typedef uint8_t field_t;
 #define NO_ALLOCS
 
 void senderHello(field_t *sendPacket, int *senderSecret);
-void receiverHello(field_t *sendPacket, field_t *receivedPacket);
+void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSecret);
 void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket);
 
 void sendData(field_t *sendPacket);

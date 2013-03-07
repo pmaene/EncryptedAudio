@@ -36,3 +36,7 @@ void sender_senderHello(field_t *sendPacket) {
 	senderSecret = (int *) malloc(sizeof(digit_t) * ENC_DH_SECRET_DIGITS);
     senderHello(sendPacket, senderSecret);
 }
+
+void sender_cleanup() {
+	free(senderSecret);
+}

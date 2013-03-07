@@ -62,7 +62,7 @@ void senderHello(field_t *sendPacket, int *senderSecret) {
     	sendPacket[i+1] = message[i];
 }
 
-void receiverHello(field_t *sendPacket, field_t *receivedPacket) {
+void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSecret) {
 }
 
 void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket) {

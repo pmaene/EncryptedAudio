@@ -5,4 +5,6 @@
 
 void sender_senderHello(field_t *sendPacket);
 
+void sender_cleanup();
+
 #endif

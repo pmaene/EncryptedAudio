@@ -17,5 +17,7 @@ int main() {
 
     printf("\n\n");
 
+    sender_cleanup();
+
     exit(EXIT_SUCCESS);
 }
