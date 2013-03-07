@@ -69,10 +69,9 @@ void senderHello(field_t *sendPacket, int *senderSecret) {
 }
 
 /**
- * @TODO Check whether receivedPacket[0] = 0
  * @TODO Check packet indices
  */
-void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSecret, unsigned char *receiverModulus, unsigned char *receiverPrivateExp) {
+void receiverHello(field_t *sendPacket, field_t *senderModExp, int *receiverSecret, unsigned char *receiverModulus, unsigned char *receiverPrivateExp) {
     unsigned char i;
     unsigned char message[ENC_KEY_CHARS];
     unsigned char signature[ENC_SIGNATURE_CHARS];
@@ -108,7 +107,7 @@ void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSe
     for (i = 0; i < ENC_KEY_DIGITS; i++)
         hashMessage[i] = modExpResult[i];
     for (i = 0; i < ENC_KEY_DIGITS; i++)
-        hashMessage[(ENC_KEY_DIGITS-1)+i] = receivedPacket[i+1];
+        hashMessage[(ENC_KEY_DIGITS-1)+i] = senderModExp[i];
 
     _hash(_hashResult, hashMessage);
     mpConvFromOctets(hash, ENC_HASH_DIGITS, _hashResult, ENC_HASH_CHARS);

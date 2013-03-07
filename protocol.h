@@ -9,7 +9,10 @@
 #include "bigdigits.h"
 
 typedef DIGIT_T digit_t;
-typedef uint8_t field_t;
+typedef unsigned char field_t;
+
+// Configuration
+#define NO_ALLOCS
 
 // Key sizes
 #define ENC_KEY_BITS          1248
@@ -31,10 +34,11 @@ typedef uint8_t field_t;
 #define ENC_SIGNATURE_CHARS   157
 #define ENC_SIGNATURE_DIGITS  40
 
-#define NO_ALLOCS
+// Reject Reasons
+#define ENC_REJECT_PACKET_TAG 1
 
 void senderHello(field_t *sendPacket, int *senderSecret);
-void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSecret, unsigned char *receiverModulus, unsigned char *receiverPrivateExp);
+void receiverHello(field_t *sendPacket, field_t *senderModExp, int *receiverSecret, unsigned char *receiverModulus, unsigned char *receiverPrivateExp);
 void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, int *senderSecret, unsigned char *senderModulus, unsigned char *senderPrivateExp);
 
 void sendData(field_t *sendPacket);

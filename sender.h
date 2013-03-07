@@ -6,6 +6,6 @@
 void sender_contruct();
 void sender_destruct();
 
-int sender_senderHello(field_t *sendPacket);
+void sender_senderHello(field_t *sendPacket);
 
 #endif

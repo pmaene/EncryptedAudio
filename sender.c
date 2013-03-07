@@ -34,11 +34,9 @@ void sender_construct() {
     senderSecret = (int *) malloc(sizeof(digit_t) * ENC_DH_SECRET_DIGITS);
 }
 
-int sender_senderHello(field_t *sendPacket) {
+void sender_senderHello(field_t *sendPacket) {
     printf("--> sender_senderHello\n");
     senderHello(sendPacket, senderSecret);
-
-    return 1;
 }
 
 void sender_destruct() {
