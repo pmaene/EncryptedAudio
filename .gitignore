@@ -1,3 +1,6 @@
+# Exclude the custom folder attributes file
+.DS_Store
+
 # Do not version SublimeText's configuration and workspace
 *.sublime-project
 *.sublime-workspace
@@ -5,8 +8,8 @@
 # Gedit isn't very nice
 *~
 
-# Exclude the custom folder attributes file
-.DS_Store
+# GDB generates a temporary folder
+main.*/
 
 # Do not version temporary LaTeX files
 .texpadtmp/
