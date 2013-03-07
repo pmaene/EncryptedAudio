@@ -28,6 +28,9 @@ This notice must always be retained in any copy.
 
 /**** USER CONFIGURABLE SECTION ****/
 
+/* We do not want the library to do any allocations. */
+#define NO_ALLOCS 1
+
 /* Define type and size of DIGIT */
 
 /* [v2.1] Changed to use C99 exact-width types so it will compile with 64-bit compilers. */

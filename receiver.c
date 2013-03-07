@@ -32,8 +32,8 @@ int *senderModExp;
 int *receiverSecret;
 
 void receiver_construct() {
-    senderModExp = (int *) malloc(sizeof(field_t) * ENC_KEY_CHARS);
-    receiverSecret = (int *) malloc(sizeof(digit_t) * ENC_DH_SECRET_DIGITS);
+    senderModExp = (int *) calloc(ENC_KEY_CHARS, sizeof(field_t));
+    receiverSecret = (int *) calloc(ENC_DH_SECRET_DIGITS, sizeof(field_t));
 }
 
 int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
@@ -55,6 +55,6 @@ int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
 }
 
 void receiver_destruct() {
+	free(senderModExp);
     free(receiverSecret);
-    free(senderModExp);
 }

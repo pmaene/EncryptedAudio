@@ -11,9 +11,6 @@
 typedef DIGIT_T digit_t;
 typedef unsigned char field_t;
 
-// Configuration
-#define NO_ALLOCS
-
 // Key sizes
 #define ENC_KEY_BITS          1248
 #define ENC_KEY_CHARS         156
