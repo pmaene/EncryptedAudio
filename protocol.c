@@ -69,7 +69,8 @@ void senderHello(field_t *sendPacket, int *senderSecret) {
 }
 
 /**
- * @TODO Check whether receivedPacket[0] = 0x00
+ * @TODO Check whether receivedPacket[0] = 0
+ * @TODO Check packet indices
  */
 void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSecret, unsigned char *receiverModulus, unsigned char *receiverPrivateExp) {
 	unsigned char i;
@@ -130,7 +131,7 @@ void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSe
     for (i = 0; i < ENC_KEY_CHARS; i++)
     	sendPacket[i+1] = message[i];
     for (i = 0; i < ENC_KEY_CHARS; i++)
-    	sendPacket[(ENC_KEY_CHARS-1)+i] = signature[i];
+    	sendPacket[ENC_KEY_CHARS+i] = signature[i];
 }
 
 void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, int *senderSecret, unsigned char *senderModulus, unsigned char *senderPrivateExp) {
