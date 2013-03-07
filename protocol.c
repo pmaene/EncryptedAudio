@@ -80,7 +80,7 @@ void senderHello(field_t *sendPacket, int *senderSecret) {
     printf("---| senderSecret\n");
     mpPrintNL(senderSecret, ENC_DH_SECRET_DIGITS);
 
-    mpModExp(modExpResult, generator, senderSecret, prime, ENC_PRIVATE_KEY_DIGITS),
+    mpModExp(modExpResult, generator, senderSecret, prime, ENC_PRIVATE_KEY_DIGITS);
     mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, message, ENC_PRIVATE_KEY_CHARS);
 
     printf("---| modExpResult\n");
