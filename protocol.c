@@ -1,4 +1,8 @@
 #include "protocol.h"
+#include "sha3.h"
+
+// Private Declarations
+void _hash(uint8_t *hash, uint8_t *data);
 
 // Diffie-Hellman
 const unsigned char Enc_Generator[ENC_KEY_CHARS] =
@@ -35,6 +39,8 @@ void senderHello(field_t *sendPacket, int *senderSecret) {
 	unsigned char i;
 	unsigned char message[ENC_KEY_CHARS];
 
+	unsigned short j;
+
 	digit_t generator[ENC_KEY_DIGITS];
 	digit_t prime[ENC_KEY_DIGITS];
 	digit_t modExpResult[ENC_KEY_DIGITS];
@@ -54,19 +60,97 @@ void senderHello(field_t *sendPacket, int *senderSecret) {
     printf("---| modExpResult\n");
     mpPrintNL(modExpResult, ENC_KEY_DIGITS);
 
-    for (i = 0; i < ENC_KEY_PACKET_CHARS; i++)
-    	sendPacket[i] = 0;
+    for (j = 0; j < ENC_KEY_PACKET_CHARS; j++)
+    	sendPacket[j] = 0;
 
-    sendPacket[0] = 0x01;
+    sendPacket[0] = 0x00;
     for (i = 0; i < ENC_KEY_CHARS; i++)
     	sendPacket[i+1] = message[i];
 }
 
-void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSecret) {
+/**
+ * @TODO Check whether receivedPacket[0] = 0x00
+ */
+void receiverHello(field_t *sendPacket, field_t *receivedPacket, int *receiverSecret, unsigned char *receiverModulus, unsigned char *receiverPrivateExp) {
+	unsigned char i;
+	unsigned char message[ENC_KEY_CHARS];
+	unsigned char signature[ENC_KEY_CHARS];
+
+	unsigned short j;
+
+	digit_t generator[ENC_KEY_DIGITS];
+	digit_t prime[ENC_KEY_DIGITS];
+	digit_t modExpResult[ENC_KEY_DIGITS];
+	digit_t hash[ENC_HASH_DIGITS];
+	digit_t _signResult[ENC_KEY_DIGITS];
+	digit_t exponent[ENC_KEY_DIGITS];
+	digit_t modulus[ENC_KEY_DIGITS+1];
+
+	uint8_t _hashResult[ENC_HASH_CHARS];
+	uint8_t hashMessage[2*ENC_KEY_DIGITS];
+
+    mpConvFromOctets(prime, ENC_KEY_DIGITS, Enc_Prime, ENC_KEY_CHARS);
+    mpConvFromOctets(generator, ENC_KEY_DIGITS, Enc_Generator, ENC_KEY_CHARS);
+
+    for (i = 0; i < ENC_DH_SECRET_DIGITS; i++)
+    	receiverSecret[i] = spSimpleRand(0, MAX_DIGIT);
+
+    printf("---| receiverSecret\n");
+    mpPrintNL(receiverSecret, ENC_DH_SECRET_DIGITS);
+
+    mpModExp(modExpResult, generator, receiverSecret, prime, ENC_KEY_DIGITS),
+    mpConvToOctets(modExpResult, ENC_KEY_DIGITS, message, ENC_KEY_CHARS);
+
+    printf("---| modExpResult\n");
+    mpPrintNL(modExpResult, ENC_KEY_DIGITS);
+
+    for (i = 0; i < ENC_KEY_DIGITS; i++)
+    	hashMessage[i] = modExpResult[i];
+    for (i = 0; i < ENC_KEY_DIGITS; i++)
+    	hashMessage[(ENC_KEY_DIGITS-1)+i] = receivedPacket[i+1];
+
+    _hash(_hashResult, hashMessage);
+    mpConvFromOctets(hash, ENC_HASH_DIGITS, _hashResult, ENC_HASH_CHARS);
+
+    printf("---| hash\n");
+    mpPrintNL(hash, ENC_HASH_DIGITS);
+
+    mpConvFromOctets(exponent, ENC_HASH_DIGITS, receiverPrivateExp, ENC_HASH_CHARS);
+    mpConvFromOctets(modulus, ENC_HASH_DIGITS, receiverModulus, ENC_HASH_CHARS);
+    _sign(_signResult, hash, exponent, modulus);
+    mpConvToOctets(_signResult, ENC_KEY_DIGITS, signature, ENC_KEY_CHARS);
+
+    printf("---| signature\n");
+    mpPrintNL(_signResult, ENC_KEY_DIGITS);
+
+    for (j = 0; j < ENC_KEY_PACKET_CHARS; j++)
+    	sendPacket[j] = 0;
+
+    sendPacket[0] = 0x01;
+    for (i = 0; i < ENC_KEY_CHARS; i++)
+    	sendPacket[i+1] = message[i];
+    for (i = 0; i < ENC_KEY_CHARS; i++)
+    	sendPacket[(ENC_KEY_CHARS-1)+i] = signature[i];
 }
 
-void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket) {
+void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, int *senderSecret, unsigned char *senderModulus, unsigned char *senderPrivateExp) {
 }
 
 void sendData(field_t *sendPacket) {
+}
+
+void _sign(digit_t *signature, digit_t *message, digit_t *exponent, digit_t *modulus) {
+	mpModExp(signature, message, exponent, modulus, ENC_KEY_DIGITS);
+}
+
+int _verify() {
+
+}
+
+void _hash(uint8_t *hash, uint8_t *data) {
+	struct sha3_256_ctx ctx;
+
+	sha3_256_init(&ctx);
+	sha3_256_update(&ctx, sizeof(data), data);
+	sha3_256_digest(&ctx, sizeof(hash), hash);
 }

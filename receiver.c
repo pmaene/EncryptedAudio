@@ -34,7 +34,7 @@ void receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
 	printf("--> receiver_receiverHello\n");
 
 	receiverSecret = (int *) malloc(sizeof(digit_t) * ENC_DH_SECRET_DIGITS);
-    receiverHello(sendPacket, receivedPacket, receiverSecret);
+    receiverHello(sendPacket, receivedPacket, receiverSecret, Enc_ReceiverModulus, Enc_ReceiverPrivateExp);
 }
 
 void receiver_cleanup() {
