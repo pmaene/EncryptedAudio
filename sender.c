@@ -15,10 +15,10 @@ const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
     "\x83\xeb\x6d\xf6\x5a\x41";
 
 // Memory Pointers
-const int *senderSecret;
+digit_t *senderSecret;
 
 void sender_construct() {
-    senderSecret = (int *) calloc(ENC_DH_SECRET_DIGITS, sizeof(digit_t));
+    senderSecret = (digit_t *) calloc(ENC_DH_SECRET_DIGITS, sizeof(digit_t));
 }
 
 void sender_senderHello(field_t *sendPacket) {

@@ -15,12 +15,12 @@ const unsigned char Enc_ReceiverPrivateExp[ENC_PRIVATE_KEY_CHARS] =
     "\xf9\x03\xb5\xd1\xd3\xc1";
 
 // Memory Pointers
-int *senderModExp;
-int *receiverSecret;
+digit_t *senderModExp;
+digit_t *receiverSecret;
 
 void receiver_construct() {
-    senderModExp = (int *) calloc(ENC_PRIVATE_KEY_CHARS, sizeof(field_t));
-    receiverSecret = (int *) calloc(ENC_DH_SECRET_DIGITS, sizeof(field_t));
+    senderModExp = (digit_t *) calloc(ENC_PRIVATE_KEY_CHARS, sizeof(field_t));
+    receiverSecret = (digit_t *) calloc(ENC_DH_SECRET_DIGITS, sizeof(field_t));
 }
 
 int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
@@ -38,7 +38,9 @@ int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
     }
     printf("\n");
 
-    receiverHello(sendPacket, senderModExp, receiverSecret, Enc_ReceiverPrivateExp);
+    receiverHello(sendPacket, senderModExp, receiverSecret, (unsigned char *) Enc_ReceiverPrivateExp);
+
+    return ENC_ACCEPT_PACKET;
 }
 
 void receiver_destruct() {

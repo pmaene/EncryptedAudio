@@ -3,6 +3,8 @@
 
 // Private Declarations
 void _hash(uint8_t *hash, uint8_t *data);
+void _sign(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *modulus);
+int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit_t *modulus);
 
 // Diffie-Hellman
 const unsigned char Enc_Generator[ENC_PRIVATE_KEY_CHARS] =
@@ -61,7 +63,7 @@ const unsigned char  Enc_ReceiverModulus[ENC_SIGNATURE_CHARS] =
 const unsigned char Enc_PublicExp[ENC_PUBLIC_KEY_CHARS] =
     "\x01\x00\x01";
 
-void senderHello(field_t *sendPacket, int *senderSecret) {
+void senderHello(field_t *sendPacket, digit_t *senderSecret) {
     unsigned char i;
     unsigned char message[ENC_PRIVATE_KEY_CHARS];
 
@@ -98,7 +100,7 @@ void senderHello(field_t *sendPacket, int *senderSecret) {
 /**
  * @TODO Check packet indices
  */
-void receiverHello(field_t *sendPacket, field_t *senderModExp, int *receiverSecret, unsigned char *receiverPrivateExp) {
+void receiverHello(field_t *sendPacket, digit_t *senderModExp, digit_t *receiverSecret, unsigned char *receiverPrivateExp) {
     unsigned char i;
     unsigned char message[ENC_PRIVATE_KEY_CHARS];
     unsigned char signature[ENC_SIGNATURE_CHARS];
@@ -112,8 +114,6 @@ void receiverHello(field_t *sendPacket, field_t *senderModExp, int *receiverSecr
     digit_t _signResult[ENC_SIGNATURE_DIGITS];
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
     digit_t modulus[ENC_PRIVATE_KEY_DIGITS+1];
-
-    digit_t publicExponent[1];
 
     uint8_t _hashResult[ENC_HASH_CHARS];
     uint8_t hashMessage[2*ENC_PRIVATE_KEY_DIGITS];
@@ -164,16 +164,9 @@ void receiverHello(field_t *sendPacket, field_t *senderModExp, int *receiverSecr
         sendPacket[i+1] = message[i];
     for (i = 0; i < ENC_SIGNATURE_CHARS; i++)
         sendPacket[(ENC_PRIVATE_KEY_CHARS+1) + i] = signature[i];
-
-
-    mpConvFromOctets(publicExponent, ENC_PUBLIC_KEY_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
-    printf("\n\n");
-    mpPrintNL(publicExponent, ENC_PUBLIC_KEY_DIGITS);
-    printf("\n\n");
-    _verify(_signResult, hash, publicExponent, modulus);
 }
 
-void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, int *senderSecret, unsigned char *senderPrivateExp) {
+void senderAcknowledge(field_t *sendPacket, digit_t *receiverModExp, digit_t *senderSecret, unsigned char *senderPrivateExp) {
 }
 
 void sendData(field_t *sendPacket) {
@@ -196,4 +189,6 @@ int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit
 
 	mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
 	mpPrintNL(modExpResult, ENC_SIGNATURE_DIGITS);
+
+    return 0;
 }

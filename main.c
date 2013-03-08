@@ -1,10 +1,10 @@
 #include "protocol.h"
 
-#include "receiver.h"
 #include "sender.h"
+#include "receiver.h"
 
 // Private Declarations
-void handshake();
+void _handshake();
 
 int main() {
     // Construct
@@ -12,7 +12,7 @@ int main() {
     receiver_construct();
 
     // Handshake
-    handshake();
+    _handshake();
 
     // Destruct
     sender_destruct();
@@ -21,7 +21,7 @@ int main() {
     exit(EXIT_SUCCESS);
 }
 
-void handshake() {
+void _handshake() {
     unsigned short i = 0;
 
     printf("# Key Exchange\n\n");
@@ -45,4 +45,16 @@ void handshake() {
         printf("%x", receiverKeyExchangePacket[i]);
 
     printf("\n\n");
+    
+    /**
+    // SenderAcknowledge
+    field_t senderAcknowledgePacket[ENC_KEY_PACKET_CHARS];
+    sender_senderAcknowledge(senderKeyExchangePacket, receiverKeyExchangePacket);
+
+    printf("-| senderAcknowledgePacket\n");
+    for (i = 0; i < ENC_KEY_PACKET_CHARS; i++)
+        printf("%x", receiverKeyExchangePacket[i]);
+
+    printf("\n\n"
+    **/
 }
