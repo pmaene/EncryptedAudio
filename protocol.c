@@ -76,7 +76,7 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
 
     for (i = 0; i < ENC_DH_SECRET_DIGITS; i++)
         senderSecret[i] = spSimpleRand(0, MAX_DIGIT);
-    
+
     printf("---| generator\n");
     mpPrintNL(generator, ENC_PRIVATE_KEY_DIGITS);
 
@@ -109,7 +109,7 @@ void receiverHello(field_t *sendPacket, field_t *senderModExp, digit_t *receiver
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
     digit_t prime[ENC_PRIVATE_KEY_DIGITS];
     digit_t modExpResult[ENC_PRIVATE_KEY_DIGITS];
-    digit_t hash[ENC_HASH_DIGITS];
+    digit_t hash[ENC_SIGNATURE_CHARS];
     digit_t _signResult[ENC_SIGNATURE_DIGITS];
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
     digit_t modulus[ENC_SIGNATURE_DIGITS];
@@ -147,10 +147,10 @@ void receiverHello(field_t *sendPacket, field_t *senderModExp, digit_t *receiver
 
 	// SHA3( alpha^y | alpha^x )
     _hash(_hashResult, hashMessage);
-    mpConvFromOctets(hash, ENC_HASH_DIGITS, _hashResult, ENC_HASH_CHARS);
+    mpConvFromOctets(hash, ENC_SIGNATURE_CHARS, _hashResult, ENC_HASH_CHARS);
 
     printf("---| hash\n");
-    mpPrintNL(hash, ENC_HASH_DIGITS);
+    mpPrintNL(hash, ENC_SIGNATURE_CHARS);
 
     mpConvFromOctets(exponent, ENC_HASH_DIGITS, receiverPrivateExp, ENC_HASH_CHARS);
     mpConvFromOctets(modulus, ENC_SIGNATURE_DIGITS, Enc_ReceiverModulus, ENC_SIGNATURE_CHARS);
