@@ -16,6 +16,7 @@ const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
 
 // Memory Pointers
 digit_t *senderSecret;
+digit_t *receivedModExp;
 
 void sender_construct() {
     senderSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));

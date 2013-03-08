@@ -41,8 +41,8 @@ typedef unsigned char field_t;
 #define ENC_SIGNATURE_REJECTED 0
 
 void senderHello(field_t *sendPacket, digit_t *senderSecret);
-void receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receiverSecret, unsigned char *receiverPrivateExp);
-void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, unsigned char *senderPrivateExp);
+int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp);
+int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, unsigned char *senderPrivateExp);
 
 void sendData(field_t *sendPacket);
 
