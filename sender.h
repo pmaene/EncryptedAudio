@@ -3,7 +3,7 @@
 
 #include "protocol.h"
 
-void sender_contruct();
+void sender_construct();
 void sender_destruct();
 
 void sender_senderHello(field_t *sendPacket);
