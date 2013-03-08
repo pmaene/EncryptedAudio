@@ -69,7 +69,7 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
 
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
     digit_t prime[ENC_PRIVATE_KEY_DIGITS];
-    digit_t modExpResult[ENC_DH_SECRET_CHARS];
+    digit_t modExpResult[ENC_PRIVATE_KEY_DIGITS];
 
     mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
