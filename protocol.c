@@ -147,17 +147,23 @@ void receiverHello(field_t *sendPacket, field_t *senderModExp, digit_t *receiver
 
 	// SHA3( alpha^y | alpha^x )
     _hash(_hashResult, hashMessage);
-    mpConvFromOctets(hash, ENC_SIGNATURE_CHARS, _hashResult, ENC_HASH_CHARS);
+    mpConvFromOctets(hash, ENC_SIGNATURE_DIGITS, (unsigned char *) _hashResult, ENC_HASH_CHARS);
 
     printf("---| hash\n");
-    mpPrintNL(hash, ENC_SIGNATURE_CHARS);
+    mpPrintNL(hash, ENC_SIGNATURE_DIGITS);
 
-    mpConvFromOctets(exponent, ENC_HASH_DIGITS, receiverPrivateExp, ENC_HASH_CHARS);
+    mpConvFromOctets(exponent, ENC_SIGNATURE_DIGITS, receiverPrivateExp, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(modulus, ENC_SIGNATURE_DIGITS, Enc_ReceiverModulus, ENC_SIGNATURE_CHARS);
 
 	// Calculate message^privateExponent mod modulus = hash^exponent mod modulus
     _sign(_signResult, hash, exponent, modulus);
-    mpConvToOctets(_signResult, ENC_SIGNATURE_DIGITS, signature, ENC_SIGNATURE_CHARS);
+    mpConvToOctets(_signResult, ENC_SIGNATURE_DIGITS, signature, ENC_HASH_CHARS);
+
+    printf("---| exponent\n");
+    mpPrintNL(exponent, ENC_SIGNATURE_DIGITS);
+
+    printf("---| modulus\n");
+    mpPrintNL(modulus, ENC_SIGNATURE_DIGITS);
 
     printf("---| signature\n");
     mpPrintNL(_signResult, ENC_SIGNATURE_DIGITS);
