@@ -19,8 +19,8 @@ digit_t *senderModExp;
 digit_t *receiverSecret;
 
 void receiver_construct() {
-    senderModExp = (digit_t *) calloc(ENC_PRIVATE_KEY_CHARS, sizeof(field_t));
-    receiverSecret = (digit_t *) calloc(ENC_DH_SECRET_DIGITS, sizeof(field_t));
+    senderModExp = calloc(ENC_PRIVATE_KEY_CHARS, sizeof(field_t));
+    receiverSecret = calloc(ENC_DH_SECRET_DIGITS, sizeof(field_t));
 }
 
 int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {

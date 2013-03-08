@@ -18,7 +18,7 @@ const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
 digit_t *senderSecret;
 
 void sender_construct() {
-    senderSecret = (digit_t *) calloc(ENC_DH_SECRET_DIGITS, sizeof(digit_t));
+    senderSecret = calloc(ENC_DH_SECRET_DIGITS, sizeof(digit_t));
 }
 
 void sender_senderHello(field_t *sendPacket) {

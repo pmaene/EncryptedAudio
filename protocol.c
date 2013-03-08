@@ -67,17 +67,21 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
     unsigned char i;
     unsigned char message[ENC_PRIVATE_KEY_CHARS];
 
-    unsigned short j;
-
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
     digit_t prime[ENC_PRIVATE_KEY_DIGITS];
-    digit_t modExpResult[ENC_PRIVATE_KEY_DIGITS];
+    digit_t modExpResult[ENC_DH_SECRET_CHARS];
 
     mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
 
     for (i = 0; i < ENC_DH_SECRET_DIGITS; i++)
         senderSecret[i] = spSimpleRand(0, MAX_DIGIT);
+    
+    printf("---| generator\n");
+    mpPrintNL(generator, ENC_PRIVATE_KEY_DIGITS);
+
+    printf("---| prime\n");
+    mpPrintNL(prime, ENC_PRIVATE_KEY_DIGITS);
 
     printf("---| senderSecret\n");
     mpPrintNL(senderSecret, ENC_DH_SECRET_DIGITS);
@@ -88,12 +92,9 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
 
     printf("---| modExpResult\n");
     mpPrintNL(modExpResult, ENC_PRIVATE_KEY_DIGITS);
-	
-    for (j = 0; j < ENC_KEY_PACKET_CHARS; j++)
-        sendPacket[j] = 0;
 
     sendPacket[0] = 0x00;
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
+    for (i = 0; i < ENC_DH_SECRET_CHARS; i++)
         sendPacket[i+1] = message[i];
 }
 
@@ -104,8 +105,6 @@ void receiverHello(field_t *sendPacket, digit_t *senderModExp, digit_t *receiver
     unsigned char i;
     unsigned char message[ENC_PRIVATE_KEY_CHARS];
     unsigned char signature[ENC_SIGNATURE_CHARS];
-
-    unsigned short j;
 
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
     digit_t prime[ENC_PRIVATE_KEY_DIGITS];
@@ -128,11 +127,11 @@ void receiverHello(field_t *sendPacket, digit_t *senderModExp, digit_t *receiver
     mpPrintNL(receiverSecret, ENC_DH_SECRET_DIGITS);
 
 	// Calculate alpha^y mod p = alpha^receiverSecret mod prime
-    mpModExp(modExpResult, generator, receiverSecret, prime, ENC_PRIVATE_KEY_DIGITS),
+    mpModExp(modExpResult, generator, receiverSecret, prime, ENC_DH_SECRET_DIGITS),
     mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, message, ENC_PRIVATE_KEY_CHARS);
 
     printf("---| modExpResult\n");
-    mpPrintNL(modExpResult, ENC_PRIVATE_KEY_DIGITS);
+    mpPrintNL(modExpResult, ENC_PRIVATE_KEY_CHARS);
 
 	// Concatenate alpha^y | alpha^x
     for (i = 0; i < ENC_PRIVATE_KEY_DIGITS; i++)
@@ -155,9 +154,6 @@ void receiverHello(field_t *sendPacket, digit_t *senderModExp, digit_t *receiver
 
     printf("---| signature\n");
     mpPrintNL(_signResult, ENC_SIGNATURE_DIGITS);
-
-    for (j = 0; j < ENC_KEY_PACKET_CHARS; j++)
-        sendPacket[j] = 0;
 
     sendPacket[0] = 0x01;
     for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)

@@ -22,6 +22,7 @@ typedef unsigned char field_t;
 #define ENC_DATA_PACKET_CHARS  1500
 
 // Diffie-Hellman Size
+#define ENC_DH_SECRET_CHARS    128
 #define ENC_DH_SECRET_DIGITS   32
 
 // Hash Sizes

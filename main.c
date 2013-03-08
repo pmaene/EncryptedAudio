@@ -22,12 +22,15 @@ int main() {
 }
 
 void _handshake() {
-    unsigned short i = 0;
+    unsigned short i;
+    unsigned short j;
 
     printf("# Key Exchange\n\n");
 
     // SenderHello
     field_t senderKeyExchangePacket[ENC_KEY_PACKET_CHARS];
+    for (j = 0; j < ENC_KEY_PACKET_CHARS; j++)
+        senderKeyExchangePacket[j] = 0;
     sender_senderHello(senderKeyExchangePacket);
 
     printf("-| senderKeyExchangePacket\n");
@@ -38,6 +41,8 @@ void _handshake() {
 
     // ReceiverHello
     field_t receiverKeyExchangePacket[ENC_KEY_PACKET_CHARS];
+    for (j = 0; j < ENC_KEY_PACKET_CHARS; j++)
+        receiverKeyExchangePacket[j] = 0;
     receiver_receiverHello(receiverKeyExchangePacket, senderKeyExchangePacket);
 
     printf("-| receiverKeyExchangePacket\n");
