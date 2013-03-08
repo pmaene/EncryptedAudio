@@ -84,7 +84,7 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
     mpPrintNL(prime, ENC_PRIVATE_KEY_DIGITS);
 
     printf("---| senderSecret\n");
-    mpPrintNL(senderSecret, ENC_DH_SECRET_DIGITS);
+    mpPrintNL(senderSecret, ENC_PRIVATE_KEY_DIGITS);
 
 	// Calculate alpha^x mod p = generator^senderSecret mod prime
     mpModExp(modExpResult, generator, senderSecret, prime, ENC_PRIVATE_KEY_DIGITS);
