@@ -37,9 +37,12 @@ typedef unsigned char field_t;
 #define ENC_ACCEPT_PACKET      0
 #define ENC_REJECT_PACKET_TAG  1
 
+#define ENC_SIGNATURE_ACCEPTED 1
+#define ENC_SIGNATURE_REJECTED 0
+
 void senderHello(field_t *sendPacket, digit_t *senderSecret);
-void receiverHello(field_t *sendPacket, field_t *senderModExp, digit_t *receiverSecret, unsigned char *receiverPrivateExp);
-void senderAcknowledge(field_t *sendPacket, digit_t *receiverModExp, digit_t *senderSecret, unsigned char *senderPrivateExp);
+void receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receiverSecret, unsigned char *receiverPrivateExp);
+void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, unsigned char *senderPrivateExp);
 
 void sendData(field_t *sendPacket);
 

@@ -1,7 +1,6 @@
 #include "protocol.h"
 #include "sha3.h"
 
-// Private Declarations
 void _hash(uint8_t *hash, uint8_t *data);
 void _sign(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *modulus);
 int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit_t *modulus);
@@ -101,7 +100,10 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
 /**
  * @TODO Check packet indices
  */
-void receiverHello(field_t *sendPacket, field_t *senderModExp, digit_t *receiverSecret, unsigned char *receiverPrivateExp) {
+void receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receiverSecret, unsigned char *receiverPrivateExp) {
+    if (0x00 != receivedPacket[0])
+        return ENC_REJECT_PACKET_TAG;
+
     unsigned char i;
     unsigned char message[ENC_PRIVATE_KEY_CHARS];
     unsigned char signature[ENC_SIGNATURE_CHARS];
@@ -113,6 +115,8 @@ void receiverHello(field_t *sendPacket, field_t *senderModExp, digit_t *receiver
     digit_t _signResult[ENC_SIGNATURE_DIGITS];
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
     digit_t modulus[ENC_SIGNATURE_DIGITS];
+
+    digit_t publicExp[ENC_SIGNATURE_DIGITS];
 
     uint8_t _hashResult[ENC_HASH_CHARS];
     uint8_t hashMessage[2*ENC_PRIVATE_KEY_DIGITS];
@@ -143,7 +147,7 @@ void receiverHello(field_t *sendPacket, field_t *senderModExp, digit_t *receiver
     for (i = 0; i < ENC_PRIVATE_KEY_DIGITS; i++)
         hashMessage[i] = modExpResult[i];
     for (i = 0; i < ENC_PRIVATE_KEY_DIGITS; i++)
-        hashMessage[(ENC_PRIVATE_KEY_DIGITS-1)+i] = senderModExp[i];
+        hashMessage[(ENC_PRIVATE_KEY_DIGITS-1)+i] = receivedPacket[i+1];
 
 	// SHA3( alpha^y | alpha^x )
     _hash(_hashResult, hashMessage);
@@ -157,7 +161,7 @@ void receiverHello(field_t *sendPacket, field_t *senderModExp, digit_t *receiver
 
 	// Calculate message^privateExponent mod modulus = hash^exponent mod modulus
     _sign(_signResult, hash, exponent, modulus);
-    mpConvToOctets(_signResult, ENC_SIGNATURE_DIGITS, signature, ENC_HASH_CHARS);
+    mpConvToOctets(_signResult, ENC_SIGNATURE_DIGITS, signature, ENC_SIGNATURE_CHARS);
 
     printf("---| exponent\n");
     mpPrintNL(exponent, ENC_SIGNATURE_DIGITS);
@@ -173,9 +177,13 @@ void receiverHello(field_t *sendPacket, field_t *senderModExp, digit_t *receiver
         sendPacket[i+1] = message[i];
     for (i = 0; i < ENC_SIGNATURE_CHARS; i++)
         sendPacket[(ENC_PRIVATE_KEY_CHARS+1) + i] = signature[i];
+
+    mpConvFromOctets(publicExp, ENC_SIGNATURE_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
+    if (_verify(_signResult, hash, publicExp, modulus))
+        printf("\nSignature Verified!\n\n");
 }
 
-void senderAcknowledge(field_t *sendPacket, digit_t *receiverModExp, digit_t *senderSecret, unsigned char *senderPrivateExp) {
+void senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, unsigned char *senderPrivateExp) {
 }
 
 void sendData(field_t *sendPacket) {
@@ -197,7 +205,8 @@ int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit
 	digit_t modExpResult[ENC_SIGNATURE_DIGITS];
 
 	mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
-	mpPrintNL(modExpResult, ENC_SIGNATURE_DIGITS);
+	if (mpEqual(modExpResult, message, ENC_SIGNATURE_DIGITS))
+        return ENC_SIGNATURE_ACCEPTED;
 
-    return 0;
+    return ENC_SIGNATURE_REJECTED;
 }
