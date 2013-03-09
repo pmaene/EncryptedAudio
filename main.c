@@ -50,16 +50,16 @@ void _handshake() {
         printf("%x", receiverKeyExchangePacket[i]);
 
     printf("\n\n");
-    
-    /**
+
     // SenderAcknowledge
     field_t senderAcknowledgePacket[ENC_KEY_PACKET_CHARS];
-    sender_senderAcknowledge(senderKeyExchangePacket, receiverKeyExchangePacket);
+    for (j = 0; j < ENC_KEY_PACKET_CHARS; j++)
+        senderAcknowledgePacket[j] = 0;
+    sender_senderAcknowledge(senderAcknowledgePacket, receiverKeyExchangePacket);
 
     printf("-| senderAcknowledgePacket\n");
     for (i = 0; i < ENC_KEY_PACKET_CHARS; i++)
-        printf("%x", receiverKeyExchangePacket[i]);
+        printf("%x", senderAcknowledgePacket[i]);
 
-    printf("\n\n"
-    **/
+    printf("\n\n");
 }

@@ -24,13 +24,15 @@ void receiver_construct() {
 }
 
 int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
+    int returnStatus;
+
     printf("--> receiver_receiverHello\n");
-    receiverHello(sendPacket, receivedPacket, receiverSecret, senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
+    returnStatus = receiverHello(sendPacket, receivedPacket, receiverSecret, senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
 
     printf("--| senderModExp\n");
     mpPrintNL(senderModExp, ENC_PRIVATE_KEY_DIGITS);
 
-    return ENC_ACCEPT_PACKET;
+    return returnStatus;
 }
 
 void receiver_destruct() {
