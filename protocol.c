@@ -1,7 +1,7 @@
 #include "protocol.h"
 #include "sha3.h"
 
-void _hash(uint8_t *hash, uint8_t *data);
+void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
 void _sign(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *modulus);
 int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit_t *modulus);
 
@@ -100,7 +100,6 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
         return ENC_REJECT_PACKET_TAG;
 
     unsigned char i;
-    unsigned short j;
 
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cSenderModExp[ENC_PRIVATE_KEY_CHARS];
@@ -127,7 +126,7 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
 	// Calculate alpha^y mod p = alpha^receiverSecret mod prime
     mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
-    mpModExp(modExpResult, generator, receiverSecret, prime, ENC_PRIVATE_KEY_DIGITS),
+    mpModExp(modExpResult, generator, receiverSecret, prime, ENC_PRIVATE_KEY_DIGITS);
     mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 
     printf("---| modExpResult\n");
@@ -138,20 +137,14 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
         hashMessage[i] = cModExpResult[i];
 
     for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++) {
-        hashMessage[(ENC_PRIVATE_KEY_CHARS-1)+i] = receivedPacket[i+1];
+        hashMessage[ENC_PRIVATE_KEY_CHARS+i] = receivedPacket[i+1];
         cSenderModExp[i] = receivedPacket[i+1];
     }
-
-    printf("---| hashMessage\n");
-    for (j = 0; j < 2*ENC_PRIVATE_KEY_CHARS; j++)
-        printf("%x", hashMessage[j]);
-
-    printf("\n");
 
     mpConvFromOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
 
 	// SHA3( alpha^y | alpha^x )
-    _hash(hashResult, hashMessage);
+    _hash(hashResult, hashMessage, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(hash, ENC_SIGNATURE_DIGITS, (unsigned char *) hashResult, ENC_HASH_CHARS);
 
     printf("---| hash\n");
@@ -180,7 +173,6 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
         return ENC_REJECT_PACKET_TAG;
 
     unsigned char i;
-    unsigned short j;
 
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cReceiverModExp[ENC_PRIVATE_KEY_CHARS];
@@ -211,18 +203,12 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     }
 
     for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
-        hashMessage[(ENC_PRIVATE_KEY_CHARS-1)+i] = cModExpResult[i];
-
-    printf("---| hashMessage\n");
-    for (j = 0; j < 2*ENC_PRIVATE_KEY_CHARS; j++)
-        printf("%x", hashMessage[j]);
-
-    printf("\n");
+        hashMessage[ENC_PRIVATE_KEY_CHARS+i] = cModExpResult[i];
 
     mpConvFromOctets(receiverModExp, ENC_PRIVATE_KEY_DIGITS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
 
     // SHA3( alpha^y | alpha^x )
-    _hash(hashResult, hashMessage);
+    _hash(hashResult, hashMessage, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(hash, ENC_SIGNATURE_DIGITS, (unsigned char *) hashResult, ENC_HASH_CHARS);
 
     printf("---| hash\n");
@@ -237,10 +223,8 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     mpConvFromOctets(publicExp, ENC_SIGNATURE_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
     mpConvFromOctets(modulus, ENC_SIGNATURE_DIGITS, Enc_ReceiverModulus, ENC_SIGNATURE_CHARS);
-    if (!_verify(signature, hash, publicExp, modulus)) {
-        printf("\nVerification Failed\n\n");
+    if (!_verify(signature, hash, publicExp, modulus))
         return ENC_REJECT_PACKET_SIGNATURE;
-    }
 
     // Concatenate alpha^x | alpha^y
     for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
@@ -249,14 +233,8 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
         hashMessage[(ENC_PRIVATE_KEY_CHARS-1)+i] = cReceiverModExp[i];
 
-    printf("---| hashMessage\n");
-    for (j = 0; j < 2*ENC_PRIVATE_KEY_CHARS; j++)
-        printf("%x", hashMessage[j]);
-
-    printf("\n");
-
     // SHA3( alpha^x | alpha^y )
-    _hash(hashResult, hashMessage);
+    _hash(hashResult, hashMessage, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(hash, ENC_SIGNATURE_DIGITS, (unsigned char *) hashResult, ENC_HASH_CHARS);
 
     printf("---| hash\n");
@@ -281,14 +259,37 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 }
 
 void sendData(field_t *sendPacket) {
+
 }
 
-void _hash(uint8_t *hash, uint8_t *data) {
+void calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret) {
+    digit_t prime[ENC_PRIVATE_KEY_DIGITS];
+
+    mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
+    mpModExp(key, modExpResult, secret, prime, ENC_PRIVATE_KEY_DIGITS);
+}
+
+void deriveKeys(uint8_t *aesKey, uint8_t *hashKey, digit_t *symmetricKey) {
+    unsigned char i = 0;
+
+    uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS];
+    uint8_t hashResult[ENC_HASH_CHARS];
+    
+    mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
+    _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
+
+    for (i = 0; i < ENC_HASH_CHARS; i++)
+        printf("%x", hashResult[i]);
+
+    printf("\n");
+}
+
+void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
     struct sha3_256_ctx ctx;
 
     sha3_256_init(&ctx);
-    sha3_256_update(&ctx, sizeof(data), data);
-    sha3_256_digest(&ctx, sizeof(hash), hash);
+    sha3_256_update(&ctx, dataLength, data);
+    sha3_256_digest(&ctx, hashLength, hash);
 }
 
 void _sign(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *modulus) {
@@ -299,10 +300,11 @@ int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit
 	digit_t modExpResult[ENC_SIGNATURE_DIGITS];
 
 	mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
-	if (mpEqual(modExpResult, message, ENC_SIGNATURE_DIGITS))
+	if (mpEqual(modExpResult, message, ENC_SIGNATURE_DIGITS)) {
+        printf("----> Verification Successful\n");
         return ENC_SIGNATURE_ACCEPTED;
-
-    mpPrintNL(modExpResult, ENC_SIGNATURE_DIGITS);
-
+    }
+    
+    printf("----> Verification Failed\n");
     return ENC_SIGNATURE_REJECTED;
 }

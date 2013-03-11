@@ -3,7 +3,6 @@
 #include "sender.h"
 #include "receiver.h"
 
-// Private Declarations
 void _handshake();
 
 int main() {

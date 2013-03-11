@@ -1,5 +1,7 @@
 #include "sender.h"
 
+void _sender_initSymmetricKey();
+
 // RSA
 const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
     "\x07\x8e\x74\x79\x5c\xb9\xa9\xda\x98\xf8\x0e\xf0\xad\xa4\xed"
@@ -17,10 +19,12 @@ const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
 // Memory Pointers
 digit_t *senderSecret;
 digit_t *receiverModExp;
+digit_t *senderSymmetricKey;
 
 void sender_construct() {
     senderSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
     receiverModExp = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
+    senderSymmetricKey = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
 }
 
 void sender_senderHello(field_t *sendPacket) {
@@ -37,10 +41,21 @@ int sender_senderAcknowledge(field_t *sendPacket, field_t *receivedPacket) {
     printf("--| receiverModExp\n");
     mpPrintNL(receiverModExp, ENC_PRIVATE_KEY_DIGITS);
 
+    _sender_initSymmetricKey();
+
+    printf("--| senderSymmetricKey\n");    
+    mpPrintNL(senderSymmetricKey, ENC_PRIVATE_KEY_DIGITS);
+
     return returnStatus;
+}
+
+void _sender_initSymmetricKey() {
+    if (mpIsZero(senderSymmetricKey, ENC_PRIVATE_KEY_DIGITS))
+        calculateSymmetricKey(senderSymmetricKey, receiverModExp, senderSecret);    
 }
 
 void sender_destruct() {
     free(senderSecret);
     free(receiverModExp);
+    free(senderSymmetricKey);
 }

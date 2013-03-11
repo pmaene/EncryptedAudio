@@ -45,6 +45,8 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret);
 int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp);
 int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, digit_t *receiverModExp, unsigned char *senderPrivateExp);
 
+void calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret);
+
 void sendData(field_t *sendPacket);
 
 #endif
