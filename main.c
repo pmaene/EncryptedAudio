@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "protocol.h"
 
 #include "sender.h"
@@ -62,3 +64,4 @@ void _handshake() {
 
     printf("\n\n");
 }
+
