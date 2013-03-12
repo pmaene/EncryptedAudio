@@ -25,7 +25,9 @@ This notice must always be retained in any copy.
 #include <assert.h>
 #include <time.h>
 #include "bigdigits.h"
-
+#pragma GCC diagnostic ignored "-Waddress"
+#pragma GCC diagnostic ignored "-Wformat"
+#pragma GCC diagnostic ignored "-Wunused-function"
 /* For debugging - these are NOOPs */
 #define DPRINTF0(s)
 #define DPRINTF1(s, a1)
