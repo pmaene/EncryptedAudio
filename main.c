@@ -15,7 +15,9 @@ int main() {
     // Handshake
     _handshake();
 
+	// Derivation of the AES- and hashKey
 	sender_deriveKey();
+	receiver_deriveKey();
 
     // Destruct
     sender_destruct();

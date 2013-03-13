@@ -17,10 +17,14 @@ const unsigned char Enc_ReceiverPrivateExp[ENC_PRIVATE_KEY_CHARS] =
 // Memory Pointers
 digit_t *receiverSecret;
 digit_t *senderModExp;
+uint8_t *receiverHashKey;
+uint8_t *receiverAESKey;
 
 void receiver_construct() {
     receiverSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
     senderModExp = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
+	receiverHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
+	receiverAESKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
 }
 
 int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
@@ -35,7 +39,29 @@ int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
     return returnStatus;
 }
 
+void receiver_deriveKey() {
+	unsigned char i;
+	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
+
+	_calculateSymmetricKey(symmetricKey, senderModExp, receiverSecret);
+	_deriveKeys(receiverAESKey, receiverHashKey, symmetricKey);
+
+	printf("--| symmetricKey\n");
+    for (i = 0; i < ENC_PRIVATE_KEY_DIGITS; i++)
+        printf("%x", symmetricKey[i]);
+	printf("\n--| receiverAESKey\n");
+    for (i = 0; i < ENC_HASH_CHARS/2; i++)
+        printf("%x", receiverAESKey[i]);
+	printf("\n--| receiverHashKey\n");
+    for (i = 0; i < ENC_HASH_CHARS/2; i++)
+        printf("%x", receiverHashKey[i]);
+	
+    printf("\n");
+}
+
 void receiver_destruct() {
 	free(senderModExp);
     free(receiverSecret);
+	free(receiverHashKey);
+	free(receiverAESKey);
 }

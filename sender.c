@@ -47,18 +47,21 @@ int sender_senderAcknowledge(field_t *sendPacket, field_t *receivedPacket) {
 void sender_deriveKey() {
 	unsigned char i;
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
-	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
-	_deriveKeys(senderAESKey, senderHashKey, senderSecret);
 
-	printf("--| aesKey\n");
+	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
+	_deriveKeys(senderAESKey, senderHashKey, symmetricKey);
+
+	printf("--| symmetricKey\n");
+    for (i = 0; i < ENC_PRIVATE_KEY_DIGITS; i++)
+        printf("%x", symmetricKey[i]);
+	printf("\n--| senderAESKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
         printf("%x", senderAESKey[i]);
-	printf("\n--| hashKey\n");
+	printf("\n--| senderHashKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
         printf("%x", senderHashKey[i]);
 	
     printf("\n");
-
 }
 
 void sender_destruct() {
