@@ -158,4 +158,6 @@ The SEQ NR is a 32-bit counter so that it will not be likely that there is wrap-
 
 We note that it might be possible that we will not even need the length field at all. If the speech buffer is always full when we send the packet, the length will be constant and the receiving side can use this information. In this situation, the packet rate is not constant. However, if the data length is variable (for example because we send packets at a constant rate, regardless of whether or not we have a full buffer), the length field will be required to signal to the receiver how much data is present in the packet.
 
+{\color{red}Recently changed: De nonce + framenumber worden niet geëncrypteerd verzonden met het datapacket.}
+
 \end{document}
