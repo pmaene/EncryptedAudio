@@ -16,8 +16,8 @@
 #define ENC_PUBLIC_KEY_DIGITS   1
 
 // Hash Sizes
-#define ENC_HASH_CHARS          20
-#define ENC_HASH_DIGITS         5
+#define ENC_HASH_CHARS          32
+#define ENC_HASH_DIGITS         8
 
 // Signature Sizes
 #define ENC_SIGNATURE_CHARS     157

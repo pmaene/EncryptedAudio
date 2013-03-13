@@ -17,10 +17,14 @@ const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
 // Memory Pointers
 digit_t *senderSecret;
 digit_t *receiverModExp;
+uint8_t *senderAESKey;
+uint8_t *senderHashKey;
 
 void sender_construct() {
     senderSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
     receiverModExp = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
+	senderAESKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
+	senderHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
 }
 
 void sender_senderHello(field_t *sendPacket) {
@@ -40,7 +44,29 @@ int sender_senderAcknowledge(field_t *sendPacket, field_t *receivedPacket) {
     return returnStatus;
 }
 
+void sender_deriveKey() {
+	unsigned char i;
+	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
+
+	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
+	_deriveKeys(senderAESKey, senderHashKey, symmetricKey);
+
+	printf("--| symmetricKey\n");
+    for (i = 0; i < ENC_PRIVATE_KEY_DIGITS; i++)
+        printf("%x", symmetricKey[i]);
+	printf("\n--| senderAESKey\n");
+    for (i = 0; i < ENC_HASH_CHARS/2; i++)
+        printf("%x", senderAESKey[i]);
+	printf("\n--| senderHashKey\n");
+    for (i = 0; i < ENC_HASH_CHARS/2; i++)
+        printf("%x", senderHashKey[i]);
+	
+    printf("\n");
+}
+
 void sender_destruct() {
     free(senderSecret);
     free(receiverModExp);
+	free(senderAESKey);
+	free(senderHashKey);
 }

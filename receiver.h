@@ -7,5 +7,6 @@ void receiver_construct();
 void receiver_destruct();
 
 int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket);
+void receiver_deriveKey();
 
 #endif
