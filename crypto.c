@@ -89,6 +89,50 @@ void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLengt
     sha3_256_digest(&ctx, hashLength, hash);
 }
 
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsigned dataLength, unsigned keyLength) {
+    unsigned i;
+
+    uint8_t innerPad[SHA3_256_DATA_SIZE];
+    uint8_t outerPad[SHA3_256_DATA_SIZE];
+    uint8_t zeroPaddedKey[SHA3_256_DATA_SIZE];
+    uint8_t paddedKey[SHA3_256_DATA_SIZE];
+    uint8_t innerHashMessage[SHA3_256_DATA_SIZE+dataLength];
+    uint8_t outerHashMessage[SHA3_256_DATA_SIZE+ENC_HASH_CHARS];
+    uint8_t hashResult[ENC_HASH_CHARS];
+
+    // Padding Strings
+    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+        innerPad[i] = 0x36;
+    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+        outerPad[i] = 0x5c;
+    
+    // Inner Padding
+    for (i = 0; i < keyLength; i++)
+        zeroPaddedKey[i] = key[i];
+    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+        paddedKey[i] = zeroPaddedKey[i] ^ innerPad[i];
+
+    // Append Data
+    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+        innerHashMessage[i] = paddedKey[i];
+    for (i = 0; i < dataLength; i++)
+        innerHashMessage[SHA3_256_DATA_SIZE+i] = data[i];
+
+    _hash(hashResult, innerHashMessage, ENC_HASH_CHARS, SHA3_256_DATA_SIZE+dataLength);
+
+    // Outer Padding
+    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+        paddedKey[i] = zeroPaddedKey[i] ^ outerPad[i];
+
+    // Append Hash
+    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+        outerHashMessage[i] = paddedKey[i];
+    for (i = 0; i < ENC_HASH_CHARS; i++)
+        outerHashMessage[SHA3_256_DATA_SIZE+i] = hashResult[i];
+
+    _hash(hmac, outerHashMessage, ENC_HASH_CHARS, SHA3_256_DATA_SIZE+ENC_HASH_CHARS);
+}
+
 // Signatures
 void _sign(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *modulus) {
     mpModExp(signature, message, privateExponent, modulus, ENC_SIGNATURE_DIGITS);

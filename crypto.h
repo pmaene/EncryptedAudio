@@ -41,6 +41,7 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, digit_t *symmetricKey);
 
 // Hashes
 void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsigned dataLength, unsigned keyLength);
 
 // Signatures
 void _sign(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *modulus);
