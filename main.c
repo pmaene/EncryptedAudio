@@ -15,6 +15,8 @@ int main() {
     // Handshake
     _handshake();
 
+	sender_deriveKey();
+
     // Destruct
     sender_destruct();
     receiver_destruct();
