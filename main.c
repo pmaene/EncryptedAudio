@@ -19,6 +19,8 @@ int main() {
 	sender_deriveKey();
 	receiver_deriveKey();
 
+    sender_hmacTest();
+
     // Destruct
     sender_destruct();
     receiver_destruct();

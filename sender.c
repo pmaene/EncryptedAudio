@@ -48,19 +48,37 @@ void sender_deriveKey() {
 	unsigned char i;
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
+    printf("--> sender_deriveKey\n");
+
 	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
 	_deriveKeys(senderAESKey, senderHashKey, symmetricKey);
 
-	printf("--| symmetricKey\n");
-    for (i = 0; i < ENC_PRIVATE_KEY_DIGITS; i++)
-        printf("%x", symmetricKey[i]);
-	printf("\n--| senderAESKey\n");
+	printf("--| senderAESKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
         printf("%x", senderAESKey[i]);
-	printf("\n--| senderHashKey\n");
+
+    printf("\n");
+
+	printf("--| senderHashKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
         printf("%x", senderHashKey[i]);
-	
+
+    printf("\n");
+}
+
+void sender_hmacTest() {
+    unsigned char i;
+
+    uint8_t hmac[ENC_HASH_CHARS];
+    uint8_t data[1];
+
+    data[0] = 0xcc;
+
+    _hmac(hmac, data, senderHashKey, ENC_HASH_CHARS, 1, ENC_HASH_CHARS/2);
+
+    printf("--| HMAC\n");
+    for (i = 0; i < ENC_HASH_CHARS; i++)
+        printf("%x", hmac[i]);
     printf("\n");
 }
 

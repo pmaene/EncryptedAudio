@@ -74,16 +74,10 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, digit_t *symmetricKey) {
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
     _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
 
-	printf("\n--| hashMessage:\n");
-	for(i=0; i < ENC_PRIVATE_KEY_CHARS; i++)
-		printf("%x",hashMessage[i]);
-	printf("\n");
-	for(i = 0; i < ENC_HASH_CHARS/2; i++) {
+	for(i = 0; i < ENC_HASH_CHARS/2; i++)
 		aesKey[i] = hashResult[i];
-	}
-	for(i = 0; i < ENC_HASH_CHARS/2; i++) {
+	for(i = 0; i < ENC_HASH_CHARS/2; i++)
 		hashKey[i] = hashResult[i+ENC_HASH_CHARS/2];
-	}
 }
 
 // Hashes
