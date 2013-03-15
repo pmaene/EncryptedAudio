@@ -105,7 +105,7 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsi
         innerPad[i] = 0x36;
     for (i = 0; i < SHA3_256_DATA_SIZE; i++)
         outerPad[i] = 0x5c;
-    
+
     // Inner Padding
     for (i = 0; i < keyLength; i++)
         zeroPaddedKey[i] = key[i];

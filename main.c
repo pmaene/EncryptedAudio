@@ -17,7 +17,9 @@ int main() {
 
 	// Derivation of the AES- and hashKey
 	sender_deriveKey();
+    printf("\n");
 	receiver_deriveKey();
+    printf("\n");
 
     sender_hmacTest();
 

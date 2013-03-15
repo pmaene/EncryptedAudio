@@ -72,7 +72,7 @@ void sender_hmacTest() {
     uint8_t hmac[ENC_HASH_CHARS];
     uint8_t data[1];
 
-    data[0] = 0xcc;
+    printf("--> sender_hmacTest\n");
 
     _hmac(hmac, data, senderHashKey, ENC_HASH_CHARS, 1, ENC_HASH_CHARS/2);
 
