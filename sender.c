@@ -20,6 +20,7 @@ digit_t *receiverModExp;
 uint8_t *senderAESKey;
 uint8_t *senderHashKey;
 uint8_t *senderCTRNonce;
+int		*senderCounter;
 
 void sender_construct() {
     senderSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
@@ -27,6 +28,8 @@ void sender_construct() {
 	senderAESKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
 	senderHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
 	senderCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
+	senderCounter = calloc(1, sizeof(int));
+	senderCounter = 0;
 }
 
 void sender_senderHello(field_t *sendPacket) {
@@ -97,4 +100,5 @@ void sender_destruct() {
 	free(senderAESKey);
 	free(senderHashKey);
 	free(senderCTRNonce);
+	free(senderCounter);
 }

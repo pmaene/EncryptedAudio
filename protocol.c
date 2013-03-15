@@ -196,6 +196,17 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     return ENC_ACCEPT_PACKET;
 }
 
+int count(int *counter) {
+	int counterforward = *counter + 1;
+	if(*counter > counterforward) {
+		*counter = counterforward;
+		return COUNTER_WRAPAROUND;
+	} else {
+		*counter = counterforward;
+		return NO_COUNTER_WRAPAROUND;
+	}
+}
+
 void sendData(field_t *sendPacket) {
 
 }
