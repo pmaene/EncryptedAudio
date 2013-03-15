@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <time.h>
 
+#ifdef __MACH__
+    #include <mach/clock.h>
+    #include <mach/mach.h>
+#endif
+
 #include "protocol.h"
 
 #include "sender.h"
@@ -9,12 +14,14 @@
 void _handshake();
 void _createChannel();
 
+void _getTime(struct timespec *ts);
+
 int main(int argc, char **argv) {
     struct timespec difference;
     struct timespec startTime;
     struct timespec stopTime;
 
-    clock_gettime(CLOCK_REALTIME, &startTime);
+    _getTime(&startTime);
 
     // Construct
     sender_construct();
@@ -34,7 +41,7 @@ int main(int argc, char **argv) {
     receiver_destruct();
 
     // Execution Time
-    clock_gettime(CLOCK_REALTIME, &stopTime);
+    _getTime(&stopTime);
 
     if ((stopTime.tv_nsec-startTime.tv_nsec) < 0) {
         difference.tv_sec = stopTime.tv_sec-startTime.tv_sec-1;
@@ -45,7 +52,7 @@ int main(int argc, char **argv) {
     }
 
     printf("# Execution Time\n");
-    printf("%lums\n", difference.tv_nsec/1000000);
+    printf("%ds %lums\n", difference.tv_sec, difference.tv_nsec/1000000);
 
     exit(EXIT_SUCCESS);
 }
@@ -94,5 +101,18 @@ void _handshake() {
 }
 
 void _createChannel() {
+}
 
+void _getTime(struct timespec *time) {
+    #ifdef __MACH__
+      clock_serv_t clock;
+      mach_timespec_t machTime;
+      host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &clock);
+      clock_get_time(clock, &machTime);
+      mach_port_deallocate(mach_task_self(), clock);
+      time->tv_sec = machTime.tv_sec;
+      time->tv_nsec = machTime.tv_nsec;
+    #else
+      clock_gettime(CLOCK_REALTIME, time);
+    #endif
 }
