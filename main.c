@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <time.h>
 
 #include "protocol.h"
 
@@ -6,8 +7,15 @@
 #include "receiver.h"
 
 void _handshake();
+void _createChannel();
 
-int main() {
+int main(int argc, char **argv) {
+    struct timespec difference;
+    struct timespec startTime;
+    struct timespec stopTime;
+
+    clock_gettime(CLOCK_REALTIME, &startTime);
+
     // Construct
     sender_construct();
     receiver_construct();
@@ -21,11 +29,23 @@ int main() {
 	receiver_deriveKey();
     printf("\n");
 
-    sender_hmacTest();
-
     // Destruct
     sender_destruct();
     receiver_destruct();
+
+    // Execution Time
+    clock_gettime(CLOCK_REALTIME, &stopTime);
+
+    if ((stopTime.tv_nsec-startTime.tv_nsec) < 0) {
+        difference.tv_sec = stopTime.tv_sec-startTime.tv_sec-1;
+        difference.tv_nsec = 1000000000+stopTime.tv_nsec-startTime.tv_nsec;
+    } else {
+        difference.tv_sec = stopTime.tv_sec-startTime.tv_sec;
+        difference.tv_nsec = stopTime.tv_nsec-startTime.tv_nsec;
+    }
+
+    printf("# Execution Time\n");
+    printf("%lums\n", difference.tv_nsec/1000000);
 
     exit(EXIT_SUCCESS);
 }
@@ -73,3 +93,6 @@ void _handshake() {
     printf("\n\n");
 }
 
+void _createChannel() {
+
+}
