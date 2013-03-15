@@ -37,7 +37,7 @@ const unsigned char Enc_PublicExp[ENC_PUBLIC_KEY_CHARS];
 
 // Keys
 void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret);
-void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, digit_t *symmetricKey);
+void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRKey, digit_t *symmetricKey);
 
 // Hashes
 void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);

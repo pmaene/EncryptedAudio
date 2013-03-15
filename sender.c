@@ -19,6 +19,7 @@ digit_t *senderSecret;
 digit_t *receiverModExp;
 uint8_t *senderAESKey;
 uint8_t *senderHashKey;
+uint8_t *senderCTRKey;
 
 void sender_construct() {
     senderSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
@@ -51,7 +52,7 @@ void sender_deriveKey() {
     printf("--> sender_deriveKey\n");
 
 	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
-	_deriveKeys(senderAESKey, senderHashKey, symmetricKey);
+	_deriveKeys(senderAESKey, senderHashKey, senderCTRKey, symmetricKey);
 
 	printf("--| senderAESKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
@@ -87,4 +88,5 @@ void sender_destruct() {
     free(receiverModExp);
 	free(senderAESKey);
 	free(senderHashKey);
+	free(senderCTRKey);
 }
