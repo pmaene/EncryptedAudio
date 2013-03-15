@@ -19,13 +19,14 @@ digit_t *receiverSecret;
 digit_t *senderModExp;
 uint8_t *receiverAESKey;
 uint8_t *receiverHashKey;
-uint8_t *receiverCTRKey;
+uint8_t *receiverCTRNonce;
 
 void receiver_construct() {
     receiverSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
     senderModExp = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
 	receiverAESKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
     receiverHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
+	receiverCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
 }
 
 int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
@@ -47,7 +48,7 @@ void receiver_deriveKey() {
     printf("--> receiver_deriveKey\n");
 
 	_calculateSymmetricKey(symmetricKey, senderModExp, receiverSecret);
-	_deriveKeys(receiverAESKey, receiverHashKey, receiverCTRKey, symmetricKey);
+	_deriveKeys(receiverAESKey, receiverHashKey, receiverCTRNonce, symmetricKey);
 
 	printf("--| receiverAESKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
@@ -59,6 +60,13 @@ void receiver_deriveKey() {
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
         printf("%x", receiverHashKey[i]);
 	
+	printf("\n");
+
+	printf("--| receiverCTRNonce\n");
+    for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
+        printf("%x", receiverCTRNonce[i]);
+	
+
     printf("\n");
 }
 
@@ -67,5 +75,5 @@ void receiver_destruct() {
     free(receiverSecret);
     free(receiverAESKey);
 	free(receiverHashKey);
-	free(receiverCTRKey);
+	free(receiverCTRNonce);
 }

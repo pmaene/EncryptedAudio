@@ -19,13 +19,14 @@ digit_t *senderSecret;
 digit_t *receiverModExp;
 uint8_t *senderAESKey;
 uint8_t *senderHashKey;
-uint8_t *senderCTRKey;
+uint8_t *senderCTRNonce;
 
 void sender_construct() {
     senderSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
     receiverModExp = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
 	senderAESKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
 	senderHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
+	senderCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
 }
 
 void sender_senderHello(field_t *sendPacket) {
@@ -52,7 +53,7 @@ void sender_deriveKey() {
     printf("--> sender_deriveKey\n");
 
 	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
-	_deriveKeys(senderAESKey, senderHashKey, senderCTRKey, symmetricKey);
+	_deriveKeys(senderAESKey, senderHashKey, senderCTRNonce, symmetricKey);
 
 	printf("--| senderAESKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
@@ -65,6 +66,13 @@ void sender_deriveKey() {
         printf("%x", senderHashKey[i]);
 
     printf("\n");
+
+	printf("--| senderCTRNonce\n");
+	    for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
+       		printf("%x", senderCTRNonce[i]);
+
+    printf("\n");
+
 }
 
 void sender_hmacTest() {
@@ -88,5 +96,5 @@ void sender_destruct() {
     free(receiverModExp);
 	free(senderAESKey);
 	free(senderHashKey);
-	free(senderCTRKey);
+	free(senderCTRNonce);
 }
