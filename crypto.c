@@ -65,7 +65,7 @@ void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret
     mpModExp(key, modExpResult, secret, prime, ENC_PRIVATE_KEY_DIGITS);
 }
 
-void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, digit_t *symmetricKey) {
+void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *symmetricKey) {
     unsigned char i = 0;
 
     uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS];
@@ -73,11 +73,18 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, digit_t *symmetricKey) {
 
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
     _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
-
+	for(i = 0; i<ENC_PRIVATE_KEY_CHARS; i++) {
+		hashMessage[i] = hashResult[i];
+	}
 	for(i = 0; i < ENC_HASH_CHARS/2; i++)
 		aesKey[i] = hashResult[i];
 	for(i = 0; i < ENC_HASH_CHARS/2; i++)
 		hashKey[i] = hashResult[i+ENC_HASH_CHARS/2];
+	_hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
+	for(i = 0; i < ENC_CTR_NONCE_CHARS; i++) {
+		CTRNonce[i] = hashResult[i];
+	}
+
 }
 
 // Hashes

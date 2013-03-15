@@ -23,10 +23,19 @@
 #define ENC_HASH_CHARS          32
 #define ENC_HASH_DIGITS         8
 
+// Nonce Length CTR 
+#define ENC_CTR_NONCE_CHARS		12
+#define ENC_CTR_NONCE_DIGITS	3
+
+// CTR Length Mode
+#define ENC_CTR_CHARS			16
+#define ENC_CTR_DIGITS			4
+
 // Signature Sizes
 #define ENC_SIGNATURE_CHARS     157
 #define ENC_SIGNATURE_DIGITS    40
 
+// Signature Reasons
 #define ENC_SIGNATURE_ACCEPTED  1
 #define ENC_SIGNATURE_REJECTED  0
 
@@ -41,7 +50,7 @@ const unsigned char Enc_PublicExp[ENC_PUBLIC_KEY_CHARS];
 
 // Keys
 void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret);
-void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, digit_t *symmetricKey);
+void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRKey, digit_t *symmetricKey);
 
 // Hashes
 void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
