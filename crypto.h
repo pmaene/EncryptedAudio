@@ -8,6 +8,7 @@
 #include "bigdigits.h"
 #include "types.h"
 #include "sha3.h"
+#include "aes.h"
 
 // Key Sizes
 #define ENC_PRIVATE_KEY_CHARS   156
@@ -32,8 +33,8 @@
 #define ENC_SIGNATURE_REJECTED  0
 
 // Nonce Length CTR
-#define ENC_CTR_NONCE_CHARS     12
-#define ENC_CTR_NONCE_DIGITS    3
+#define ENC_CTR_NONCE_CHARS     80
+#define ENC_CTR_NONCE_DIGITS    20
 
 // CTR Length Mode
 #define ENC_CTR_CHARS           16

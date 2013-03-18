@@ -157,3 +157,32 @@ int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit
     printf("----> Verification Failed\n");
     return ENC_SIGNATURE_REJECTED;
 }
+void _encryptPacket(unsigned char *encryptedPacket, digit_t *dataToEncrypt, digit_t *nonce, long packetCounter, int packetSize) {
+	int blockCounter;
+	aes_key key;
+    unsigned char encryptedBlock[aes_BLOCK_SIZE];
+    unsigned char blockToEncrypt[aes_BLOCK_SIZE];
+    unsigned char encryptionKey[aes_BLOCK_SIZE];
+    int i;
+
+    for(blockCounter = 0; blockCounter < packetSize; blockCounter++) {
+        for(i = 0; i < aes_BLOCK_SIZE; i++) {
+            blockToEncrypt[i] = dataToEncrypt[i+blockCounter];
+        }
+
+        // encryptionkey = [ nonce (ENC_CTR_NONCE_CHARS bits) | packetCounter (32 bits) | block counter (16 bits) ]
+        for(i = 0; i < ENC_CTR_NONCE_DIGITS; i++)
+            encryptionKey[i] = nonce[i];
+        for(i = 0; i < sizeof(packetCounter); i++)
+            encryptionKey[i+ENC_CTR_NONCE_DIGITS] = packetCounter;
+        for(i = 0; i < sizeof(blockCounter); i++)
+            encryptionKey[i+ENC_CTR_NONCE_DIGITS+sizeof(packetCounter)] = blockCounter;
+
+    	aes_set_encrypt_key(&key, encryptionKey, 128);
+        aes_encrypt(&key, blockToEncrypt, encryptedBlock);
+    }      
+}
+
+void _encryptBlock(digit_t *result, digit_t *toEncrypt) {
+	
+}
