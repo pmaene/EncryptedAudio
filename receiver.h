@@ -4,9 +4,10 @@
 #include "protocol.h"
 
 void receiver_construct();
-void receiver_destruct();
 
-int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket);
+int receiver_receiverHello();
 void receiver_deriveKey();
+
+void receiver_destruct();
 
 #endif

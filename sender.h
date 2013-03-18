@@ -4,12 +4,11 @@
 #include "protocol.h"
 
 void sender_construct();
-void sender_destruct();
 
-void sender_senderHello(field_t *sendPacket);
-int sender_senderAcknowledge(field_t *sendPacket, field_t *receivedPacket);
+void sender_senderHello();
+int sender_senderAcknowledge();
 void sender_deriveKey();
 
-void sender_hmacTest();
+void sender_destruct();
 
 #endif

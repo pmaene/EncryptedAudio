@@ -28,5 +28,5 @@ void getRandomDigit(digit_t *randomDigit, int ndigits) {
 		i = i + 3;
 	}
 	printf("\n\n");
-	mpConvFromOctets(randomDigit, ndigits/4, temp, ndigits);	
+	mpConvFromOctets(randomDigit, ndigits/4, temp, ndigits);
 }

@@ -1,11 +1,7 @@
 #include "montgomery.h"
 
 void montModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *m, size_t nbDigits) {
-    digit_t mChs[nbDigits];
-    digit_t nPrime[nbDigits];
 
-    mpChs(mChs, m, nbDigits);
-    mpModInv(nPrime, mChs, nbDigits);
 }
 
 void montModMultiply(unsigned char *m, unsigned char *a, unsigned char *b, unsigned char *n, unsigned char nPrime, size_t nbChars) {

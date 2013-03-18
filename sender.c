@@ -1,3 +1,4 @@
+#include "channel.h"
 #include "sender.h"
 
 // RSA
@@ -17,9 +18,11 @@ const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
 // Memory Pointers
 digit_t *senderSecret;
 digit_t *receiverModExp;
+
 uint8_t *senderAESKey;
 uint8_t *senderHashKey;
 uint8_t *senderCTRNonce;
+
 int		*senderCounter;
 
 void sender_construct() {
@@ -29,22 +32,32 @@ void sender_construct() {
 	senderHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
 	senderCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
 	senderCounter = calloc(1, sizeof(int));
-	senderCounter = 0;
 }
 
-void sender_senderHello(field_t *sendPacket) {
+void sender_senderHello() {
+    field_t sendPacket[ENC_KEY_PACKET_CHARS];
+
     printf("--> sender_senderHello\n");
     senderHello(sendPacket, senderSecret);
+
+    channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 }
 
-int sender_senderAcknowledge(field_t *sendPacket, field_t *receivedPacket) {
+int sender_senderAcknowledge() {
     int returnStatus;
+
+    field_t receivedPacket[ENC_KEY_PACKET_CHARS];
+    field_t sendPacket[ENC_KEY_PACKET_CHARS];
+
+    channel_read(receivedPacket, ENC_KEY_PACKET_CHARS);
 
     printf("--> sender_senderAcknowledge\n");
     returnStatus = senderAcknowledge(sendPacket, receivedPacket, senderSecret, receiverModExp, (unsigned char *) Enc_SenderPrivateExp);
 
     printf("--| receiverModExp\n");
     mpPrintNL(receiverModExp, ENC_PRIVATE_KEY_DIGITS);
+
+    channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
     return returnStatus;
 }
@@ -76,22 +89,6 @@ void sender_deriveKey() {
 
     printf("\n");
 
-}
-
-void sender_hmacTest() {
-    unsigned char i;
-
-    uint8_t hmac[ENC_HASH_CHARS];
-    uint8_t data[1];
-
-    printf("--> sender_hmacTest\n");
-
-    _hmac(hmac, data, senderHashKey, ENC_HASH_CHARS, 1, ENC_HASH_CHARS/2);
-
-    printf("--| HMAC\n");
-    for (i = 0; i < ENC_HASH_CHARS; i++)
-        printf("%x", hmac[i]);
-    printf("\n");
 }
 
 void sender_destruct() {

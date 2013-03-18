@@ -9,7 +9,7 @@
 
 // Packet Sizes
 #define ENC_KEY_PACKET_CHARS        314
-#define ENC_DATA_PACKET_CHARS       1500
+#define ENC_DATA_PACKET_CHARS       537
 
 // Accept and Reject Reasons
 #define ENC_ACCEPT_PACKET           0
