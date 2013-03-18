@@ -3,12 +3,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "bigdigits.h"
 #include "types.h"
 
-// Channel Size
+// Channel Parameters
 #define ENC_CHANNEL_CHARS 1024
+#define ENC_DROP_RATE     85
 
 void channel_construct();
 void channel_write(field_t *data, size_t length);

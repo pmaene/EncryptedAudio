@@ -11,8 +11,11 @@ void channel_construct() {
 void channel_write(field_t *data, size_t length) {
     unsigned short i;
 
-    for (i = 0; i < length; i++)
-        channel[i] = data[i];
+    srand(time(NULL));
+    if ((rand() % 100) < ENC_DROP_RATE) {
+        for (i = 0; i < length; i++)
+            channel[i] = data[i];
+    }
 
     printf("* channel_send\n");
     _printChannel();
