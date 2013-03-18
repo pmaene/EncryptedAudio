@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     }
 
     printf("\n\n# Execution Time\n");
-    printf("%lus %lums\n", difference.tv_sec, difference.tv_nsec/1000000);
+    printf("%lus %lums\n\n", difference.tv_sec, difference.tv_nsec/1000000);
 
     exit(EXIT_SUCCESS);
 }
@@ -58,10 +58,12 @@ void _handshake() {
     sender_senderHello();
 
     // ReceiverHello
-    receiver_receiverHello();
+    if (ENC_ACCEPT_PACKET != receiver_receiverHello())
+        _handshake();
 
     // SenderAcknowledge
-    sender_senderAcknowledge();
+    if (ENC_ACCEPT_PACKET != sender_senderAcknowledge())
+        _handshake();
 }
 
 void _getTime(struct timespec *time) {

@@ -12,7 +12,7 @@ void channel_write(field_t *data, size_t length) {
     unsigned short i;
 
     srand(time(NULL));
-    if ((rand() % 100) < ENC_DROP_RATE) {
+    if ((rand() % 100) > ENC_DROP_RATE) {
         for (i = 0; i < length; i++)
             channel[i] = data[i];
     }
