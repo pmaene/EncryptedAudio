@@ -1,0 +1,35 @@
+#include "channel.h"
+
+void _printChannel();
+
+field_t *channel;
+
+void channel_construct() {
+    channel = calloc(ENC_CHANNEL_CHARS, sizeof(field_t));
+}
+
+void channel_write(field_t *data, size_t length) {
+    unsigned short i;
+
+    for (i = 0; i < length; i++)
+        channel[i] = data[i];
+
+    printf("* channel_send\n");
+    _printChannel();
+}
+
+void channel_read(field_t *data, size_t length) {
+    unsigned short i;
+
+    for (i = 0; i < length; i++)
+        data[i] = channel[i];
+}
+
+void _printChannel() {
+    unsigned short i;
+
+    for (i = 0; i < ENC_CHANNEL_CHARS; i++)
+        printf("%x", channel[i]);
+
+    printf("\n");
+}

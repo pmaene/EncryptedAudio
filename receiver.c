@@ -1,3 +1,4 @@
+#include "channel.h"
 #include "receiver.h"
 
 // RSA
@@ -17,6 +18,7 @@ const unsigned char Enc_ReceiverPrivateExp[ENC_PRIVATE_KEY_CHARS] =
 // Memory Pointers
 digit_t *receiverSecret;
 digit_t *senderModExp;
+
 uint8_t *receiverAESKey;
 uint8_t *receiverHashKey;
 uint8_t *receiverCTRNonce;
@@ -29,8 +31,13 @@ void receiver_construct() {
 	receiverCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
 }
 
-int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
+int receiver_receiverHello() {
     int returnStatus;
+
+    field_t receivedPacket[ENC_KEY_PACKET_CHARS];
+    field_t sendPacket[ENC_KEY_PACKET_CHARS];
+
+    channel_read(receivedPacket, ENC_KEY_PACKET_CHARS);
 
     printf("--> receiver_receiverHello\n");
     returnStatus = receiverHello(sendPacket, receivedPacket, receiverSecret, senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
@@ -38,13 +45,15 @@ int receiver_receiverHello(field_t *sendPacket, field_t *receivedPacket) {
     printf("--| senderModExp\n");
     mpPrintNL(senderModExp, ENC_PRIVATE_KEY_DIGITS);
 
+    channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
+
     return returnStatus;
 }
 
 void receiver_deriveKey() {
 	unsigned char i;
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
-    
+
     printf("--> receiver_deriveKey\n");
 
 	_calculateSymmetricKey(symmetricKey, senderModExp, receiverSecret);
@@ -59,13 +68,12 @@ void receiver_deriveKey() {
 	printf("--| receiverHashKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
         printf("%x", receiverHashKey[i]);
-	
+
 	printf("\n");
 
 	printf("--| receiverCTRNonce\n");
     for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
         printf("%x", receiverCTRNonce[i]);
-	
 
     printf("\n");
 }
