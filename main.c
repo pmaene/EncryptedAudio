@@ -45,14 +45,15 @@ int main(int argc, char **argv) {
         difference.tv_nsec = stopTime.tv_nsec-startTime.tv_nsec;
     }
 
-    printf("\n\n# Execution Time\n");
-    printf("%lus %lums\n\n", difference.tv_sec, difference.tv_nsec/1000000);
+    printf("\n# Execution Time\n");
+    printf("%lus %lums\n", difference.tv_sec, difference.tv_nsec/1000000);
 
     exit(EXIT_SUCCESS);
 }
 
 void _handshake() {
-    printf("# Key Exchange\n\n");
+    printf("\n# Key Exchange\n");
+    printf("--------------\n\n");
 
     // SenderHello
     sender_senderHello();
