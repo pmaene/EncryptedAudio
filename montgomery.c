@@ -4,7 +4,7 @@ void montModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *m, size_t nbDi
     digit_t base[1];
     digit_t baseShifted[nbDigits+1];
 
-    base[0] = ENC_PROCESSOR_BASE;
+    base[0] = 2;
 
     printf("----> Montgomery\n");
 
