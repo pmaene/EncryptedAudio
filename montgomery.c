@@ -1,7 +1,15 @@
 #include "montgomery.h"
 
 void montModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *m, size_t nbDigits) {
+    digit_t base[1];
+    digit_t baseShifted[nbDigits+1];
 
+    base[0] = ENC_PROCESSOR_BASE;
+
+    printf("----> Montgomery\n");
+
+    mpShiftLeft(baseShifted, base, nbDigits*sizeof(digit_t)*8-1, nbDigits+1);
+    mpPrintNL(baseShifted, nbDigits+1);
 }
 
 void montModMultiply(unsigned char *m, unsigned char *a, unsigned char *b, unsigned char *n, unsigned char nPrime, size_t nbChars) {

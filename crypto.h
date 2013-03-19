@@ -5,10 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "aes.h"
 #include "bigdigits.h"
+#include "montgomery.h"
 #include "types.h"
 #include "sha3.h"
-#include "aes.h"
 
 // Key Sizes
 #define ENC_PRIVATE_KEY_CHARS   156

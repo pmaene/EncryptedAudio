@@ -142,6 +142,7 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsi
 
 // Signatures
 void _sign(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *modulus) {
+    montModExp(signature, message, privateExponent, modulus, ENC_SIGNATURE_DIGITS);
     mpModExp(signature, message, privateExponent, modulus, ENC_SIGNATURE_DIGITS);
 }
 
@@ -157,6 +158,8 @@ int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit
     printf("----> Verification Failed\n");
     return ENC_SIGNATURE_REJECTED;
 }
+
+// Encryption
 void _encryptPacket(unsigned char *encryptedPacket, digit_t *dataToEncrypt, digit_t *nonce, long packetCounter, int packetSize) {
 	int blockCounter;
 	aes_key key;
@@ -170,7 +173,7 @@ void _encryptPacket(unsigned char *encryptedPacket, digit_t *dataToEncrypt, digi
             blockToEncrypt[i] = dataToEncrypt[i+blockCounter];
         }
 
-        // encryptionkey = [ nonce (ENC_CTR_NONCE_CHARS bits) | packetCounter (32 bits) | block counter (16 bits) ]
+        // encryptionKey = [ nonce (ENC_CTR_NONCE_CHARS bits) | packetCounter (32 bits) | blockCounter (16 bits) ]
         for(i = 0; i < ENC_CTR_NONCE_DIGITS; i++)
             encryptionKey[i] = nonce[i];
         for(i = 0; i < sizeof(packetCounter); i++)
@@ -180,9 +183,9 @@ void _encryptPacket(unsigned char *encryptedPacket, digit_t *dataToEncrypt, digi
 
     	aes_set_encrypt_key(&key, encryptionKey, 128);
         aes_encrypt(&key, blockToEncrypt, encryptedBlock);
-    }      
+    }
 }
 
 void _encryptBlock(digit_t *result, digit_t *toEncrypt) {
-	
+
 }
