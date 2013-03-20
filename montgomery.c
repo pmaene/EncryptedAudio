@@ -1,6 +1,8 @@
 #include "montgomery.h"
 
-void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q, size_t )
+void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q, size_t nbDigits) {
+
+}
 
 void montModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *m, size_t nbDigits) {
     digit_t base[1];
