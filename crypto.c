@@ -157,15 +157,15 @@ int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit
     printf("----> Verification Failed\n");
     return ENC_SIGNATURE_REJECTED;
 }
-void _encryptPacket(unsigned char *encryptedPacket, digit_t *dataToEncrypt, digit_t *nonce, long packetCounter, int packetSize) {
+void _encryptData(unsigned char *encryptedData, digit_t *dataToEncrypt, uint8_t *nonce, long packetCounter, int packetSize) {
 	int blockCounter;
 	aes_key key;
     unsigned char encryptedBlock[aes_BLOCK_SIZE];
     unsigned char blockToEncrypt[aes_BLOCK_SIZE];
-    unsigned char encryptionKey[aes_BLOCK_SIZE];
+    unsigned char encryptionKey[128];
     int i;
 
-    for(blockCounter = 0; blockCounter < packetSize; blockCounter++) {
+    for(blockCounter = 0; blockCounter < packetSize/aes_BLOCK_SIZE; blockCounter++) {
         for(i = 0; i < aes_BLOCK_SIZE; i++) {
             blockToEncrypt[i] = dataToEncrypt[i+blockCounter];
         }
@@ -180,7 +180,39 @@ void _encryptPacket(unsigned char *encryptedPacket, digit_t *dataToEncrypt, digi
 
     	aes_set_encrypt_key(&key, encryptionKey, 128);
         aes_encrypt(&key, blockToEncrypt, encryptedBlock);
+        for(i = 0; i < aes_BLOCK_SIZE; i++) {
+            encryptedData[i+blockCounter] = encryptedBlock[i];
+        }
     }      
+}
+
+void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, uint8_t *nonce, long packetCounter, int packetSize) {
+    int blockCounter;
+    unsigned char decryptedBlock[aes_BLOCK_SIZE];
+    aes_key key;
+    unsigned char blockToDecrypt[aes_BLOCK_SIZE];
+    unsigned char decryptionKey[128];
+    int i;
+
+    for(blockCounter = 0; blockCounter < packetSize/aes_BLOCK_SIZE; blockCounter++) {
+        for(i = 0; i < aes_BLOCK_SIZE; i++) {
+            blockToDecrypt[i] = encryptedData[i+blockCounter];
+        }
+
+        // calculate the decryptionkey in the same manner as the encryptionkey
+        for(i = 0; i < ENC_CTR_NONCE_DIGITS; i++)
+            decryptionKey[i] = nonce[i];
+        for(i = 0; i < sizeof(packetCounter); i++)
+            decryptionKey[i+ENC_CTR_NONCE_DIGITS] = packetCounter;
+        for(i = 0; i < sizeof(blockCounter); i++)
+            decryptionKey[i+ENC_CTR_NONCE_DIGITS+sizeof(packetCounter)] = blockCounter;
+
+        aes_set_decrypt_key(&key, decryptionKey, 128);
+        aes_decrypt(&key, blockToDecrypt, decryptedBlock);
+        for(i = 0; i < aes_BLOCK_SIZE; i++) {
+            decryptedData[i+blockCounter] = decryptedBlock[i];
+        }
+    }
 }
 
 void _encryptBlock(digit_t *result, digit_t *toEncrypt) {

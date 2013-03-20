@@ -61,4 +61,7 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsi
 void _sign(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *modulus);
 int _verify(digit_t *signature, digit_t *message, digit_t *publicExponent, digit_t *modulus);
 
+void _encryptData(unsigned char *encryptedData, digit_t *dataToEncrypt, uint8_t *nonce, long packetCounter, int packetSize);
+void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, uint8_t *nonce, long packetCounter, int packetSize);
+
 #endif

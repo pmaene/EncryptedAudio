@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
 
     // Handshake
     _handshake();
+    sender_checkEncryption();
 
     // Destruct
     sender_destruct();
