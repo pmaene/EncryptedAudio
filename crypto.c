@@ -128,6 +128,14 @@ void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLengt
     sha3_256_digest(&ctx, hashLength, hash);
 }
 
+void _hash_sha256(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+    struct sha256_ctx ctx;
+
+    sha256_init(&ctx);
+    sha256_update(&ctx, dataLength, data);
+    sha256_digest(&ctx, hashLength, hash);
+}
+
 void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsigned dataLength, unsigned keyLength) {
     unsigned i;
 
@@ -178,7 +186,7 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
     digit_t hash[ENC_SIGNATURE_CHARS];
 
     // SHA2( alpha^y | alpha^x )
-    _hash(hashResult, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _hash_sha256(hashResult, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(hash, ENC_SIGNATURE_DIGITS, (unsigned char *) hashResult, ENC_HASH_CHARS);
 
     printf("----| hash\n");
@@ -192,8 +200,8 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     digit_t hash[ENC_SIGNATURE_CHARS];
     digit_t modExpResult[ENC_SIGNATURE_DIGITS];
 
-    // SHA3( alpha^y | alpha^x )
-    _hash(hashResult, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    // SHA2( alpha^y | alpha^x )
+    _hash_sha256(hashResult, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(hash, ENC_SIGNATURE_DIGITS, (unsigned char *) hashResult, ENC_HASH_CHARS);
 
     printf("----| hash\n");

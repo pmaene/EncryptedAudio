@@ -9,6 +9,7 @@
 #include "bigdigits.h"
 #include "montgomery.h"
 #include "types.h"
+#include "sha2.h"
 #include "sha3.h"
 
 // Key Sizes
