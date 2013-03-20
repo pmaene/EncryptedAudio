@@ -8,6 +8,7 @@
 #include "aes.h"
 #include "bigdigits.h"
 #include "montgomery.h"
+#include "pkcs.h"
 #include "types.h"
 #include "sha2.h"
 #include "sha3.h"

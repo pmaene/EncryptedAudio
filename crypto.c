@@ -182,15 +182,8 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsi
 
 // Signatures
 void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus) {
-    unsigned short i;
-
     uint8_t cHash[ENC_HASH_CHARS];
     digit_t hash[ENC_SIGNATURE_CHARS];
-
-    printf("\n\n\n");
-    for (i = 0; i < 2*ENC_PRIVATE_KEY_CHARS; i++)
-        printf("%x", message[i]);
-    printf("\n\n");
 
     // SHA2( alpha^y | alpha^x )
     _hash_sha256(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
@@ -207,6 +200,8 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
 
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus) {
     uint8_t cHash[ENC_HASH_CHARS];
+    uint8_t prefixedHash[sha256_prefix_size + ENC_HASH_CHARS];
+
     digit_t hash[ENC_SIGNATURE_CHARS];
     digit_t modExpResult[ENC_SIGNATURE_DIGITS];
 
@@ -227,6 +222,16 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     return ENC_SIGNATURE_REJECTED;
 }
 
+void _pkcs_prefix(uint8_t *prefixedHash, uint8_t *prefix, size_t *prefixLength, uint8_t *hash, *hashLength) {
+    unsigned char i;
+
+    for (i = 0; i < prefixLength; i++)
+        prefixedHash[i] = prefix[i];
+    for (i = 0; i < hashLength; i++)
+        prefixedHash[prefixLength+i] = hash[i];
+}
+
+// Encryption
 void _encryptData(unsigned char *encryptedData, digit_t *dataToEncrypt, uint8_t *nonce, long packetCounter, int packetSize) {
 	int blockCounter;
 	aes_key key;

@@ -1,5 +1,5 @@
-#ifndef PKCS_H
-#define PKCS_H
+#ifndef NETTLE_SHA2_H_INCLUDED
+#define NETTLE_SHA2_H_INCLUDED
 
 /* This file provides the prefixes to generate a PKCS #1 1.5
  * DigestInfo structure for various algorithms. By appending
