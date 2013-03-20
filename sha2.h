@@ -34,6 +34,8 @@ extern "C" {
 
 /* SHA256 */
 
+#define SHA256_DATA_LENGTH 16
+
 #define SHA256_DIGEST_SIZE 32
 #define SHA256_DATA_SIZE 64
 
