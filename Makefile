@@ -10,5 +10,5 @@ endif
 
 all:	main
 
-main:	aes.c bigdigits.c channel.c crypto.c main.c protocol.c receiver.c sender.c sha3.c
+main:	aes.c bigdigits.c channel.c crypto.c main.c protocol.c receiver.c sender.c sha2.c sha3.c
 		$(CC) $(CFLAGS) $^ $(CLIBS) -o $@
