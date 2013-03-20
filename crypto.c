@@ -180,9 +180,7 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
     struct _SHA256_CTX ctx;
 
     // SHA2( alpha^y | alpha^x )
-    SHA256_Init(&ctx);
-    
-    
+    _hash(hashResult, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(hash, ENC_SIGNATURE_DIGITS, (unsigned char *) hashResult, ENC_HASH_CHARS);
 
     printf("----| hash\n");

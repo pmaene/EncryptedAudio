@@ -5,10 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "aes.h"
 #include "bigdigits.h"
+#include "montgomery.h"
 #include "types.h"
 #include "sha3.h"
-#include "aes.h"
 
 // Key Sizes
 #define ENC_PRIVATE_KEY_CHARS   156
@@ -62,5 +63,8 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsi
 // Signatures
 void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus);
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus);
+
+void _encryptData(unsigned char *encryptedData, digit_t *dataToEncrypt, uint8_t *nonce, long packetCounter, int packetSize);
+void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, uint8_t *nonce, long packetCounter, int packetSize);
 
 #endif

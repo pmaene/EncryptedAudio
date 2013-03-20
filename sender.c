@@ -86,7 +86,39 @@ void sender_deriveKey() {
 	printf("--| senderCTRNonce\n");
 	    for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
        		printf("%x", senderCTRNonce[i]);
+    printf("\n");
+}
 
+void sender_checkEncryption() {
+    // Check the encryption algorithm
+    unsigned char encryptedPacket[80+16+32];
+    unsigned char decryptedPacket[128];
+    digit_t dataToEncrypt[256];
+    unsigned char dataToEncryptChar[32] =
+    "\x01\x02\x03\x04\x5c\xb9\xa9\xda\x98\xf8\x0e\xf0\xad\xa4\xed"
+    "\xa9\xe9\x29\xe7\x93\x37\x40\xf1\x73\xb4\xc4\x46\x05\x04\x03"
+    "\x02\x01";
+    long packetCounter = 0;
+    int i;
+
+    sender_deriveKey();
+
+    mpConvFromOctets(dataToEncrypt, 32, dataToEncryptChar, 256);
+    printf("--| dataToEncrypt\n");
+        for (i = 0; i < 128; i++)
+       		printf("%x", dataToEncrypt[i]);
+
+    _encryptData(encryptedPacket, dataToEncrypt, senderCTRNonce, packetCounter, 32);
+    printf("\n");
+    printf("--| encryptedPacket\n");
+	    for (i = 0; i < 128; i++)
+       		printf("%x", encryptedPacket[i]);
+    printf("\n");
+    _decryptData(decryptedPacket,  encryptedPacket, senderCTRNonce, packetCounter, 32);
+    printf("\n");
+    printf("--| decryptedPacket\n");
+	    for (i = 0; i < 128; i++)
+       		printf("%x", decryptedPacket[i]);
     printf("\n");
 
 }

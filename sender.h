@@ -11,4 +11,6 @@ void sender_deriveKey();
 
 void sender_destruct();
 
+void sender_checkEncryption();
+
 #endif
