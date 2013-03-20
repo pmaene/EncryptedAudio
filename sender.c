@@ -91,35 +91,42 @@ void sender_deriveKey() {
 
 void sender_checkEncryption() {
     // Check the encryption algorithm
-    unsigned char encryptedPacket[80+16+32];
-    unsigned char decryptedPacket[128];
-    digit_t dataToEncrypt[256];
-    unsigned char dataToEncryptChar[32] =
-    "\x01\x02\x03\x04\x5c\xb9\xa9\xda\x98\xf8\x0e\xf0\xad\xa4\xed"
-    "\xa9\xe9\x29\xe7\x93\x37\x40\xf1\x73\xb4\xc4\x46\x05\x04\x03"
-    "\x02\x01";
+    unsigned char encryptedData[128];
+    unsigned char decryptedData[128];
+    digit_t dataToEncrypt[32];
+    digit_t encryptedDataDigit[32];
+    digit_t decryptedDataDigit[32];
+    unsigned char dataToEncryptChar[128] =
+    "\x01\x02\x03\x04\xf6\x8d\x59\xaa\xc1\x93\x67\xc7\xde\x23\x4b"
+    "\xe8\xc3\xb9\x20\xb8\x36\x2d\x21\xf5\x3e\x3c\x6b\xc8\x4e\xaa"
+    "\x5c\x54\x8d\x84\x88\x73\x3a\xc3\x27\x8b\xcf\x66\xe6\x35\xbe"
+    "\xbd\x20\x73\x4b\x4b\xea\xaa\x48\x46\xf1\xbc\xf4\x8d\xfa\x0d"
+    "\x91\xa3\xbb\xd2\x97\x27\x21\x84\x25\x66\x78\x03\x6d\xd5\x66"
+    "\x80\xc5\xa1\x63\x6b\x25\x36\xd7\xe2\x3e\xf6\x6a\xac\x1d\x62"
+    "\xb7\xdb\x3c\x6f\xbe\x05\x75\x1b\x1b\x64\x2f\x7c\x1a\xba\x7c"
+    "\x07\x4f\x48\x8e\x34\x7b\xf4\xd7\xff\x25\x5f\x2d\x13\x4d\x87"
+    "\x4b\x06\x54\x19\x04\x03\x02\x01";
     long packetCounter = 0;
-    int i;
 
     sender_deriveKey();
 
-    mpConvFromOctets(dataToEncrypt, 32, dataToEncryptChar, 256);
+    mpConvFromOctets(dataToEncrypt, 32, dataToEncryptChar, 128);
     printf("--| dataToEncrypt\n");
-        for (i = 0; i < 128; i++)
-       		printf("%x", dataToEncrypt[i]);
+    mpPrintNL(dataToEncrypt, 32);
 
-    _encryptData(encryptedPacket, dataToEncrypt, senderCTRNonce, packetCounter, 32);
+    _encryptData(encryptedData, dataToEncrypt, senderCTRNonce, packetCounter, 32);
     printf("\n");
-    printf("--| encryptedPacket\n");
-	    for (i = 0; i < 128; i++)
-       		printf("%x", encryptedPacket[i]);
+
+    printf("--| encryptedData\n");
+    mpConvToOctets(encryptedDataDigit, 32, encryptedData, 128);
+    mpPrintNL(encryptedDataDigit, 32);
+
+    _decryptData(decryptedData,  encryptedData, senderCTRNonce, packetCounter, 32);
+
     printf("\n");
-    _decryptData(decryptedPacket,  encryptedPacket, senderCTRNonce, packetCounter, 32);
-    printf("\n");
-    printf("--| decryptedPacket\n");
-	    for (i = 0; i < 128; i++)
-       		printf("%x", decryptedPacket[i]);
-    printf("\n");
+    printf("--| decryptedData\n");
+    mpConvToOctets(decryptedDataDigit, 32, decryptedData, 128);
+    mpPrintNL(decryptedDataDigit, 32);
 
 }
 
