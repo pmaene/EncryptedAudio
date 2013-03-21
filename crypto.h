@@ -45,10 +45,6 @@
 #define ENC_CTR_CHARS           16
 #define ENC_CTR_DIGITS          4
 
-// PKCS
-const uint8_t sha256_prefix[];
-const size_t sha256_prefix_size;
-
 // Diffie-Hellman
 const unsigned char Enc_Generator[ENC_PRIVATE_KEY_CHARS];
 const unsigned char Enc_Prime[ENC_PRIVATE_KEY_CHARS];
