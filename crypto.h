@@ -55,7 +55,11 @@ const unsigned char Enc_Prime[ENC_PRIVATE_KEY_CHARS];
 
 // RSA
 const unsigned char Enc_SenderModulus[ENC_SIGNATURE_CHARS];
+const unsigned char Enc_SenderPrimeOne[ENC_SIGN_PRIME_CHARS];
+const unsigned char Enc_SenderPrimeTwo[ENC_SIGN_PRIME_CHARS];
 const unsigned char Enc_ReceiverModulus[ENC_SIGNATURE_CHARS];
+const unsigned char Enc_ReceiverPrimeOne[ENC_SIGN_PRIME_CHARS];
+const unsigned char Enc_ReceiverPrimeTwo[ENC_SIGN_PRIME_CHARS];
 const unsigned char Enc_PublicExp[ENC_PUBLIC_KEY_CHARS];
 
 // Keys
@@ -68,6 +72,7 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsi
 
 // Signatures
 void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus);
+void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *p, digit_t *q);
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus);
 
 void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, uint8_t *nonce, long packetCounter, int packetSize);

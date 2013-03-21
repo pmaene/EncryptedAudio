@@ -187,7 +187,7 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
     uint8_t cHash[ENC_HASH_CHARS];
     uint8_t cPrefixedHash[sha256_prefix_size+ENC_HASH_CHARS];
 
-    digit_t prefixedHash[ENC_SIGNATURE_CHARS];
+    digit_t prefixedHash[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
     _hash_sha256(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
@@ -196,16 +196,34 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
     mpConvFromOctets(prefixedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPrefixedHash, sha256_prefix_size+ENC_HASH_CHARS);
 
     printf("----| prefixedHash\n");
-    mpPrintNL(prefixedHash, sha256_prefix_size+ENC_HASH_CHARS);
+    mpPrintNL(prefixedHash, ENC_SIGNATURE_DIGITS);
 
     mpModExp(signature, prefixedHash, privateExponent, modulus, ENC_SIGNATURE_DIGITS);
+}
+
+void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *p, digit_t *q) {
+    uint8_t cHash[ENC_HASH_CHARS];
+    uint8_t cPrefixedHash[sha256_prefix_size+ENC_HASH_CHARS];
+
+    digit_t prefixedHash[ENC_SIGNATURE_DIGITS];
+
+    // PKCS(SHA2( alpha^y | alpha^x ))
+    _hash_sha256(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _pkcs_prefix(cPrefixedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_CHARS);
+
+    mpConvFromOctets(prefixedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPrefixedHash, sha256_prefix_size+ENC_HASH_CHARS);
+
+    printf("----| prefixedHash\n");
+    mpPrintNL(prefixedHash, ENC_SIGNATURE_DIGITS);
+
+    crtModExp(signature, prefixedHash, privateExponent, p, q, ENC_SIGN_PRIME_DIGITS);
 }
 
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus) {
     uint8_t cHash[ENC_HASH_CHARS];
     uint8_t cPrefixedHash[sha256_prefix_size+ENC_HASH_CHARS];
 
-    digit_t prefixedHash[ENC_SIGNATURE_CHARS];
+    digit_t prefixedHash[ENC_SIGNATURE_DIGITS];
     digit_t modExpResult[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
@@ -214,7 +232,7 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     mpConvFromOctets(prefixedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPrefixedHash, sha256_prefix_size+ENC_HASH_CHARS);
 
     printf("----| prefixedHash\n");
-    mpPrintNL(prefixedHash, sha256_prefix_size+ENC_HASH_CHARS);
+    mpPrintNL(prefixedHash, ENC_SIGNATURE_DIGITS);
 
     mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
     if (mpEqual(modExpResult, prefixedHash, ENC_SIGNATURE_DIGITS)) {
