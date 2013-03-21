@@ -236,7 +236,7 @@ void _pkcs_prefix(uint8_t *prefixedHash, const uint8_t *prefix, const size_t pre
 }
 
 // Encryption
-void _encryptData(unsigned char *encryptedData, digit_t *dataToEncrypt, uint8_t *nonce, long packetCounter, int packetSize) {
+void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, uint8_t *nonce, long packetCounter, int packetSize) {
 	int blockCounter;
 	aes_key key;
     unsigned char encryptedBlock[aes_BLOCK_SIZE];
@@ -245,8 +245,10 @@ void _encryptData(unsigned char *encryptedData, digit_t *dataToEncrypt, uint8_t 
     int i;
 
     for(blockCounter = 0; blockCounter < packetSize/aes_BLOCK_SIZE; blockCounter++) {
+        printf("\n--- Block number %d --- \n", blockCounter);
         for(i = 0; i < aes_BLOCK_SIZE; i++) {
-            blockToEncrypt[i] = dataToEncrypt[i+blockCounter];
+            blockToEncrypt[i] = dataToEncrypt[i+blockCounter*aes_BLOCK_SIZE];
+            printf("%x", blockToEncrypt[i]);
         }
 
         // encryptionKey = [ nonce (ENC_CTR_NONCE_CHARS bits) | packetCounter (32 bits) | blockCounter (16 bits) ]
@@ -259,9 +261,10 @@ void _encryptData(unsigned char *encryptedData, digit_t *dataToEncrypt, uint8_t 
 
     	aes_set_encrypt_key(&key, encryptionKey, 128);
         aes_encrypt(&key, blockToEncrypt, encryptedBlock);
-
+        printf("\n--- Block number encrypted %d --- \n", blockCounter);
         for(i = 0; i < aes_BLOCK_SIZE; i++) {
             encryptedData[i+blockCounter] = encryptedBlock[i];
+            printf("%x", encryptedBlock[i]);
         }
     }
 }
