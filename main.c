@@ -32,8 +32,9 @@ int main(int argc, char **argv) {
     sender_checkEncryption();
 
     // Destruct
-    sender_destruct();
     receiver_destruct();
+    sender_destruct();
+    channel_destruct();
 
     // Execution Time
     _getTime(&stopTime);

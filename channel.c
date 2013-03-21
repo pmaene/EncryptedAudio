@@ -36,3 +36,7 @@ void _printChannel() {
 
     printf("\n");
 }
+
+void channel_destruct() {
+    free(channel);
+}
