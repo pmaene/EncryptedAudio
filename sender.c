@@ -91,11 +91,11 @@ void sender_deriveKey() {
 
 void sender_checkEncryption() {
     // Check the encryption algorithm
-    unsigned char encryptedData[128];
-    unsigned char decryptedData[128];
-    digit_t encryptedDataDigit[32];
-    digit_t decryptedDataDigit[32];
-    unsigned char dataToEncryptChar[128] =
+    unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
+    unsigned char decryptedData[ENC_DATA_SIZE_CHARS];
+    digit_t encryptedDataDigit[ENC_DATA_SIZE_DIGITS];
+    digit_t decryptedDataDigit[ENC_DATA_SIZE_DIGITS];
+    unsigned char dataToEncrypt[ENC_DATA_SIZE_CHARS] =
     "\x01\x02\x03\x04\xf6\x8d\x59\xaa\xc1\x93\x67\xc7\xde\x23\x4b"
     "\xe8\xc3\xb9\x20\xb8\x36\x2d\x21\xf5\x3e\x3c\x6b\xc8\x4e\xaa"
     "\x5c\x54\x8d\x84\x88\x73\x3a\xc3\x27\x8b\xcf\x66\xe6\x35\xbe"
@@ -106,30 +106,22 @@ void sender_checkEncryption() {
     "\x07\x4f\x48\x8e\x34\x7b\xf4\xd7\xff\x25\x5f\x2d\x13\x4d\x87"
     "\x4b\x06\x54\x19\x04\x03\x02\x01";
     long packetCounter = 0;
-    int i;
 
     sender_deriveKey();
 
-    _encryptData(encryptedData, dataToEncryptChar, senderCTRNonce, packetCounter, 128);
+    _encryptData(encryptedData, dataToEncrypt, senderCTRNonce, packetCounter, 128);
     printf("\n");
 
     printf("--| dataToEncryptChar\n");
-    //mpConvToOctets(encryptedDataDigit, 32, dataToEncryptChar, 128);
-    //mpPrintNL(encryptedDataDigit, 32);
-    for(i = 0; i < 128; i++) {
-        printf("%x", dataToEncryptChar[i]);
-    }
+    mpConvFromOctets(encryptedDataDigit, 32, dataToEncrypt, 128);
+    mpPrintNL(encryptedDataDigit, 32);
 
     _decryptData(decryptedData,  encryptedData, senderCTRNonce, packetCounter, 128);
 
     printf("\n");
     printf("--| decryptedData\n");
-    //mpConvToOctets(decryptedDataDigit, 32, decryptedData, 128);
-    //mpPrintNL(decryptedDataDigit, 32);
-    for(i = 0; i < 128; i++) {
-        printf("%x", decryptedData[i]);
-    }
-
+    mpConvFromOctets(decryptedDataDigit, 32, decryptedData, 128);
+    mpPrintNL(decryptedDataDigit, 32);
 }
 
 void sender_destruct() {
