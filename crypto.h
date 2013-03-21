@@ -45,6 +45,10 @@
 #define ENC_CTR_CHARS           16
 #define ENC_CTR_DIGITS          4
 
+// Data Sizes
+#define ENC_DATA_SIZE_CHARS     128
+#define ENC_DATA_SIZE_DIGITS    32
+
 // Diffie-Hellman
 const unsigned char Enc_Generator[ENC_PRIVATE_KEY_CHARS];
 const unsigned char Enc_Prime[ENC_PRIVATE_KEY_CHARS];
