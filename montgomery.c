@@ -1,6 +1,6 @@
 #include "montgomery.h"
 
-void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q, size_t nbPrimeDigits) {
+void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q, size_t nbPrimeDigits, size_t nbExponentDigits) {
     digit_t one[1];
 
     digit_t eP[nbPrimeDigits];
@@ -19,20 +19,51 @@ void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q, 
 
     one[0] = 1;
 
+    printf("\n\n---->crtModExp\n");
+
+    printf("----| p\n");
+    mpPrintNL(p, nbPrimeDigits);
+    printf("----| q\n");
+    mpPrintNL(q, nbPrimeDigits);
+
     mpSubtract(pMinusOne, p, one, nbPrimeDigits);
-    mpModulo(eP, e, nbPrimeDigits, pMinusOne, nbPrimeDigits);
+    printf("----| pMinusOne\n");
+    mpPrintNL(pMinusOne, nbPrimeDigits);
+    mpModulo(eP, e, nbExponentDigits, pMinusOne, nbPrimeDigits);
+    printf("----| eP\n");
+    mpPrintNL(eP, nbPrimeDigits);
     mpSubtract(qMinusOne, q, one, nbPrimeDigits);
-    mpModulo(eQ, e, nbPrimeDigits, qMinusOne, nbPrimeDigits);
+    printf("----| qMinusOne\n");
+    mpPrintNL(qMinusOne, nbPrimeDigits);
+    mpModulo(eQ, e, nbExponentDigits, qMinusOne, nbPrimeDigits);
+    printf("----| eQ\n");
+    mpPrintNL(eQ, nbPrimeDigits);
 
     mpModInv(garnerConstant, p, q, nbPrimeDigits);
+    printf("----| garnerConstant\n");
+    mpPrintNL(garnerConstant, nbPrimeDigits);
 
     mpModExp(modExpResultOne, x, eP, p, nbPrimeDigits);
+    printf("----| modExpResultOne\n");
+    mpPrintNL(modExpResultOne, nbPrimeDigits);
     mpModExp(modExpResultTwo, x, eQ, q, nbPrimeDigits);
+    printf("----| modExpResultTwo\n");
+    mpPrintNL(modExpResultTwo, nbPrimeDigits);
     mpSubtract(modExpResultsDifference, modExpResultTwo, modExpResultOne, nbPrimeDigits);
+    printf("----| modExpResultsDifference\n");
+    mpPrintNL(modExpResultsDifference, nbPrimeDigits);
     mpModMult(u, modExpResultsDifference, garnerConstant, q, nbPrimeDigits);
+    printf("----| u\n");
+    mpPrintNL(u, nbPrimeDigits);
     mpMultiply(up, u, p, nbPrimeDigits);
+    printf("----| up\n");
+    mpPrintNL(up, 2*nbPrimeDigits);
 
     mpAdd(result, modExpResultOne, up, 2*nbPrimeDigits);
+    printf("----| result\n");
+    mpPrintNL(result, 2*nbPrimeDigits);
+
+    printf("\n\n");
 }
 
 void montModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *m, size_t nbDigits) {

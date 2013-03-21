@@ -216,7 +216,7 @@ void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, d
     printf("----| prefixedHash\n");
     mpPrintNL(prefixedHash, ENC_SIGNATURE_DIGITS);
 
-    crtModExp(signature, prefixedHash, privateExponent, p, q, ENC_SIGN_PRIME_DIGITS);
+    crtModExp(signature, prefixedHash, privateExponent, p, q, ENC_SIGN_PRIME_DIGITS, ENC_PRIVATE_KEY_DIGITS);
 }
 
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus) {

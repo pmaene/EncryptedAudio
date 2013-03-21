@@ -91,7 +91,7 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
 
     mpConvFromOctets(p, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeOne, ENC_SIGN_PRIME_CHARS);
-    mpConvFromOctets(p, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(q, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
     _sign_crt(signature, signatureMessage, exponent, p, q);
 
     printf("---| signature_crt\n");
