@@ -1,7 +1,38 @@
 #include "montgomery.h"
 
-void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q, size_t nbDigits) {
+void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q, size_t nbPrimeDigits) {
+    digit_t one[1];
 
+    digit_t eP[nbPrimeDigits];
+    digit_t eQ[nbPrimeDigits];
+    digit_t pMinusOne[nbPrimeDigits];
+    digit_t qMinusOne[nbPrimeDigits];
+
+    digit_t garnerConstant[nbPrimeDigits];
+
+    digit_t modExpResultOne[nbPrimeDigits];
+    digit_t modExpResultTwo[nbPrimeDigits];
+
+    digit_t modExpResultsDifference[nbPrimeDigits];
+    digit_t u[nbPrimeDigits];
+    digit_t up[2*nbPrimeDigits];
+
+    one[0] = 1;
+
+    mpSubtract(pMinusOne, p, one, nbPrimeDigits);
+    mpModulo(eP, e, nbPrimeDigits, pMinusOne, nbPrimeDigits);
+    mpSubtract(qMinusOne, q, one, nbPrimeDigits);
+    mpModulo(eQ, e, nbPrimeDigits, qMinusOne, nbPrimeDigits);
+
+    mpModInv(garnerConstant, p, q, nbPrimeDigits);
+
+    mpModExp(modExpResultOne, x, eP, p, nbPrimeDigits);
+    mpModExp(modExpResultTwo, x, eQ, q, nbPrimeDigits);
+    mpSubtract(modExpResultsDifference, modExpResultTwo, modExpResultOne, nbPrimeDigits);
+    mpModMult(u, modExpResultsDifference, garnerConstant, q, nbPrimeDigits);
+    mpMultiply(up, u, p, nbPrimeDigits);
+
+    mpAdd(result, modExpResultOne, up, 2*nbPrimeDigits);
 }
 
 void montModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *m, size_t nbDigits) {

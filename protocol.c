@@ -47,6 +47,8 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
     digit_t modExpResult[ENC_PRIVATE_KEY_DIGITS];
     digit_t modulus[ENC_SIGNATURE_DIGITS];
+    digit_t p[ENC_SIGN_PRIME_DIGITS];
+    digit_t q[ENC_SIGN_PRIME_DIGITS];
     digit_t prime[ENC_PRIVATE_KEY_DIGITS];
     digit_t signature[ENC_SIGNATURE_DIGITS];
 
@@ -86,6 +88,13 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_SIGNATURE_CHARS);
 
     printf("---| signature\n");
+    mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
+
+    mpConvFromOctets(p, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeOne, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(p, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
+    _sign_crt(signature, signatureMessage, exponent, p, q);
+
+    printf("---| signature_crt\n");
     mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
 
     sendPacket[0] = 0x01;
