@@ -113,19 +113,22 @@ void sender_checkEncryption() {
     _encryptData(encryptedData, dataToEncryptChar, senderCTRNonce, packetCounter, 128);
     printf("\n");
 
-    printf("--| encryptedData\n");
-    //mpConvToOctets(encryptedDataDigit, 32, encryptedData, 128);
+    printf("--| dataToEncryptChar\n");
+    //mpConvToOctets(encryptedDataDigit, 32, dataToEncryptChar, 128);
     //mpPrintNL(encryptedDataDigit, 32);
     for(i = 0; i < 128; i++) {
-        printf("%x", encryptedData[i]);
+        printf("%x", dataToEncryptChar[i]);
     }
 
-    _decryptData(decryptedData,  encryptedData, senderCTRNonce, packetCounter, 32);
+    _decryptData(decryptedData,  encryptedData, senderCTRNonce, packetCounter, 128);
 
     printf("\n");
     printf("--| decryptedData\n");
-    mpConvToOctets(decryptedDataDigit, 32, decryptedData, 128);
-    mpPrintNL(decryptedDataDigit, 32);
+    //mpConvToOctets(decryptedDataDigit, 32, decryptedData, 128);
+    //mpPrintNL(decryptedDataDigit, 32);
+    for(i = 0; i < 128; i++) {
+        printf("%x", decryptedData[i]);
+    }
 
 }
 

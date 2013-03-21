@@ -278,10 +278,11 @@ void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, ui
             encryptionKey[i+ENC_CTR_NONCE_DIGITS+sizeof(packetCounter)] = blockCounter;
 
     	aes_set_encrypt_key(&key, encryptionKey, 128);
-        aes_encrypt(&key, blockToEncrypt, encryptedBlock);
+        aes_encrypt(&key, blockToEncrypt, encryptedBlock);        
+
         printf("\n--- Block number encrypted %d --- \n", blockCounter);
         for(i = 0; i < aes_BLOCK_SIZE; i++) {
-            encryptedData[i+blockCounter] = encryptedBlock[i];
+            encryptedData[i+blockCounter*aes_BLOCK_SIZE] = encryptedBlock[i];
             printf("%x", encryptedBlock[i]);
         }
     }
@@ -297,7 +298,7 @@ void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, ui
 
     for(blockCounter = 0; blockCounter < packetSize/aes_BLOCK_SIZE; blockCounter++) {
         for(i = 0; i < aes_BLOCK_SIZE; i++) {
-            blockToDecrypt[i] = encryptedData[i+blockCounter];
+            blockToDecrypt[i] = encryptedData[i+blockCounter*aes_BLOCK_SIZE];
         }
 
         // calculate the decryptionkey in the same manner as the encryptionkey
@@ -311,7 +312,7 @@ void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, ui
         aes_set_decrypt_key(&key, decryptionKey, 128);
         aes_decrypt(&key, blockToDecrypt, decryptedBlock);
         for(i = 0; i < aes_BLOCK_SIZE; i++) {
-            decryptedData[i+blockCounter] = decryptedBlock[i];
+            decryptedData[i+blockCounter*aes_BLOCK_SIZE] = decryptedBlock[i];
         }
     }
 }
