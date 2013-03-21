@@ -18,7 +18,6 @@
  * MA 02111-1301, USA.
  */
 
-#include <stdint.h>
 #include "pkcs.h"
 
 /* From RFC 3447, Public-Key Cryptography Standards (PKCS) #1: RSA
@@ -41,7 +40,7 @@ sha256_prefix[] =
       /* Here comes the raw hash value */
 };
 
-unsigned int sha256_prefix_size = sizeof(sha256_prefix);
+const size_t sha256_prefix_size = sizeof(sha256_prefix);
 
 /* From pkcs-1v2
  *
@@ -65,4 +64,4 @@ sha1_prefix[] =
       /* Here comes the raw hash value */
 };
 
-unsigned int sha1_prefix_size = sizeof(sha1_prefix);
+const size_t sha1_prefix_size = sizeof(sha1_prefix);

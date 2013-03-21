@@ -1,5 +1,8 @@
-#ifndef NETTLE_SHA2_H_INCLUDED
-#define NETTLE_SHA2_H_INCLUDED
+#ifndef NETTLE_PKCS_H_INCLUDED
+#define NETTLE_PKCS_H_INCLUDED
+
+#include <stdlib.h>
+#include <stdint.h>
 
 /* This file provides the prefixes to generate a PKCS #1 1.5
  * DigestInfo structure for various algorithms. By appending
@@ -7,10 +10,10 @@
  * is formed.
  */
 
-extern const uint8_t sha256_prefix[];
-extern unsigned int sha256_prefix_size;
+const uint8_t sha256_prefix[];
+const size_t sha256_prefix_size;
 
-extern const uint8_t sha1_prefix[];
-extern unsigned int sha1_prefix_size;
+const uint8_t sha1_prefix[];
+const size_t sha1_prefix_size;
 
-#endif
+#endif /* NETTLE_PKCS_H_INCLUDED */
