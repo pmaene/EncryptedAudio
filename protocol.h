@@ -15,6 +15,10 @@
 #define ENC_KEY_PACKET_CHARS        314
 #define ENC_DATA_PACKET_CHARS       ENC_DATA_SIZE_CHARS + ENC_HMAC_CHARS + 5
 
+// Diffie-Hellman Size
+#define ENC_DH_SECRET_CHARS         20
+#define ENC_DH_SECRET_DIGITS        5
+
 // Accept and Reject Reasons
 #define ENC_ACCEPT_PACKET           0
 #define ENC_REJECT_PACKET_TAG       1

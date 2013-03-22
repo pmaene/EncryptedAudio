@@ -19,10 +19,6 @@
 #define ENC_PUBLIC_KEY_CHARS    3
 #define ENC_PUBLIC_KEY_DIGITS   1
 
-// Diffie-Hellman Size
-#define ENC_DH_SECRET_CHARS     20
-#define ENC_DH_SECRET_DIGITS    5
-
 // Hash Sizes
 #define ENC_HASH_CHARS          32
 #define ENC_HASH_DIGITS         8
