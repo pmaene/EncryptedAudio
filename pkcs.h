@@ -10,10 +10,10 @@
  * is formed.
  */
 
-const uint8_t sha256_prefix[];
+const uint8_t sha256_prefix[19];
 const size_t sha256_prefix_size;
 
-const uint8_t sha1_prefix[];
+const uint8_t sha1_prefix[15];
 const size_t sha1_prefix_size;
 
 #endif /* NETTLE_PKCS_H_INCLUDED */
