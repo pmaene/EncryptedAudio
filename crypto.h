@@ -26,6 +26,8 @@
 // Hash Sizes
 #define ENC_HASH_CHARS          32
 #define ENC_HASH_DIGITS         8
+#define ENC_HMAC_CHARS          20
+#define ENC_HMAC_DIGITS         5
 
 // Signature Sizes
 #define ENC_SIGNATURE_CHARS     157
@@ -44,10 +46,6 @@
 // CTR Length Mode
 #define ENC_CTR_CHARS           16
 #define ENC_CTR_DIGITS          4
-
-// Data Sizes
-#define ENC_DATA_SIZE_CHARS     128
-#define ENC_DATA_SIZE_DIGITS    32
 
 // Diffie-Hellman
 const unsigned char Enc_Generator[ENC_PRIVATE_KEY_CHARS];
@@ -75,7 +73,7 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
 void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *p, digit_t *q);
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus);
 
-void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, uint8_t *nonce, long packetCounter, int packetSize);
-void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, uint8_t *nonce, long packetCounter, int packetSize);
+void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, uint8_t *nonce, uint32_t packetCounter, size_t packetSize);
+void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, uint8_t *nonce, uint32_t packetCounter, size_t packetSize);
 
 #endif

@@ -14,6 +14,7 @@
 
 void _handshake();
 void _getTime(struct timespec *ts);
+void _transmit();
 
 int main(int argc, char **argv) {
     struct timespec difference;
@@ -66,6 +67,11 @@ void _handshake() {
 
     // SenderAcknowledge
     if (ENC_ACCEPT_PACKET != sender_senderAcknowledge())
+        _handshake();
+}
+
+void _transmit() {
+    if (sender_sendData() == ENC_COUNTER_WRAPAROUND)
         _handshake();
 }
 

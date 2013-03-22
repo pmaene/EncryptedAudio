@@ -7,9 +7,13 @@
 #include "crypto.h"
 #include "types.h"
 
+// Data Sizes
+#define ENC_DATA_SIZE_CHARS     128
+#define ENC_DATA_SIZE_DIGITS    32
+
 // Packet Sizes
 #define ENC_KEY_PACKET_CHARS        314
-#define ENC_DATA_PACKET_CHARS       537
+#define ENC_DATA_PACKET_CHARS       ENC_DATA_SIZE_CHARS + ENC_HMAC_CHARS + 5
 
 // Accept and Reject Reasons
 #define ENC_ACCEPT_PACKET           0
@@ -26,6 +30,6 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
 void sendData(field_t *sendPacket);
 
-int increaseCounter(long *counter);
+int increaseCounter(uint32_t *counter);
 
 #endif

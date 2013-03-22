@@ -1,5 +1,6 @@
 #include "channel.h"
 #include "receiver.h"
+#include "protocol.h"
 
 // RSA
 const unsigned char Enc_ReceiverPrivateExp[ENC_PRIVATE_KEY_CHARS] =
@@ -22,6 +23,7 @@ digit_t *senderModExp;
 uint8_t *receiverAESKey;
 uint8_t *receiverHashKey;
 uint8_t *receiverCTRNonce;
+long    *receiverPacketCounter;
 
 void receiver_construct() {
     receiverSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
@@ -29,6 +31,7 @@ void receiver_construct() {
 	receiverAESKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
     receiverHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
 	receiverCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
+    receiverPacketCounter = calloc(1, sizeof(long));
 }
 
 int receiver_receiverHello() {
@@ -84,4 +87,5 @@ void receiver_destruct() {
     free(receiverAESKey);
 	free(receiverHashKey);
 	free(receiverCTRNonce);
+    free(receiverPacketCounter);
 }

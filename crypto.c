@@ -254,15 +254,15 @@ void _pkcs_prefix(uint8_t *prefixedHash, const uint8_t *prefix, const size_t pre
 }
 
 // Encryption
-void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, uint8_t *nonce, long packetCounter, int packetSize) {
+void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, uint8_t *nonce, uint32_t packetCounter, size_t dataSize) {
 	int blockCounter;
 	aes_key key;
     unsigned char encryptedBlock[aes_BLOCK_SIZE];
     unsigned char blockToEncrypt[aes_BLOCK_SIZE];
-    unsigned char encryptionKey[ENC_DATA_SIZE_CHARS];
+    unsigned char encryptionKey[dataSize];
     int i;
 
-    for(blockCounter = 0; blockCounter < packetSize/aes_BLOCK_SIZE; blockCounter++) {
+    for(blockCounter = 0; blockCounter < dataSize/aes_BLOCK_SIZE; blockCounter++) {
         for(i = 0; i < aes_BLOCK_SIZE; i++) {
             blockToEncrypt[i] = dataToEncrypt[i+blockCounter*aes_BLOCK_SIZE];
         }
@@ -275,7 +275,7 @@ void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, ui
         for(i = 0; i < sizeof(blockCounter); i++)
             encryptionKey[i+ENC_CTR_NONCE_DIGITS+sizeof(packetCounter)] = blockCounter;
 
-    	aes_set_encrypt_key(&key, encryptionKey, ENC_DATA_SIZE_CHARS);
+    	aes_set_encrypt_key(&key, encryptionKey, dataSize);
         aes_encrypt(&key, blockToEncrypt, encryptedBlock);        
 
         for(i = 0; i < aes_BLOCK_SIZE; i++)
@@ -283,15 +283,15 @@ void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, ui
     }
 }
 
-void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, uint8_t *nonce, long packetCounter, int packetSize) {
+void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, uint8_t *nonce, uint32_t packetCounter, size_t dataSize) {
     int blockCounter;
     aes_key key;
     unsigned char decryptedBlock[aes_BLOCK_SIZE];
     unsigned char blockToDecrypt[aes_BLOCK_SIZE];
-    unsigned char decryptionKey[ENC_DATA_SIZE_CHARS];
+    unsigned char decryptionKey[dataSize];
     int i;
 
-    for(blockCounter = 0; blockCounter < packetSize/aes_BLOCK_SIZE; blockCounter++) {
+    for(blockCounter = 0; blockCounter < dataSize/aes_BLOCK_SIZE; blockCounter++) {
         for(i = 0; i < aes_BLOCK_SIZE; i++)
             blockToDecrypt[i] = encryptedData[i+blockCounter*aes_BLOCK_SIZE];
 
@@ -303,13 +303,9 @@ void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, ui
         for(i = 0; i < sizeof(blockCounter); i++)
             decryptionKey[i+ENC_CTR_NONCE_DIGITS+sizeof(packetCounter)] = blockCounter;
 
-        aes_set_decrypt_key(&key, decryptionKey, ENC_DATA_SIZE_CHARS);
+        aes_set_decrypt_key(&key, decryptionKey, dataSize);
         aes_decrypt(&key, blockToDecrypt, decryptedBlock);
         for(i = 0; i < aes_BLOCK_SIZE; i++)
             decryptedData[i+blockCounter*aes_BLOCK_SIZE] = decryptedBlock[i];
     }
-}
-
-void _encryptBlock(digit_t *result, digit_t *toEncrypt) {
-	
 }

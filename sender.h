@@ -13,4 +13,6 @@ void sender_destruct();
 
 void sender_checkEncryption();
 
+int sender_sendData();
+
 #endif
