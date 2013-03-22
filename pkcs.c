@@ -28,7 +28,7 @@
  *         gov(101) csor(3) nistalgorithm(4) hashalgs(2) 1}
  */
 const uint8_t
-sha256_prefix[] =
+sha256_prefix[19] =
 {
   /* 19 octets prefix, 32 octets hash, total 51 */
   0x30,      49, /* SEQUENCE */
@@ -52,7 +52,7 @@ const size_t sha256_prefix_size = sizeof(sha256_prefix);
  *   sha1Identifier ::= AlgorithmIdentifier {id-sha1, NULL}
  */
 const uint8_t
-sha1_prefix[] =
+sha1_prefix[15] =
 {
   /* 15 octets prefix, 20 octets hash, total 35 */
   0x30,       33, /* SEQUENCE */
