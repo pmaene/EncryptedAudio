@@ -1,7 +1,4 @@
-#include "channel.h"
 #include "sender.h"
-#include "protocol.h"
-#include "crypto.h"
 
 // RSA
 const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =

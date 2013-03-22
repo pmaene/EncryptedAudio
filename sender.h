@@ -1,6 +1,8 @@
 #ifndef __ENC_SENDER_H__
 #define __ENC_SENDER_H__
 
+#include "buffer.h"
+#include "channel.h"
 #include "protocol.h"
 
 void sender_construct();
