@@ -17,7 +17,7 @@ void channel_write(field_t *data, size_t length) {
             channel[i] = data[i];
     }
 
-    printf("* channel_send\n");
+    printf("* channel\n");
     _printChannel();
 }
 
@@ -28,6 +28,10 @@ void channel_read(field_t *data, size_t length) {
         data[i] = channel[i];
 }
 
+void channel_destruct() {
+    free(channel);
+}
+
 void _printChannel() {
     unsigned short i;
 
@@ -35,8 +39,4 @@ void _printChannel() {
         printf("%x", channel[i]);
 
     printf("\n");
-}
-
-void channel_destruct() {
-    free(channel);
 }
