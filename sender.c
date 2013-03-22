@@ -22,8 +22,7 @@ digit_t *receiverModExp;
 uint8_t *senderAESKey;
 uint8_t *senderHashKey;
 uint8_t *senderCTRNonce;
-
-int		*senderCounter;
+long	*packetCounter;
 
 void sender_construct() {
     senderSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
@@ -31,7 +30,7 @@ void sender_construct() {
 	senderAESKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
 	senderHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
 	senderCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
-	senderCounter = calloc(1, sizeof(int));
+	packetCounter = calloc(1, sizeof(long));
 }
 
 void sender_senderHello() {
@@ -105,23 +104,22 @@ void sender_checkEncryption() {
     "\xb7\xdb\x3c\x6f\xbe\x05\x75\x1b\x1b\x64\x2f\x7c\x1a\xba\x7c"
     "\x07\x4f\x48\x8e\x34\x7b\xf4\xd7\xff\x25\x5f\x2d\x13\x4d\x87"
     "\x4b\x06\x54\x19\x04\x03\x02\x01";
-    long packetCounter = 0;
 
     sender_deriveKey();
 
-    _encryptData(encryptedData, dataToEncrypt, senderCTRNonce, packetCounter, 128);
+    _encryptData(encryptedData, dataToEncrypt, senderCTRNonce, packetCounter, ENC_DATA_SIZE_CHARS);
     printf("\n");
 
     printf("--| dataToEncryptChar\n");
-    mpConvFromOctets(encryptedDataDigit, 32, dataToEncrypt, 128);
-    mpPrintNL(encryptedDataDigit, 32);
+    mpConvFromOctets(encryptedDataDigit, ENC_DATA_SIZE_DIGITS, dataToEncrypt, ENC_DATA_SIZE_CHARS);
+    mpPrintNL(encryptedDataDigit, ENC_DATA_SIZE_DIGITS);
 
-    _decryptData(decryptedData,  encryptedData, senderCTRNonce, packetCounter, 128);
+    _decryptData(decryptedData,  encryptedData, senderCTRNonce, packetCounter, ENC_DATA_SIZE_CHARS);
 
     printf("\n");
     printf("--| decryptedData\n");
-    mpConvFromOctets(decryptedDataDigit, 32, decryptedData, 128);
-    mpPrintNL(decryptedDataDigit, 32);
+    mpConvFromOctets(decryptedDataDigit, ENC_DATA_SIZE_DIGITS, decryptedData, ENC_DATA_SIZE_CHARS);
+    mpPrintNL(decryptedDataDigit, ENC_DATA_SIZE_DIGITS);
 }
 
 void sender_destruct() {
@@ -130,5 +128,5 @@ void sender_destruct() {
 	free(senderAESKey);
 	free(senderHashKey);
 	free(senderCTRNonce);
-	free(senderCounter);
+	free(packetCounter);
 }

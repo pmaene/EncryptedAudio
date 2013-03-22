@@ -26,6 +26,6 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
 void sendData(field_t *sendPacket);
 
-int packetCounter(int *counter);
+int increaseCounter(long *counter);
 
 #endif

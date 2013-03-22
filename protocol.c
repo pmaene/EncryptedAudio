@@ -179,8 +179,8 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     return ENC_ACCEPT_PACKET;
 }
 
-int packetCounter(int *counter) {
-	int nextValue = *counter + 1;
+int increaseCounter(long *counter) {
+	long nextValue = *counter + 1;
 	if(*counter > nextValue) {
 		*counter = nextValue;
 		return ENC_COUNTER_WRAPAROUND;
