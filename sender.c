@@ -123,7 +123,7 @@ void sender_checkEncryption() {
 
 int sender_sendData() {
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
-    field_t data[ENC_DATA_SIZE_CHARS];    
+    field_t data[ENC_DATA_SIZE_CHARS];
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
     unsigned int i;
     uint8_t hmac[ENC_HASH_CHARS];
@@ -132,17 +132,17 @@ int sender_sendData() {
     _encryptData(encryptedData, data, senderCTRNonce, *senderPacketCounter, ENC_DATA_SIZE_CHARS);
 
     dataPacket[0] = 0x03;
-    for(i = 0; i < sizeof(uint32_t); i++)
+    for (i = 0; i < sizeof(uint32_t); i++)
         dataPacket[i+1] = senderPacketCounter[i];
-    for(i = 0; i < ENC_DATA_SIZE_CHARS; i++)
+    for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
         dataPacket[i+5] = encryptedData[i];
 
     // Calculate the HMAC of the packet untill so far.
     _hmac(hmac, dataPacket, senderHashKey, ENC_HASH_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
     // Add the HMAC to the packet
-    for(i = 0; i < ENC_HMAC_CHARS; i++)
+    for (i = 0; i < ENC_HMAC_CHARS; i++)
         dataPacket[i+5+ENC_DATA_SIZE_CHARS] = hmac[i];
-    
+
     channel_write(dataPacket, ENC_DATA_PACKET_CHARS);
 
     return increaseCounter(senderPacketCounter);
