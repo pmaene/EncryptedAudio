@@ -6,10 +6,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "bigdigits.h"
+#include "types.h"
 
-typedef DIGIT_T digit_t;
-
-int main();
-void getRandomDigit();
+void getRandomDigit(digit_t *randomDigit, size_t nbDigits);
 
 #endif

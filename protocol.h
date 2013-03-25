@@ -5,6 +5,7 @@
 
 #include "bigdigits.h"
 #include "crypto.h"
+#include "random.h"
 #include "types.h"
 
 // Data Sizes
