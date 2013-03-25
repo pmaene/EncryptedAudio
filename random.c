@@ -5,7 +5,7 @@ void getRandomDigit(digit_t *randomDigit, size_t nbDigits) {
 	unsigned short i;
 	digit_t randomData;
 
-	for(i = 0; i < sizeof(digit_t)*nbDigits; i++)
+	for (i = 0; i < sizeof(digit_t)*nbDigits; i++)
 		tmp[i] = 0;
 
 	randomData = open("/dev/urandom", O_RDONLY);

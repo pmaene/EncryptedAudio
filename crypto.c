@@ -286,7 +286,7 @@ void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, ui
             encryptionKey[i+ENC_CTR_NONCE_DIGITS+sizeof(packetCounter)] = blockCounter;
 
     	aes_set_encrypt_key(&key, encryptionKey, dataSize);
-        aes_encrypt(&key, blockToEncrypt, encryptedBlock);        
+        aes_encrypt(&key, blockToEncrypt, encryptedBlock);
 
         for(i = 0; i < aes_BLOCK_SIZE; i++)
             encryptedData[i+blockCounter*aes_BLOCK_SIZE] = encryptedBlock[i];
