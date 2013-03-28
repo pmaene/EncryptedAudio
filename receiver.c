@@ -23,7 +23,7 @@ digit_t *senderModExp;
 uint8_t *receiverAESKey;
 uint8_t *receiverHashKey;
 uint8_t *receiverCTRNonce;
-long    *receiverPacketCounter;
+uint32_t *receiverPacketCounter;
 
 void receiver_construct() {
     receiverSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
@@ -79,6 +79,45 @@ void receiver_deriveKey() {
         printf("%x", receiverCTRNonce[i]);
 
     printf("\n");
+}
+
+int receiver_receiveData() {   
+    field_t dataPacket[ENC_DATA_PACKET_CHARS];
+    field_t data[ENC_DATA_SIZE_CHARS];    
+    unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
+    unsigned short i;
+    unsigned short tag;
+    uint8_t hmac[ENC_HASH_CHARS];
+    digit_t dataDigit[ENC_DATA_PACKET_DIGITS];
+
+    channel_read(dataPacket, ENC_DATA_PACKET_CHARS);
+
+    // Calculate and check the HMAC
+    //TODO: Afhandeling van HMAC die niet overeenkomt
+    _hmac(hmac, dataPacket, receiverHashKey, ENC_HASH_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
+    /*for(i = 0; i < ENC_HASH_CHARS/2; i++) {
+        if(hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])
+            return 0;
+    }*/
+    
+    //TODO: Afhandeling van signatures die niet kloppen
+
+    for(i = 0; i < sizeof(uint32_t); i++)
+        receiverPacketCounter[i] = dataPacket[i+1];
+    for(i = 0; i < ENC_DATA_SIZE_CHARS; i++)
+        encryptedData[i] = dataPacket[i+5];
+    tag = dataPacket[0];
+    printf("--| Tag of received packet:\n%x",tag); 
+    printf("\n--| Number of received packet:\n%lu",(long unsigned int)receiverPacketCounter);     
+
+    _decryptData(data, encryptedData, receiverCTRNonce, *receiverPacketCounter, ENC_DATA_SIZE_CHARS);    
+
+    printf("\n");
+    printf("--| Decrypted data:\n");
+    mpConvFromOctets(dataDigit, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
+    mpPrintNL(dataDigit, ENC_DATA_SIZE_DIGITS);
+
+    return increaseCounter(receiverPacketCounter);
 }
 
 void receiver_destruct() {

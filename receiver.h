@@ -10,4 +10,6 @@ void receiver_deriveKey();
 
 void receiver_destruct();
 
+int receiver_receiveData();
+
 #endif

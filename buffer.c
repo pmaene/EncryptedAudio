@@ -19,7 +19,7 @@ void buffer_write(field_t *data, size_t length) {
 }
 
 void buffer_read(field_t *data, size_t length) {
-    unsigned short i;
+    unsigned int i;
 
     for (i = 0; i < length; i++)
         data[i] = buffer[i];

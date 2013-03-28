@@ -8,12 +8,13 @@
 #include "types.h"
 
 // Data Sizes
-#define ENC_DATA_SIZE_CHARS     128
-#define ENC_DATA_SIZE_DIGITS    32
+#define ENC_DATA_SIZE_CHARS         128
+#define ENC_DATA_SIZE_DIGITS        32
 
 // Packet Sizes
 #define ENC_KEY_PACKET_CHARS        314
 #define ENC_DATA_PACKET_CHARS       ENC_DATA_SIZE_CHARS + ENC_HMAC_CHARS + 5
+#define ENC_DATA_PACKET_DIGITS      ENC_DATA_PACKET_CHARS/4
 
 // Diffie-Hellman Size
 #define ENC_DH_SECRET_CHARS         20
