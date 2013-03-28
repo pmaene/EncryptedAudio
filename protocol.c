@@ -10,8 +10,7 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
     digit_t prime[ENC_PRIVATE_KEY_DIGITS];
 
     // Generate x
-    for (i = 0; i < ENC_DH_SECRET_DIGITS; i++)
-        senderSecret[i] = spSimpleRand(0, MAX_DIGIT);
+    getRandomDigit(senderSecret, ENC_DH_SECRET_DIGITS);
 
     printf("---| senderSecret\n");
     mpPrintNL(senderSecret, ENC_PRIVATE_KEY_DIGITS);
@@ -54,8 +53,7 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     uint8_t signatureMessage[2*ENC_PRIVATE_KEY_CHARS];
 
     // Generate y
-    for (i = 0; i < ENC_DH_SECRET_DIGITS; i++)
-        receiverSecret[i] = spSimpleRand(0, MAX_DIGIT);
+    getRandomDigit(receiverSecret, ENC_DH_SECRET_DIGITS);
 
     printf("---| receiverSecret\n");
     mpPrintNL(receiverSecret, ENC_PRIVATE_KEY_DIGITS);

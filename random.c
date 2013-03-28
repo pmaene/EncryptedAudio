@@ -1,32 +1,16 @@
 #include "random.h"
 
+void getRandomDigit(digit_t *randomDigit, size_t nbDigits) {
+	unsigned char tmp[sizeof(digit_t)*nbDigits];
+	unsigned short i;
+	digit_t randomData;
 
-int main() {
-	digit_t randomDigit[64];
-	getRandomDigit(randomDigit, 64);
-	mpPrintNL(randomDigit, 64/4);
-	printf("\n");
-	exit(1);
-}
+	for (i = 0; i < sizeof(digit_t)*nbDigits; i++)
+		tmp[i] = 0;
 
-void getRandomDigit(digit_t *randomDigit, int ndigits) {
-	int randomData;
-	int i;
-	unsigned char temp[ndigits*4];
-	for(i=0;i<ndigits*4;i++) {
-		temp[i]=0;
-	}
 	randomData = open("/dev/urandom", O_RDONLY);
-	read(randomData, &temp, ndigits*4);
+	read(randomData, &tmp, nbDigits*sizeof(digit_t));
 	close(randomData);
 
-	for(i=0;i<ndigits-3;i++) {
-		printf("%x",temp[i]);
-		printf("%x",temp[i+1]);
-		printf("%x",temp[i+2]);
-		printf("%x ",temp[i+3]);
-		i = i + 3;
-	}
-	printf("\n\n");
-	mpConvFromOctets(randomDigit, ndigits/4, temp, ndigits);
+	mpConvFromOctets(randomDigit, nbDigits, tmp, sizeof(digit_t)*nbDigits);
 }
