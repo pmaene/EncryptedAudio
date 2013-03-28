@@ -13,10 +13,9 @@
 #include "receiver.h"
 
 void _handshake();
-void _getTime(struct timespec *ts);
-char compare_arrays(unsigned char *arrayPointer1, unsigned char *arrayPointer2, unsigned arrayLength);
 void _transmit();
 
+void _getTime(struct timespec *ts);
 
 int main(int argc, char **argv) {
     struct timespec difference;
@@ -46,9 +45,8 @@ int main(int argc, char **argv) {
     //sender_checkEncryption();
     buffer_write(dataToEncrypt, ENC_DATA_SIZE_CHARS);
     //sender_sendData();
-    _transmit();    
+    _transmit();
     receiver_receiveData();
-    
 
     // Destruct
     receiver_destruct();
@@ -89,6 +87,14 @@ void _handshake() {
         _handshake();
 }
 
+void _transmit() {
+    if (sender_sendData() == ENC_COUNTER_WRAPAROUND)
+        _handshake();
+    if (sender_sendData() == ENC_LOST_PACKET)
+        // Increase counter or do another handshake because too many packets lost
+        _handshake();
+}
+
 void _getTime(struct timespec *time) {
     #ifdef __MACH__
         clock_serv_t clock;
@@ -102,23 +108,3 @@ void _getTime(struct timespec *time) {
         clock_gettime(CLOCK_REALTIME, time);
     #endif
 }
-
-// Return 0 if equal
-char compare_arrays(unsigned char *arrayPointer1, unsigned char *arrayPointer2, unsigned arrayLength) {
-    unsigned char i;
-    for(i = 0; i < arrayLength; i++) {
-        if(arrayPointer1[i] != arrayPointer2[i]) {
-            printf("\nMESSAGES NOT EQUAL. Error in %dth position\n",i);
-        }
-    }
-    printf("\nMESSAGES ARE EQUAL\n");
-    return 0;
-}
-void _transmit() {
-    if(sender_sendData() == ENC_COUNTER_WRAPAROUND)
-        _handshake();
-    if(sender_sendData() == ENC_LOST_PACKET)
-        //increase Counter or do another handshake because to many packets lost
-        _handshake();
-}
-

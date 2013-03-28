@@ -178,7 +178,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
 int increaseCounter(uint32_t *counter) {
 	uint32_t nextValue = *counter + 1;
-	if(*counter > nextValue) {
+	if (*counter > nextValue) {
 		*counter = nextValue;
 		return ENC_COUNTER_WRAPAROUND;
 	} else {
