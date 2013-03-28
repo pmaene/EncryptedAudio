@@ -129,8 +129,8 @@ int sender_sendData() {
     unsigned short i;
     uint8_t hmac[ENC_HASH_CHARS];
     digit_t dataPacketDigit[ENC_DATA_PACKET_DIGITS];
-    printf("\n ENC_DATA_PACKET_DIGITS: %d\n", ENC_DATA_PACKET_DIGITS);
 
+    printf("-------------- SENDER --------------\n");
     sender_deriveKey();
     buffer_read(data, ENC_DATA_SIZE_CHARS);
     _encryptData(encryptedData, data, senderCTRNonce, *senderPacketCounter, ENC_DATA_SIZE_CHARS);

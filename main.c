@@ -14,7 +14,9 @@
 
 void _handshake();
 void _getTime(struct timespec *ts);
+char compare_arrays(unsigned char *arrayPointer1, unsigned char *arrayPointer2, unsigned arrayLength);
 void _transmit();
+
 
 int main(int argc, char **argv) {
     struct timespec difference;
@@ -30,6 +32,9 @@ int main(int argc, char **argv) {
     "\xb7\xdb\x3c\x6f\xbe\x05\x75\x1b\x1b\x64\x2f\x7c\x1a\xba\x7c"
     "\x07\x4f\x48\x8e\x34\x7b\xf4\xd7\xff\x25\x5f\x2d\x13\x4d\x87"
     "\x4b\x06\x54\x19\x04\x03\x02\x01";
+    unsigned char tmp[ENC_PRIVATE_KEY_CHARS];
+    unsigned char tmp2[ENC_PRIVATE_KEY_CHARS];
+    unsigned char i;
 
     _getTime(&startTime);
 
@@ -44,7 +49,21 @@ int main(int argc, char **argv) {
     //sender_checkEncryption();
     buffer_write(dataToEncrypt, ENC_DATA_SIZE_CHARS);
     sender_sendData();
-    //receiver_receiveData();
+    buffer_read(tmp, ENC_PRIVATE_KEY_CHARS);
+    printf("\n ------ TMP ----- \n");
+    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
+        printf("%x", tmp[i]);
+    printf("\n ------ ENDOFTMP ----- \n");
+    receiver_receiveData();
+    buffer_read(tmp2,ENC_PRIVATE_KEY_CHARS);
+    printf("\n ------ TMP2 ----- \n");
+    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
+        printf("%x", tmp2[i]);
+    printf("\n ------ ENDOFTMP2 ----- \n");
+    compare_arrays(tmp, tmp2, ENC_PRIVATE_KEY_CHARS);
+    printf("ENC_PRIVATE_KEY_CHARS%d", ENC_PRIVATE_KEY_CHARS);
+    
+    //compare_arrays(senderCTRNonce, receiverCTRNonce, ENC_CTR_NONCE_CHARS);
     //_transmit();
 
     // Destruct
@@ -86,11 +105,6 @@ void _handshake() {
         _handshake();
 }
 
-void _transmit() {
-    if (sender_sendData() == ENC_COUNTER_WRAPAROUND)
-        _handshake();
-}
-
 void _getTime(struct timespec *time) {
     #ifdef __MACH__
         clock_serv_t clock;
@@ -104,3 +118,20 @@ void _getTime(struct timespec *time) {
         clock_gettime(CLOCK_REALTIME, time);
     #endif
 }
+
+// Return 0 if equal
+char compare_arrays(unsigned char *arrayPointer1, unsigned char *arrayPointer2, unsigned arrayLength) {
+    unsigned char i;
+    for(i = 0; i < arrayLength; i++) {
+        if(arrayPointer1[i] != arrayPointer2[i]) {
+            printf("\nMESSAGES NOT EQUAL. Error in %dth position\n",i);
+        }
+    }
+    printf("\nMESSAGES ARE EQUAL\n");
+    return 0;
+}
+void _transmit() {
+    if (sender_sendData() == ENC_COUNTER_WRAPAROUND)
+        _handshake();
+}
+

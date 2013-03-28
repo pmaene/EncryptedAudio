@@ -1,4 +1,6 @@
 #include "crypto.h"
+//TODO: verwijder ook onderstaande include
+#include "buffer.h"
 
 void _pkcs_prepareHash(uint8_t *preparedHash, const uint8_t *prefix, const size_t prefixLength, uint8_t *hash, size_t hashLength, size_t modulusLength);
 
@@ -105,6 +107,7 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
     uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS];
     uint8_t hashResult[ENC_HASH_CHARS];
 
+    printf("--| deriveKeys \n");
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
     _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
 	for (i = 0; i<ENC_PRIVATE_KEY_CHARS; i++) {
@@ -114,6 +117,13 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
 		aesKey[i] = hashResult[i];
 	for (i = 0; i < ENC_HASH_CHARS/2; i++)
 		hashKey[i] = hashResult[i+ENC_HASH_CHARS/2];
+    printf("Calculating CTRNonce...\n\n");
+    printf("--| hashMessage:\n");
+    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
+        printf("%x", hashMessage[i]);
+    printf("\n");
+    //TODO: Verwijder deze lijn want deze gaat alles om zeep helpen anders
+    buffer_write(hashMessage,ENC_PRIVATE_KEY_CHARS);
 	_hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
 	for (i = 0; i < ENC_CTR_NONCE_CHARS; i++) {
 		CTRNonce[i] = hashResult[i];

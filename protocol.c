@@ -186,7 +186,3 @@ int increaseCounter(uint32_t *counter) {
 		return ENC_COUNTER_NO_WRAPAROUND;
 	}
 }
-
-void sendData(field_t *sendPacket) {
-
-}
