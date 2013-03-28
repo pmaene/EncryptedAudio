@@ -62,7 +62,7 @@ void receiver_deriveKey() {
 	_calculateSymmetricKey(symmetricKey, senderModExp, receiverSecret);
 	_deriveKeys(receiverAESKey, receiverHashKey, receiverCTRNonce, symmetricKey);
 
-	printf("--| receiverAESKey\n");
+	printf("\n--| receiverAESKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
         printf("%x", receiverAESKey[i]);
 
@@ -88,7 +88,7 @@ int receiver_receiveData() {
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
     unsigned short i;
     unsigned short tag;
-    uint8_t hmac[ENC_HASH_CHARS];
+    uint8_t hmac[ENC_HMAC_CHARS];
 
     printf("-------------- RECEIVER --------------\n");
     receiver_deriveKey();
@@ -96,13 +96,21 @@ int receiver_receiveData() {
 
     // Calculate and check the HMAC
     //TODO: Afhandeling van HMAC die niet overeenkomt
-    _hmac(hmac, dataPacket, receiverHashKey, ENC_HASH_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
-    /*for(i = 0; i < ENC_HASH_CHARS/2; i++) {
+    _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
+
+    printf("\nHMAC:\n");
+    for(i = 0; i < ENC_HMAC_CHARS; i++)
+        printf("%x", hmac[i]);
+    printf("\n");
+    for(i = 0; i < ENC_HMAC_CHARS; i++)
+        printf("%x",dataPacket[5+ENC_DATA_SIZE_CHARS+i]);
+    printf("\n");
+
+    for(i = 0; i < ENC_HMAC_CHARS; i++) {
         if(hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])
-            return 0;
-    }*/
-    
-    //TODO: Afhandeling van signatures die niet kloppen
+            printf("The %dth hmac char was wrong\n",i);
+    }
+    printf("\n");
 
     for(i = 0; i < sizeof(uint32_t); i++) {
         *receiverPacketCounter = (*receiverPacketCounter << 8) + dataPacket[i+1];

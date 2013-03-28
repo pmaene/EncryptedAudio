@@ -105,30 +105,31 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
     unsigned char i = 0;
 
     uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS];
-    uint8_t hashResult[ENC_HASH_CHARS];
-
-    printf("--| deriveKeys \n");
+    uint8_t hashResult[ENC_CTR_NONCE_CHARS+ENC_HASH_CHARS];
+    
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
-    _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
-	for (i = 0; i<ENC_PRIVATE_KEY_CHARS; i++) {
-		hashMessage[i] = hashResult[i];
-	}
-	for (i = 0; i < ENC_HASH_CHARS/2; i++)
-		aesKey[i] = hashResult[i];
-	for (i = 0; i < ENC_HASH_CHARS/2; i++)
-		hashKey[i] = hashResult[i+ENC_HASH_CHARS/2];
-    printf("Calculating CTRNonce...\n\n");
+    
+    printf("--| deriveKeys \n");
+    printf("Calculating derived keys...\n\n");
     printf("--| hashMessage:\n");
     for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
         printf("%x", hashMessage[i]);
     printf("\n");
-    //TODO: Verwijder deze lijn want deze gaat alles om zeep helpen anders
-    buffer_write(hashMessage,ENC_PRIVATE_KEY_CHARS);
-	_hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
-	for (i = 0; i < ENC_CTR_NONCE_CHARS; i++) {
-		CTRNonce[i] = hashResult[i];
-	}
 
+    _hash(hashResult, hashMessage, ENC_CTR_NONCE_CHARS+ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
+
+    printf("\n --| hashResult:\n");
+    for (i = 0; i < ENC_CTR_NONCE_CHARS+ENC_HASH_CHARS; i++)
+        printf("%x", hashResult[i]);
+
+	for (i = 0; i< ENC_HASH_CHARS; i++)
+		hashMessage[i] = hashResult[i];
+	for (i = 0; i < ENC_HASH_CHARS/2; i++)
+		aesKey[i] = hashResult[i];
+	for (i = 0; i < ENC_HASH_CHARS/2; i++)
+		hashKey[i] = hashResult[i+ENC_HASH_CHARS/2];
+	for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
+		CTRNonce[i] = hashResult[i+ENC_HASH_CHARS];
 }
 
 // Hashes
@@ -189,7 +190,7 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsi
     for (i = 0; i < ENC_HASH_CHARS; i++)
         outerHashMessage[SHA3_256_DATA_SIZE+i] = hashResult[i];
 
-    _hash(hmac, outerHashMessage, ENC_HASH_CHARS, SHA3_256_DATA_SIZE+ENC_HASH_CHARS);
+    _hash(hmac, outerHashMessage, hashLength, SHA3_256_DATA_SIZE+ENC_HASH_CHARS);
 }
 
 // Signatures

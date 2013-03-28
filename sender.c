@@ -70,7 +70,7 @@ void sender_deriveKey() {
 	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
 	_deriveKeys(senderAESKey, senderHashKey, senderCTRNonce, symmetricKey);
 
-	printf("--| senderAESKey\n");
+	printf("\n--| senderAESKey\n");
     for (i = 0; i < ENC_HASH_CHARS/2; i++)
         printf("%x", senderAESKey[i]);
 
@@ -145,10 +145,13 @@ int sender_sendData() {
         dataPacket[i+5] = encryptedData[i];
     
     // Calculate the HMAC of the packet untill so far.
-    _hmac(hmac, dataPacket, senderHashKey, ENC_HASH_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
+    _hmac(hmac, dataPacket, senderHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
     // Add the HMAC to the packet
-    for (i = 0; i < ENC_HMAC_CHARS; i++)
+    printf("\nHMAC from sender side:\n");
+    for (i = 0; i < ENC_HMAC_CHARS; i++) {
         dataPacket[i+5+ENC_DATA_SIZE_CHARS] = hmac[i];
+        printf("%x",hmac[i]);
+    }
 
     printf("\n");
     printf("--| dataPacket\n");
