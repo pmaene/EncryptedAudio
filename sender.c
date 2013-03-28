@@ -127,7 +127,7 @@ int sender_sendData() {
     field_t data[ENC_DATA_SIZE_CHARS];
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
     unsigned short i;
-    uint8_t hmac[ENC_HASH_CHARS];
+    uint8_t hmac[ENC_HMAC_CHARS];
     digit_t dataPacketDigit[ENC_DATA_PACKET_DIGITS];
 
     printf("-------------- SENDER --------------\n");

@@ -183,6 +183,6 @@ int increaseCounter(uint32_t *counter) {
 		return ENC_COUNTER_WRAPAROUND;
 	} else {
 		*counter = nextValue;
-		return ENC_COUNTER_NO_WRAPAROUND;
+		return ENC_ACCEPT_PACKET;
 	}
 }

@@ -45,9 +45,10 @@ int main(int argc, char **argv) {
     _handshake();
     //sender_checkEncryption();
     buffer_write(dataToEncrypt, ENC_DATA_SIZE_CHARS);
-    sender_sendData();
+    //sender_sendData();
+    _transmit();    
     receiver_receiveData();
-    //_transmit();
+    
 
     // Destruct
     receiver_destruct();
@@ -114,7 +115,10 @@ char compare_arrays(unsigned char *arrayPointer1, unsigned char *arrayPointer2, 
     return 0;
 }
 void _transmit() {
-    if (sender_sendData() == ENC_COUNTER_WRAPAROUND)
+    if(sender_sendData() == ENC_COUNTER_WRAPAROUND)
+        _handshake();
+    if(sender_sendData() == ENC_LOST_PACKET)
+        //increase Counter or do another handshake because to many packets lost
         _handshake();
 }
 

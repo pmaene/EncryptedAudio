@@ -95,27 +95,20 @@ int receiver_receiveData() {
     channel_read(dataPacket, ENC_DATA_PACKET_CHARS);
 
     // Calculate and check the HMAC
+    // TODO: check die hmac functie op fouten want berekent nu 2 keer een verschillende HMAC voor dezelfde input.
     //TODO: Afhandeling van HMAC die niet overeenkomt
     _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
 
-    printf("\nHMAC:\n");
-    for(i = 0; i < ENC_HMAC_CHARS; i++)
-        printf("%x", hmac[i]);
-    printf("\n");
-    for(i = 0; i < ENC_HMAC_CHARS; i++)
-        printf("%x",dataPacket[5+ENC_DATA_SIZE_CHARS+i]);
-    printf("\n");
-
-    for(i = 0; i < ENC_HMAC_CHARS; i++) {
-        if(hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])
+    for (i = 0; i < ENC_HMAC_CHARS; i++) {
+        if (hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])
             printf("The %dth hmac char was wrong\n",i);
     }
     printf("\n");
 
-    for(i = 0; i < sizeof(uint32_t); i++) {
+    for (i = 0; i < sizeof(uint32_t); i++) {
         *receiverPacketCounter = (*receiverPacketCounter << 8) + dataPacket[i+1];
     }
-    for(i = 0; i < ENC_DATA_SIZE_CHARS; i++)
+    for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
         encryptedData[i] = dataPacket[i+5];
     tag = dataPacket[0];
     printf("\n--| Tag of received packet:\n%x",tag);
