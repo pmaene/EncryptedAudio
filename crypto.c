@@ -105,31 +105,20 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
     unsigned char i = 0;
 
     uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS];
-    uint8_t hashResult[ENC_CTR_NONCE_CHARS+ENC_HASH_CHARS];
-    
+    uint8_t hashResult[ENC_HASH_CHARS];
+
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
-    
-    printf("--| deriveKeys \n");
-    printf("Calculating derived keys...\n\n");
-    printf("--| hashMessage:\n");
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
-        printf("%x", hashMessage[i]);
-    printf("\n");
 
-    _hash(hashResult, hashMessage, ENC_CTR_NONCE_CHARS+ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
+    printf("---> deriveKeys \n");
 
-    printf("\n --| hashResult:\n");
-    for (i = 0; i < ENC_CTR_NONCE_CHARS+ENC_HASH_CHARS; i++)
-        printf("%x", hashResult[i]);
+    _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
 
-	for (i = 0; i< ENC_HASH_CHARS; i++)
-		hashMessage[i] = hashResult[i];
-	for (i = 0; i < ENC_HASH_CHARS/2; i++)
+	for (i = 0; i < ENC_AES_KEY_CHARS; i++)
 		aesKey[i] = hashResult[i];
-	for (i = 0; i < ENC_HASH_CHARS/2; i++)
-		hashKey[i] = hashResult[i+ENC_HASH_CHARS/2];
+    for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
+        hashKey[i] = hashResult[ENC_AES_KEY_CHARS+i];
 	for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
-		CTRNonce[i] = hashResult[i+ENC_HASH_CHARS];
+		CTRNonce[i] = hashResult[ENC_AES_KEY_CHARS+ENC_HMAC_KEY_CHARS+i];
 }
 
 // Hashes
@@ -149,7 +138,7 @@ void _hash_sha256(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned da
     sha256_digest(&ctx, hashLength, hash);
 }
 
-void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsigned dataLength, unsigned keyLength) {
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hmacLength, unsigned dataLength, unsigned keyLength) {
     unsigned i;
 
     uint8_t innerPad[SHA3_256_DATA_SIZE];
@@ -159,6 +148,9 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsi
     uint8_t innerHashMessage[SHA3_256_DATA_SIZE+dataLength];
     uint8_t outerHashMessage[SHA3_256_DATA_SIZE+ENC_HASH_CHARS];
     uint8_t hashResult[ENC_HASH_CHARS];
+
+    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+        zeroPaddedKey[i] = 0;
 
     // Padding Strings
     for (i = 0; i < SHA3_256_DATA_SIZE; i++)
@@ -190,7 +182,10 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hashLength, unsi
     for (i = 0; i < ENC_HASH_CHARS; i++)
         outerHashMessage[SHA3_256_DATA_SIZE+i] = hashResult[i];
 
-    _hash(hmac, outerHashMessage, hashLength, SHA3_256_DATA_SIZE+ENC_HASH_CHARS);
+    _hash(hashResult, outerHashMessage, ENC_HASH_CHARS, SHA3_256_DATA_SIZE+ENC_HASH_CHARS);
+
+    for (i = 0; i < hmacLength; i++)
+        hmac[i] = hashResult[i];
 }
 
 // Signatures
@@ -276,19 +271,21 @@ void _pkcs_prepareHash(uint8_t *preparedHash, const uint8_t *prefix, const size_
 
 // Encryption
 void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, uint8_t *nonce, uint32_t packetCounter, size_t dataSize) {
-	int blockCounter;
-	aes_key key;
+    unsigned char i;
     unsigned char encryptedBlock[aes_BLOCK_SIZE];
     unsigned char blockToEncrypt[aes_BLOCK_SIZE];
     unsigned char encryptionKey[dataSize];
-    int i;
+
+    unsigned int blockCounter;
+
+    aes_key key;
 
     for (blockCounter = 0; blockCounter < dataSize/aes_BLOCK_SIZE; blockCounter++) {
-        for (i = 0; i < aes_BLOCK_SIZE; i++) {
+        for (i = 0; i < aes_BLOCK_SIZE; i++)
             blockToEncrypt[i] = dataToEncrypt[i+blockCounter*aes_BLOCK_SIZE];
-        }
 
-        // encryptionKey = [ nonce (ENC_CTR_NONCE_CHARS bits) | packetCounter (32 bits) | blockCounter (16 bits) ]
+
+        // encryptionKey = [ nonce (ENC_CTR_NONCE_CHARS bits) | packetCounter (32 bits) | blockCounter (32 bits) ]
         for (i = 0; i < ENC_CTR_NONCE_DIGITS; i++)
             encryptionKey[i] = nonce[i];
         for (i = 0; i < sizeof(packetCounter); i++)
@@ -316,7 +313,7 @@ void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, ui
         for (i = 0; i < aes_BLOCK_SIZE; i++)
             blockToDecrypt[i] = encryptedData[i+blockCounter*aes_BLOCK_SIZE];
 
-        // calculate the decryptionkey in the same manner as the encryptionkey
+        // Calculate the decryption key in the same manner as the encryption key
         for (i = 0; i < ENC_CTR_NONCE_DIGITS; i++)
             decryptionKey[i] = nonce[i];
         for (i = 0; i < sizeof(packetCounter); i++)

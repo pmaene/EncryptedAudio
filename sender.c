@@ -21,16 +21,18 @@ digit_t *receiverModExp;
 uint8_t *senderAESKey;
 uint8_t *senderHashKey;
 uint8_t *senderCTRNonce;
+
 uint32_t *senderPacketCounter;
 
 void sender_construct() {
     senderSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
     receiverModExp = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
-	senderAESKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
-	senderHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
+
+	senderAESKey = calloc(ENC_AES_KEY_CHARS, sizeof(uint8_t));
+	senderHashKey = calloc(ENC_HMAC_KEY_CHARS, sizeof(uint8_t));
 	senderCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
+
 	senderPacketCounter = calloc(1, sizeof(uint32_t));
-    *senderPacketCounter = 0x13;
 }
 
 void sender_senderHello() {
@@ -71,13 +73,13 @@ void sender_deriveKey() {
 	_deriveKeys(senderAESKey, senderHashKey, senderCTRNonce, symmetricKey);
 
 	printf("\n--| senderAESKey\n");
-    for (i = 0; i < ENC_HASH_CHARS/2; i++)
+    for (i = 0; i < ENC_AES_KEY_CHARS; i++)
         printf("%x", senderAESKey[i]);
 
     printf("\n");
 
 	printf("--| senderHashKey\n");
-    for (i = 0; i < ENC_HASH_CHARS/2; i++)
+    for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
         printf("%x", senderHashKey[i]);
 
     printf("\n");
@@ -88,66 +90,39 @@ void sender_deriveKey() {
     printf("\n");
 }
 
-void sender_checkEncryption() {
-    // Check the encryption algorithm
-    unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
-    unsigned char decryptedData[ENC_DATA_SIZE_CHARS];
-    digit_t encryptedDataDigit[ENC_DATA_SIZE_DIGITS];
-    digit_t decryptedDataDigit[ENC_DATA_SIZE_DIGITS];
-    unsigned char dataToEncrypt[ENC_DATA_SIZE_CHARS] =
-    "\x01\x02\x03\x04\xf6\x8d\x59\xaa\xc1\x93\x67\xc7\xde\x23\x4b"
-    "\xe8\xc3\xb9\x20\xb8\x36\x2d\x21\xf5\x3e\x3c\x6b\xc8\x4e\xaa"
-    "\x5c\x54\x8d\x84\x88\x73\x3a\xc3\x27\x8b\xcf\x66\xe6\x35\xbe"
-    "\xbd\x20\x73\x4b\x4b\xea\xaa\x48\x46\xf1\xbc\xf4\x8d\xfa\x0d"
-    "\x91\xa3\xbb\xd2\x97\x27\x21\x84\x25\x66\x78\x03\x6d\xd5\x66"
-    "\x80\xc5\xa1\x63\x6b\x25\x36\xd7\xe2\x3e\xf6\x6a\xac\x1d\x62"
-    "\xb7\xdb\x3c\x6f\xbe\x05\x75\x1b\x1b\x64\x2f\x7c\x1a\xba\x7c"
-    "\x07\x4f\x48\x8e\x34\x7b\xf4\xd7\xff\x25\x5f\x2d\x13\x4d\x87"
-    "\x4b\x06\x54\x19\x04\x03\x02\x01";
-
-    sender_deriveKey();
-
-    _encryptData(encryptedData, dataToEncrypt, senderCTRNonce, 0, ENC_DATA_SIZE_CHARS);
-    printf("\n");
-
-    printf("--| dataToEncryptChar\n");
-    mpConvFromOctets(encryptedDataDigit, ENC_DATA_SIZE_DIGITS, dataToEncrypt, ENC_DATA_SIZE_CHARS);
-    mpPrintNL(encryptedDataDigit, ENC_DATA_SIZE_DIGITS);
-
-    _decryptData(decryptedData,  encryptedData, senderCTRNonce, 0, ENC_DATA_SIZE_CHARS);
-
-    printf("\n");
-    printf("--| decryptedData\n");
-    mpConvFromOctets(decryptedDataDigit, ENC_DATA_SIZE_DIGITS, decryptedData, ENC_DATA_SIZE_CHARS);
-    mpPrintNL(decryptedDataDigit, ENC_DATA_SIZE_DIGITS);
-}
-
 int sender_sendData() {
+    unsigned short i;
+    unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
+
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
     field_t data[ENC_DATA_SIZE_CHARS];
-    unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
-    unsigned short i;
+
     uint8_t hmac[ENC_HMAC_CHARS];
+    uint32_t packetCounter;
+
     digit_t dataPacketDigit[ENC_DATA_PACKET_DIGITS];
 
-    printf("-------------- SENDER --------------\n");
+    printf("\n\n# Sender\n");
+    printf("--------\n");
+
     sender_deriveKey();
     buffer_read(data, ENC_DATA_SIZE_CHARS);
     _encryptData(encryptedData, data, senderCTRNonce, *senderPacketCounter, ENC_DATA_SIZE_CHARS);
 
     dataPacket[0] = 0x03;
+    packetCounter = *senderPacketCounter;
     for (i = sizeof(uint32_t); i > 0; i--) {
-        dataPacket[i] = *senderPacketCounter;
-        *senderPacketCounter = *senderPacketCounter >> 8;
+        dataPacket[i] = packetCounter;
+        packetCounter = packetCounter >> 8;
     }
 
     for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
         dataPacket[i+5] = encryptedData[i];
 
-    // Calculate the HMAC of the packet untill so far.
+    // Calculate HMAC
     _hmac(hmac, dataPacket, senderHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
-    // Add the HMAC to the packet
-    printf("\nHMAC from sender side:\n");
+
+    printf("\n--| HMAC\n");
     for (i = 0; i < ENC_HMAC_CHARS; i++) {
         dataPacket[i+5+ENC_DATA_SIZE_CHARS] = hmac[i];
         printf("%x",hmac[i]);

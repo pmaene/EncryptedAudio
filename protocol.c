@@ -29,9 +29,6 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
         sendPacket[i+1] = cModExpResult[i];
 }
 
-/**
- * @TODO Check packet indices
- */
 int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp) {
     if (0x00 != receivedPacket[0])
         return ENC_REJECT_PACKET_TAG;
@@ -178,6 +175,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
 int increaseCounter(uint32_t *counter) {
 	uint32_t nextValue = *counter + 1;
+
 	if (*counter > nextValue) {
 		*counter = nextValue;
 		return ENC_COUNTER_WRAPAROUND;

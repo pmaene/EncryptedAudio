@@ -7,9 +7,8 @@ void receiver_construct();
 
 int receiver_receiverHello();
 void receiver_deriveKey();
+int receiver_receiveData();
 
 void receiver_destruct();
-
-int receiver_receiveData();
 
 #endif

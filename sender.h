@@ -10,11 +10,10 @@ void sender_construct();
 void sender_senderHello();
 int sender_senderAcknowledge();
 void sender_deriveKey();
+int sender_sendData();
+
+void sender_hmacTest();
 
 void sender_destruct();
-
-void sender_checkEncryption();
-
-int sender_sendData();
 
 #endif

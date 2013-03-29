@@ -2,6 +2,8 @@
 #include "receiver.h"
 #include "protocol.h"
 
+int receiver_checkHmac(field_t *dataPacket);
+
 // RSA
 const unsigned char Enc_ReceiverPrivateExp[ENC_PRIVATE_KEY_CHARS] =
     "\x3c\x13\xf0\x04\xd1\x24\xdd\x01\x03\xd2\xb0\x71\x42\xa2\xf6"
@@ -28,10 +30,12 @@ uint32_t *receiverPacketCounter;
 void receiver_construct() {
     receiverSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
     senderModExp = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
-	receiverAESKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
-    receiverHashKey = calloc(ENC_HASH_CHARS/2, sizeof(uint8_t));
+
+	receiverAESKey = calloc(ENC_AES_KEY_CHARS, sizeof(uint8_t));
+    receiverHashKey = calloc(ENC_HMAC_KEY_CHARS, sizeof(uint8_t));
 	receiverCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
-    receiverPacketCounter = calloc(1, sizeof(long));
+
+    receiverPacketCounter = calloc(1, sizeof(uint32_t));
 }
 
 int receiver_receiverHello() {
@@ -63,13 +67,13 @@ void receiver_deriveKey() {
 	_deriveKeys(receiverAESKey, receiverHashKey, receiverCTRNonce, symmetricKey);
 
 	printf("\n--| receiverAESKey\n");
-    for (i = 0; i < ENC_HASH_CHARS/2; i++)
+    for (i = 0; i < ENC_AES_KEY_CHARS; i++)
         printf("%x", receiverAESKey[i]);
 
     printf("\n");
 
 	printf("--| receiverHashKey\n");
-    for (i = 0; i < ENC_HASH_CHARS/2; i++)
+    for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
         printf("%x", receiverHashKey[i]);
 
 	printf("\n");
@@ -81,54 +85,53 @@ void receiver_deriveKey() {
     printf("\n");
 }
 
-int receiver_receiveData() {   
+int receiver_receiveData() {
+    unsigned short i;
+    unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
+
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
     field_t data[ENC_DATA_SIZE_CHARS];
     digit_t dataDigit[ENC_DATA_SIZE_DIGITS];
-    unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
-    unsigned short i;
-    unsigned short tag;
+
     uint32_t receivedPacketCounter;
 
-    printf("-------------- RECEIVER --------------\n");
+    printf("\n\n# Receiver\n");
+    printf("--------\n");
+
     receiver_deriveKey();
     channel_read(dataPacket, ENC_DATA_PACKET_CHARS);
-    
-    printf("\n");
-    tag = dataPacket[0];
-    printf("\n--| Tag of received packet:\n%x",tag);
 
-    for (i = 0; i < sizeof(uint32_t); i++) {
+    for (i = 0; i < sizeof(uint32_t); i++)
         receivedPacketCounter = (receivedPacketCounter << 8) + dataPacket[i+1];
-    }
-    printf("\n--| receivedPacketCounter:\n%d",receivedPacketCounter);
 
-    // TODO: check die hmac functie op fouten want berekent nu 2 keer een verschillende HMAC voor dezelfde input.
-    if(/*receiver_checkHmac == ENC_HMAC_REJECTED*/ 1==0) {
+    printf("\n---| receivedPacketCounter\n%d\n", receivedPacketCounter);
+
+    if (receiver_checkHmac(dataPacket) == ENC_HMAC_REJECTED) {
         return ENC_HMAC_REJECTED;
-    } else if (tag != 0x03) {
+    } else if (dataPacket[0] != 0x03) {
         return ENC_REJECT_PACKET_TAG;
     } else if (*receiverPacketCounter > receivedPacketCounter) {
         return ENC_LOST_PACKET;
-    } else { 
-        // In this case: the HMAC is correct, the tag is accepted and the receivedPacketCounter is smaller than that of the current packet.
+    } else {
+        // In this case: the HMAC is correct, the tag is accepted and the receivedPacketCounter is smaller than that of the current packet
 
         // Increase receiverPacketCounter while checking if no wraparound occurs
         while (*receiverPacketCounter != receivedPacketCounter) {
             if (increaseCounter(receiverPacketCounter) == ENC_COUNTER_WRAPAROUND)
                 return ENC_COUNTER_WRAPAROUND;
         }
+
         // Decrypt data
         for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
                 encryptedData[i] = dataPacket[i+5];
 
-        printf("\n--| Encrypted data in packet:\n");
+        printf("\n---| Encrypted data in packet:\n");
         mpConvFromOctets(dataDigit, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
         mpPrintNL(dataDigit, ENC_DATA_SIZE_DIGITS);
 
-        _decryptData(data, encryptedData, receiverCTRNonce, *receiverPacketCounter, ENC_DATA_SIZE_CHARS);    
+        _decryptData(data, encryptedData, receiverCTRNonce, *receiverPacketCounter, ENC_DATA_SIZE_CHARS);
 
-        printf("\n--| Decrypted data:\n");
+        printf("\n---| Decrypted data:\n");
         mpConvFromOctets(dataDigit, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
         mpPrintNL(dataDigit, ENC_DATA_SIZE_DIGITS);
 
@@ -136,17 +139,21 @@ int receiver_receiveData() {
     }
 }
 
-char receiver_checkHmac(field_t *dataPacket) {
-    uint8_t hmac[ENC_HMAC_CHARS];
+int receiver_checkHmac(field_t *dataPacket) {
     unsigned char i;
+    uint8_t hmac[ENC_HMAC_CHARS];
 
     _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
+
+    printf("\n--| HMAC\n");
+    for (i = 0; i < ENC_HMAC_CHARS; i++)
+        printf("%x",hmac[i]);
+
     for (i = 0; i < ENC_HMAC_CHARS; i++) {
-        if (hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i]) {
-            printf("The %dth hmac char was wrong\n",i);
+        if (hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])
             return ENC_HMAC_REJECTED;
-        }
     }
+
     return ENC_ACCEPT_PACKET;
 }
 
