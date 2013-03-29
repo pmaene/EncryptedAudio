@@ -78,10 +78,6 @@ int receiver_receiveData() {
     receiver_deriveKey();
     channel_read(dataPacket, ENC_DATA_PACKET_CHARS);
 
-    for (i = 0; i < ENC_DATA_PACKET_CHARS; i++)
-        printf("%x", dataPacket[i]);
-    printf("\n");
-
     for (i = 0; i < sizeof(uint32_t); i++)
         receivedPacketCounter = (receivedPacketCounter << 8) + dataPacket[i+1];
 
