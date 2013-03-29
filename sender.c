@@ -122,7 +122,7 @@ void sender_checkEncryption() {
     mpPrintNL(decryptedDataDigit, ENC_DATA_SIZE_DIGITS);
 }
 
-int sender_sendData() {   
+int sender_sendData() {
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
     field_t data[ENC_DATA_SIZE_CHARS];
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
@@ -134,16 +134,16 @@ int sender_sendData() {
     sender_deriveKey();
     buffer_read(data, ENC_DATA_SIZE_CHARS);
     _encryptData(encryptedData, data, senderCTRNonce, *senderPacketCounter, ENC_DATA_SIZE_CHARS);
-    
+
     dataPacket[0] = 0x03;
-    for(i = sizeof(uint32_t); i > 0; i--) {
+    for (i = sizeof(uint32_t); i > 0; i--) {
         dataPacket[i] = *senderPacketCounter;
         *senderPacketCounter = *senderPacketCounter >> 8;
     }
-        
-    for(i = 0; i < ENC_DATA_SIZE_CHARS; i++)
+
+    for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
         dataPacket[i+5] = encryptedData[i];
-    
+
     // Calculate the HMAC of the packet untill so far.
     _hmac(hmac, dataPacket, senderHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
     // Add the HMAC to the packet

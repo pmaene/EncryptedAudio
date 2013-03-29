@@ -13,10 +13,8 @@
 #include "receiver.h"
 
 void _handshake();
-void _getTime(struct timespec *ts);
-char compare_arrays(unsigned char *arrayPointer1, unsigned char *arrayPointer2, unsigned arrayLength);
 void _transmit();
-
+void _getTime(struct timespec *ts);
 
 int main(int argc, char **argv) {
     struct timespec difference;
@@ -46,9 +44,8 @@ int main(int argc, char **argv) {
     //sender_checkEncryption();
     buffer_write(dataToEncrypt, ENC_DATA_SIZE_CHARS);
     //sender_sendData();
-    _transmit();    
+    _transmit();
     receiver_receiveData();
-    
 
     // Destruct
     receiver_destruct();
