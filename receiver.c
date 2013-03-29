@@ -88,47 +88,67 @@ int receiver_receiveData() {
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
     unsigned short i;
     unsigned short tag;
-    uint8_t hmac[ENC_HMAC_CHARS];
+    uint32_t receivedPacketCounter;
 
     printf("-------------- RECEIVER --------------\n");
     receiver_deriveKey();
     channel_read(dataPacket, ENC_DATA_PACKET_CHARS);
-
-    // Calculate and check the HMAC
-    // TODO: check die hmac functie op fouten want berekent nu 2 keer een verschillende HMAC voor dezelfde input.
-    //TODO: Afhandeling van HMAC die niet overeenkomt
-    _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
-
-    for (i = 0; i < ENC_HMAC_CHARS; i++) {
-        if (hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])
-            printf("The %dth hmac char was wrong\n",i);
-    }
-    printf("\n");
-
-    for (i = 0; i < sizeof(uint32_t); i++) {
-        *receiverPacketCounter = (*receiverPacketCounter << 8) + dataPacket[i+1];
-    }
-    for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
-        encryptedData[i] = dataPacket[i+5];
-    tag = dataPacket[0];
-    printf("\n--| Tag of received packet:\n%x",tag);
-    printf("\n--| receiverPacketCounter:\n%d",*receiverPacketCounter);
     
     printf("\n");
-    printf("--| Data in packet:\n");
-    mpConvFromOctets(dataDigit, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
-    mpPrintNL(dataDigit, ENC_DATA_SIZE_DIGITS);
+    tag = dataPacket[0];
+    printf("\n--| Tag of received packet:\n%x",tag);
 
-    _decryptData(data, encryptedData, receiverCTRNonce, *receiverPacketCounter, ENC_DATA_SIZE_CHARS);    
+    for (i = 0; i < sizeof(uint32_t); i++) {
+        receivedPacketCounter = (receivedPacketCounter << 8) + dataPacket[i+1];
+    }
+    printf("\n--| receivedPacketCounter:\n%d",receivedPacketCounter);
 
-    printf("\n");
-    printf("--| Decrypted data:\n");
-    mpConvFromOctets(dataDigit, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
-    mpPrintNL(dataDigit, ENC_DATA_SIZE_DIGITS);
+    // TODO: check die hmac functie op fouten want berekent nu 2 keer een verschillende HMAC voor dezelfde input.
+    if(/*receiver_checkHmac == ENC_HMAC_REJECTED*/ 1==0) {
+        return ENC_HMAC_REJECTED;
+    } else if (tag != 0x03) {
+        return ENC_REJECT_PACKET_TAG;
+    } else if (*receiverPacketCounter > receivedPacketCounter) {
+        return ENC_LOST_PACKET;
+    } else { 
+        // In this case: the HMAC is correct, the tag is accepted and the receivedPacketCounter is smaller than that of the current packet.
 
-    return increaseCounter(receiverPacketCounter);
+        // Increase receiverPacketCounter while checking if no wraparound occurs
+        while (*receiverPacketCounter != receivedPacketCounter) {
+            if (increaseCounter(receiverPacketCounter) == ENC_COUNTER_WRAPAROUND)
+                return ENC_COUNTER_WRAPAROUND;
+        }
+        // Decrypt data
+        for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
+                encryptedData[i] = dataPacket[i+5];
+
+        printf("\n--| Encrypted data in packet:\n");
+        mpConvFromOctets(dataDigit, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
+        mpPrintNL(dataDigit, ENC_DATA_SIZE_DIGITS);
+
+        _decryptData(data, encryptedData, receiverCTRNonce, *receiverPacketCounter, ENC_DATA_SIZE_CHARS);    
+
+        printf("\n--| Decrypted data:\n");
+        mpConvFromOctets(dataDigit, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
+        mpPrintNL(dataDigit, ENC_DATA_SIZE_DIGITS);
+
+        return ENC_ACCEPT_PACKET;
+    }
 }
 
+char receiver_checkHmac(field_t *dataPacket) {
+    uint8_t hmac[ENC_HMAC_CHARS];
+    unsigned char i;
+
+    _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
+    for (i = 0; i < ENC_HMAC_CHARS; i++) {
+        if (hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i]) {
+            printf("The %dth hmac char was wrong\n",i);
+            return ENC_HMAC_REJECTED;
+        }
+    }
+    return ENC_ACCEPT_PACKET;
+}
 
 void receiver_destruct() {
 	free(senderModExp);

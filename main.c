@@ -103,22 +103,10 @@ void _getTime(struct timespec *time) {
     #endif
 }
 
-// Return 0 if equal
-char compare_arrays(unsigned char *arrayPointer1, unsigned char *arrayPointer2, unsigned arrayLength) {
-    unsigned char i;
-    for(i = 0; i < arrayLength; i++) {
-        if(arrayPointer1[i] != arrayPointer2[i]) {
-            printf("\nMESSAGES NOT EQUAL. Error in %dth position\n",i);
-        }
-    }
-    printf("\nMESSAGES ARE EQUAL\n");
-    return 0;
-}
 void _transmit() {
-    if(sender_sendData() == ENC_COUNTER_WRAPAROUND)
+    if(sender_sendData() == ENC_COUNTER_WRAPAROUND) {
         _handshake();
-    if(sender_sendData() == ENC_LOST_PACKET)
-        //increase Counter or do another handshake because to many packets lost
-        _handshake();
+        _transmit();
+    }
 }
 
