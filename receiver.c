@@ -25,6 +25,7 @@ digit_t *senderModExp;
 uint8_t *receiverAESKey;
 uint8_t *receiverHashKey;
 uint8_t *receiverCTRNonce;
+
 uint32_t *receiverPacketCounter;
 
 void receiver_construct() {
@@ -49,40 +50,18 @@ int receiver_receiverHello() {
     printf("--> receiver_receiverHello\n");
     returnStatus = receiverHello(sendPacket, receivedPacket, receiverSecret, senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
 
-    printf("--| senderModExp\n");
-    mpPrintNL(senderModExp, ENC_PRIVATE_KEY_DIGITS);
-
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
     return returnStatus;
 }
 
 void receiver_deriveKey() {
-	unsigned char i;
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
     printf("--> receiver_deriveKey\n");
 
 	_calculateSymmetricKey(symmetricKey, senderModExp, receiverSecret);
 	_deriveKeys(receiverAESKey, receiverHashKey, receiverCTRNonce, symmetricKey);
-
-	printf("\n--| receiverAESKey\n");
-    for (i = 0; i < ENC_AES_KEY_CHARS; i++)
-        printf("%x", receiverAESKey[i]);
-
-    printf("\n");
-
-	printf("--| receiverHashKey\n");
-    for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
-        printf("%x", receiverHashKey[i]);
-
-	printf("\n");
-
-	printf("--| receiverCTRNonce\n");
-    for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
-        printf("%x", receiverCTRNonce[i]);
-
-    printf("\n");
 }
 
 int receiver_receiveData() {
@@ -90,21 +69,21 @@ int receiver_receiveData() {
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
 
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
-    field_t data[ENC_DATA_SIZE_CHARS];
-    digit_t dataDigit[ENC_DATA_SIZE_DIGITS];
 
     uint32_t receivedPacketCounter;
 
-    printf("\n\n# Receiver\n");
+    printf("\n# Receiver\n");
     printf("--------\n");
 
     receiver_deriveKey();
     channel_read(dataPacket, ENC_DATA_PACKET_CHARS);
 
+    for (i = 0; i < ENC_DATA_PACKET_CHARS; i++)
+        printf("%x", dataPacket[i]);
+    printf("\n");
+
     for (i = 0; i < sizeof(uint32_t); i++)
         receivedPacketCounter = (receivedPacketCounter << 8) + dataPacket[i+1];
-
-    printf("\n---| receivedPacketCounter\n%d\n", receivedPacketCounter);
 
     if (receiver_checkHmac(dataPacket) == ENC_HMAC_REJECTED) {
         return ENC_HMAC_REJECTED;
@@ -113,27 +92,15 @@ int receiver_receiveData() {
     } else if (*receiverPacketCounter > receivedPacketCounter) {
         return ENC_LOST_PACKET;
     } else {
-        // In this case: the HMAC is correct, the tag is accepted and the receivedPacketCounter is smaller than that of the current packet
-
-        // Increase receiverPacketCounter while checking if no wraparound occurs
         while (*receiverPacketCounter != receivedPacketCounter) {
             if (increaseCounter(receiverPacketCounter) == ENC_COUNTER_WRAPAROUND)
                 return ENC_COUNTER_WRAPAROUND;
         }
 
-        // Decrypt data
+        printf("--| receiverPacketCounter: %d\n", *receiverPacketCounter);
+
         for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
-                encryptedData[i] = dataPacket[i+5];
-
-        printf("\n---| Encrypted data in packet:\n");
-        mpConvFromOctets(dataDigit, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
-        mpPrintNL(dataDigit, ENC_DATA_SIZE_DIGITS);
-
-        _decryptData(data, encryptedData, receiverCTRNonce, *receiverPacketCounter, ENC_DATA_SIZE_CHARS);
-
-        printf("\n---| Decrypted data:\n");
-        mpConvFromOctets(dataDigit, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
-        mpPrintNL(dataDigit, ENC_DATA_SIZE_DIGITS);
+            encryptedData[i] = dataPacket[i+5];
 
         return ENC_ACCEPT_PACKET;
     }
@@ -145,16 +112,12 @@ int receiver_checkHmac(field_t *dataPacket) {
 
     _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
 
-    printf("\n--| HMAC\n");
-    for (i = 0; i < ENC_HMAC_CHARS; i++)
-        printf("%x",hmac[i]);
-
     for (i = 0; i < ENC_HMAC_CHARS; i++) {
         if (hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])
             return ENC_HMAC_REJECTED;
     }
 
-    return ENC_ACCEPT_PACKET;
+    return ENC_HMAC_ACCEPTED;
 }
 
 void receiver_destruct() {

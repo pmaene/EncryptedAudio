@@ -13,9 +13,6 @@ void buffer_write(field_t *data, size_t length) {
 
     for (i = 0; i < length; i++)
         buffer[i] = data[i];
-
-    printf("* buffer\n");
-    _printBuffer();
 }
 
 void buffer_read(field_t *data, size_t length) {

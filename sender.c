@@ -55,52 +55,29 @@ int sender_senderAcknowledge() {
     printf("--> sender_senderAcknowledge\n");
     returnStatus = senderAcknowledge(sendPacket, receivedPacket, senderSecret, receiverModExp, (unsigned char *) Enc_SenderPrivateExp);
 
-    printf("--| receiverModExp\n");
-    mpPrintNL(receiverModExp, ENC_PRIVATE_KEY_DIGITS);
-
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
     return returnStatus;
 }
 
 void sender_deriveKey() {
-	unsigned char i;
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
     printf("--> sender_deriveKey\n");
 
 	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
 	_deriveKeys(senderAESKey, senderHashKey, senderCTRNonce, symmetricKey);
-
-	printf("\n--| senderAESKey\n");
-    for (i = 0; i < ENC_AES_KEY_CHARS; i++)
-        printf("%x", senderAESKey[i]);
-
-    printf("\n");
-
-	printf("--| senderHashKey\n");
-    for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
-        printf("%x", senderHashKey[i]);
-
-    printf("\n");
-
-	printf("--| senderCTRNonce\n");
-	    for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
-       		printf("%x", senderCTRNonce[i]);
-    printf("\n");
 }
 
 int sender_sendData() {
     unsigned short i;
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
 
-    field_t dataPacket[ENC_DATA_PACKET_CHARS];
     field_t data[ENC_DATA_SIZE_CHARS];
+    field_t dataPacket[ENC_DATA_PACKET_CHARS];
 
     uint8_t hmac[ENC_HMAC_CHARS];
     uint32_t packetCounter;
-
-    digit_t dataPacketDigit[ENC_DATA_PACKET_DIGITS];
 
     printf("\n\n# Sender\n");
     printf("--------\n");
@@ -121,17 +98,8 @@ int sender_sendData() {
 
     // Calculate HMAC
     _hmac(hmac, dataPacket, senderHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
-
-    printf("\n--| HMAC\n");
-    for (i = 0; i < ENC_HMAC_CHARS; i++) {
+    for (i = 0; i < ENC_HMAC_CHARS; i++)
         dataPacket[i+5+ENC_DATA_SIZE_CHARS] = hmac[i];
-        printf("%x",hmac[i]);
-    }
-
-    printf("\n");
-    printf("--| dataPacket\n");
-    mpConvFromOctets(dataPacketDigit, ENC_DATA_PACKET_DIGITS, dataPacket, ENC_DATA_PACKET_CHARS);
-    mpPrintNL(dataPacketDigit, ENC_DATA_PACKET_DIGITS);
 
     channel_write(dataPacket, ENC_DATA_PACKET_CHARS);
 

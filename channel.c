@@ -11,14 +11,14 @@ void channel_construct() {
 void channel_write(field_t *data, size_t length) {
     unsigned short i;
 
+    for (i = 0; i < ENC_CHANNEL_CHARS; i++)
+        channel[i] = 0;
+
     srand(time(NULL));
     if ((rand() % 100) > ENC_DROP_RATE) {
         for (i = 0; i < length; i++)
             channel[i] = data[i];
     }
-
-    printf("* channel\n");
-    _printChannel();
 }
 
 void channel_read(field_t *data, size_t length) {

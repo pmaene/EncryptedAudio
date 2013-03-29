@@ -27,7 +27,8 @@
 #define ENC_REJECT_PACKET_SIGNATURE 2
 #define ENC_COUNTER_WRAPAROUND	    3
 #define ENC_LOST_PACKET             4
-#define ENC_HMAC_REJECTED           5
+#define ENC_HMAC_ACCEPTED           5
+#define ENC_HMAC_REJECTED           6
 
 void senderHello(field_t *sendPacket, digit_t *senderSecret);
 int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp);

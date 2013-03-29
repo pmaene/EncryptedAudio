@@ -109,7 +109,7 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
 
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
 
-    printf("---> deriveKeys \n");
+    printf("----> deriveKeys \n");
 
     _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
 
@@ -201,9 +201,6 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
 
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
-    printf("----| preparedHash\n");
-    mpPrintNL(preparedHash, ENC_SIGNATURE_DIGITS);
-
     mpModExp(signature, preparedHash, privateExponent, modulus, ENC_SIGNATURE_DIGITS);
 }
 
@@ -219,9 +216,6 @@ void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, d
 
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
-    printf("----| preparedHash\n");
-    mpPrintNL(preparedHash, ENC_SIGNATURE_DIGITS);
-
     crtModExp(signature, preparedHash, privateExponent, p, q, ENC_SIGNATURE_DIGITS, ENC_PRIVATE_KEY_DIGITS, ENC_SIGN_PRIME_DIGITS);
 }
 
@@ -236,9 +230,6 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     _hash_sha256(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_CHARS, ENC_SIGNATURE_CHARS);
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
-
-    printf("----| preparedHash\n");
-    mpPrintNL(preparedHash, ENC_SIGNATURE_DIGITS);
 
     mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
     if (mpEqual(modExpResult, preparedHash, ENC_SIGNATURE_DIGITS)) {
@@ -284,8 +275,7 @@ void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, ui
         for (i = 0; i < aes_BLOCK_SIZE; i++)
             blockToEncrypt[i] = dataToEncrypt[i+blockCounter*aes_BLOCK_SIZE];
 
-
-        // encryptionKey = [ nonce (ENC_CTR_NONCE_CHARS bits) | packetCounter (32 bits) | blockCounter (32 bits) ]
+        // encryptionKey = [ nonce (ENC_CTR_NONCE_CHARS bytes) | packetCounter (32 bits) | blockCounter (32 bits) ]
         for (i = 0; i < ENC_CTR_NONCE_DIGITS; i++)
             encryptionKey[i] = nonce[i];
         for (i = 0; i < sizeof(packetCounter); i++)
@@ -313,7 +303,7 @@ void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, ui
         for (i = 0; i < aes_BLOCK_SIZE; i++)
             blockToDecrypt[i] = encryptedData[i+blockCounter*aes_BLOCK_SIZE];
 
-        // Calculate the decryption key in the same manner as the encryption key
+        // decryptionKey = [ nonce (ENC_CTR_NONCE_CHARS bytes) | packetCounter (32 bits) | blockCounter (32 bits) ]
         for (i = 0; i < ENC_CTR_NONCE_DIGITS; i++)
             decryptionKey[i] = nonce[i];
         for (i = 0; i < sizeof(packetCounter); i++)
