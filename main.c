@@ -17,7 +17,7 @@ void _transmit();
 void _getTime(struct timespec *ts);
 
 int main(int argc, char **argv) {
-    unsigned char i;
+    uint32_t i;
 
     struct timespec difference;
     struct timespec startTime;
@@ -34,8 +34,6 @@ int main(int argc, char **argv) {
         "\x07\x4f\x48\x8e\x34\x7b\xf4\xd7\xff\x25\x5f\x2d\x13\x4d\x87"
         "\x4b\x06\x54\x19\x04\x03\x02\x01";
 
-    _getTime(&startTime);
-
     // Construct
     buffer_construct();
     channel_construct();
@@ -45,8 +43,10 @@ int main(int argc, char **argv) {
     // Handshake
     _handshake();
 
+    _getTime(&startTime);
+
     // Transmit
-    for (i = 0; i < 250; i++) {
+    for (i = 0; i < 1000; i++) {
         buffer_write(dataToEncrypt, ENC_DATA_SIZE_CHARS);
         _transmit();
         receiver_receiveData();
@@ -76,8 +76,10 @@ int main(int argc, char **argv) {
 }
 
 void _handshake() {
-    printf("\n# Key Exchange\n");
-    printf("--------------\n\n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("\n# Key Exchange\n");
+        printf("--------------\n\n");
+    #endif
 
     // SenderHello
     sender_senderHello();

@@ -1,6 +1,9 @@
 #include "crypto.h"
-//TODO: verwijder ook onderstaande include
-#include "buffer.h"
+
+static void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+static void _hash_sha1(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+static void _hash_sha2(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+static void _hash_sha3(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
 
 void _pkcs_prepareHash(uint8_t *preparedHash, const uint8_t *prefix, const size_t prefixLength, uint8_t *hash, size_t hashLength, size_t modulusLength);
 
@@ -104,38 +107,61 @@ void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret
 void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *symmetricKey) {
     unsigned char i = 0;
 
-    uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS];
+    uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS + 1];
     uint8_t hashResult[ENC_HASH_CHARS];
 
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
 
-    printf("----> deriveKeys \n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("----> deriveKeys \n");
+    #endif
 
+    hashMessage[ENC_PRIVATE_KEY_CHARS] = 1;
     _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
-
 	for (i = 0; i < ENC_AES_KEY_CHARS; i++)
 		aesKey[i] = hashResult[i];
+
+    hashMessage[ENC_PRIVATE_KEY_CHARS] = 2;
+    _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
     for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
-        hashKey[i] = hashResult[ENC_AES_KEY_CHARS+i];
+        hashKey[i] = hashResult[i];
+
+    hashMessage[ENC_PRIVATE_KEY_CHARS] = 3;
+    _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
 	for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
-		CTRNonce[i] = hashResult[ENC_AES_KEY_CHARS+ENC_HMAC_KEY_CHARS+i];
+		CTRNonce[i] = hashResult[i];
 }
 
 // Hashes
-void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
-    struct sha3_256_ctx ctx;
-
-    sha3_256_init(&ctx);
-    sha3_256_update(&ctx, dataLength, data);
-    sha3_256_digest(&ctx, hashLength, hash);
+static void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+    _hash_sha3(hash, data, hashLength, dataLength);
 }
 
-void _hash_sha256(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+static void _hash_sha1(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+    struct sha1_ctx ctx;
+
+    if (hashLength > SHA1_DIGEST_SIZE)
+        hashLength = SHA1_DIGEST_SIZE;
+
+    sha1_init(&ctx);
+    sha1_update(&ctx, dataLength, data);
+    sha1_digest(&ctx, hashLength, hash);
+}
+
+static void _hash_sha2(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
     struct sha256_ctx ctx;
 
     sha256_init(&ctx);
     sha256_update(&ctx, dataLength, data);
     sha256_digest(&ctx, hashLength, hash);
+}
+
+static void _hash_sha3(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+    struct sha3_256_ctx ctx;
+
+    sha3_256_init(&ctx);
+    sha3_256_update(&ctx, dataLength, data);
+    sha3_256_digest(&ctx, hashLength, hash);
 }
 
 void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hmacLength, unsigned dataLength, unsigned keyLength) {
@@ -196,7 +222,7 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
     digit_t preparedHash[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
-    _hash_sha256(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _hash_sha2(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_CHARS, ENC_SIGNATURE_CHARS);
 
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
@@ -211,7 +237,7 @@ void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, d
     digit_t preparedHash[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
-    _hash_sha256(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _hash_sha2(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_CHARS, ENC_SIGNATURE_CHARS);
 
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
@@ -227,17 +253,21 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     digit_t modExpResult[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
-    _hash_sha256(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _hash_sha2(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_CHARS, ENC_SIGNATURE_CHARS);
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
     mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
     if (mpEqual(modExpResult, preparedHash, ENC_SIGNATURE_DIGITS)) {
-        printf("----> Verification Successful\n");
+        #ifndef __ENC_NO_PRINTS__
+            printf("----> Verification Successful\n");
+        #endif
         return ENC_SIGNATURE_ACCEPTED;
     }
 
-    printf("----> Verification Failed\n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("----> Verification Failed\n");
+    #endif
     return ENC_SIGNATURE_REJECTED;
 }
 

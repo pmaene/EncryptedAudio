@@ -26,8 +26,6 @@
 #ifndef NETTLE_SHA2_H_INCLUDED
 #define NETTLE_SHA2_H_INCLUDED
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

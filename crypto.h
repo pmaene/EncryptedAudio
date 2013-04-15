@@ -10,6 +10,7 @@
 #include "crt.h"
 #include "pkcs.h"
 #include "types.h"
+#include "sha1.h"
 #include "sha2.h"
 #include "sha3.h"
 
@@ -23,8 +24,8 @@
 #define ENC_HASH_CHARS          32
 #define ENC_HASH_DIGITS         8
 
-#define ENC_HMAC_KEY_CHARS      20
-#define ENC_HMAC_KEY_DIGITS     5
+#define ENC_HMAC_KEY_CHARS      10
+#define ENC_HMAC_KEY_DIGITS     3
 #define ENC_HMAC_CHARS          20
 #define ENC_HMAC_DIGITS         5
 
@@ -48,24 +49,23 @@
 #define ENC_CTR_NONCE_DIGITS    1
 
 // Diffie-Hellman
-const unsigned char Enc_Generator[ENC_PRIVATE_KEY_CHARS];
-const unsigned char Enc_Prime[ENC_PRIVATE_KEY_CHARS];
+extern const unsigned char Enc_Generator[ENC_PRIVATE_KEY_CHARS];
+extern const unsigned char Enc_Prime[ENC_PRIVATE_KEY_CHARS];
 
 // RSA
-const unsigned char Enc_SenderModulus[ENC_SIGNATURE_CHARS];
-const unsigned char Enc_SenderPrimeOne[ENC_SIGN_PRIME_CHARS];
-const unsigned char Enc_SenderPrimeTwo[ENC_SIGN_PRIME_CHARS];
-const unsigned char Enc_ReceiverModulus[ENC_SIGNATURE_CHARS];
-const unsigned char Enc_ReceiverPrimeOne[ENC_SIGN_PRIME_CHARS];
-const unsigned char Enc_ReceiverPrimeTwo[ENC_SIGN_PRIME_CHARS];
-const unsigned char Enc_PublicExp[ENC_PUBLIC_KEY_CHARS];
+extern const unsigned char Enc_SenderModulus[ENC_SIGNATURE_CHARS];
+extern const unsigned char Enc_SenderPrimeOne[ENC_SIGN_PRIME_CHARS];
+extern const unsigned char Enc_SenderPrimeTwo[ENC_SIGN_PRIME_CHARS];
+extern const unsigned char Enc_ReceiverModulus[ENC_SIGNATURE_CHARS];
+extern const unsigned char Enc_ReceiverPrimeOne[ENC_SIGN_PRIME_CHARS];
+extern const unsigned char Enc_ReceiverPrimeTwo[ENC_SIGN_PRIME_CHARS];
+extern const unsigned char Enc_PublicExp[ENC_PUBLIC_KEY_CHARS];
 
 // Keys
 void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret);
 void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRKey, digit_t *symmetricKey);
 
 // Hashes
-void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
 void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hmacLength, unsigned dataLength, unsigned keyLength);
 
 // Signatures

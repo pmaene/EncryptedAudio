@@ -38,7 +38,9 @@ void sender_construct() {
 void sender_senderHello() {
     field_t sendPacket[ENC_KEY_PACKET_CHARS];
 
-    printf("--> sender_senderHello\n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("--> sender_senderHello\n");
+    #endif
     senderHello(sendPacket, senderSecret);
 
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
@@ -52,7 +54,9 @@ int sender_senderAcknowledge() {
 
     channel_read(receivedPacket, ENC_KEY_PACKET_CHARS);
 
-    printf("--> sender_senderAcknowledge\n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("--> sender_senderAcknowledge\n");
+    #endif
     returnStatus = senderAcknowledge(sendPacket, receivedPacket, senderSecret, receiverModExp, (unsigned char *) Enc_SenderPrivateExp);
 
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
@@ -63,7 +67,9 @@ int sender_senderAcknowledge() {
 void sender_deriveKey() {
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
-    printf("--> sender_deriveKey\n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("--> sender_deriveKey\n");
+    #endif
 
 	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
 	_deriveKeys(senderAESKey, senderHashKey, senderCTRNonce, symmetricKey);
@@ -79,8 +85,10 @@ int sender_sendData() {
     uint8_t hmac[ENC_HMAC_CHARS];
     uint32_t packetCounter;
 
-    printf("\n\n# Sender\n");
-    printf("--------\n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("\n\n# Sender\n");
+        printf("--------\n");
+    #endif
 
     sender_deriveKey();
     buffer_read(data, ENC_DATA_SIZE_CHARS);

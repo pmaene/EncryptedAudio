@@ -10,7 +10,7 @@
 
 // Channel Parameters
 #define ENC_CHANNEL_CHARS 1024
-#define ENC_DROP_RATE     20
+#define ENC_DROP_RATE     0
 
 void channel_construct();
 void channel_write(field_t *data, size_t length);

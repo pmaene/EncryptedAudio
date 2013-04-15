@@ -47,7 +47,10 @@ int receiver_receiverHello() {
 
     channel_read(receivedPacket, ENC_KEY_PACKET_CHARS);
 
-    printf("--> receiver_receiverHello\n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("--> receiver_receiverHello\n");
+    #endif
+
     returnStatus = receiverHello(sendPacket, receivedPacket, receiverSecret, senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
 
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
@@ -58,7 +61,9 @@ int receiver_receiverHello() {
 void receiver_deriveKey() {
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
-    printf("--> receiver_deriveKey\n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("--> receiver_deriveKey\n");
+    #endif
 
 	_calculateSymmetricKey(symmetricKey, senderModExp, receiverSecret);
 	_deriveKeys(receiverAESKey, receiverHashKey, receiverCTRNonce, symmetricKey);
@@ -70,10 +75,12 @@ int receiver_receiveData() {
 
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
 
-    uint32_t receivedPacketCounter;
+    uint32_t receivedPacketCounter = 0;
 
-    printf("\n# Receiver\n");
-    printf("--------\n");
+    #ifndef __ENC_NO_PRINTS__
+        printf("\n# Receiver\n");
+        printf("--------\n");
+    #endif
 
     receiver_deriveKey();
     channel_read(dataPacket, ENC_DATA_PACKET_CHARS);
@@ -93,7 +100,9 @@ int receiver_receiveData() {
                 return ENC_COUNTER_WRAPAROUND;
         }
 
-        printf("--| receiverPacketCounter: %d\n", *receiverPacketCounter);
+        #ifndef __ENC_NO_PRINTS__
+            printf("--| receiverPacketCounter: %d\n", *receiverPacketCounter);
+        #endif
 
         for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
             encryptedData[i] = dataPacket[i+5];

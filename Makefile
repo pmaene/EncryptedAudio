@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -g
+CFLAGS=-O2 -Wall -g
 
 lrt:=$(shell echo "int main() {}"|gcc -x c - -lrt 2>&1)
 ifeq ($(lrt),)
@@ -10,5 +10,5 @@ endif
 
 all:	main
 
-main:	aes.c bigdigits.c buffer.c channel.c crt.c crypto.c main.c pkcs.c protocol.c random.c receiver.c sender.c sha2.c sha3.c
+main:	aes.c bigdigits.c buffer.c channel.c crt.c crypto.c main.c pkcs.c protocol.c random.c receiver.c sender.c sha1.c sha2.c sha3.c
 		$(CC) $(CFLAGS) $^ $(CLIBS) -o $@
