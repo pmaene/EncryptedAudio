@@ -105,7 +105,7 @@ int sender_sendData() {
         dataPacket[i+5] = encryptedData[i];
 
     // Calculate HMAC
-    _hmac(hmac, dataPacket, senderHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
+    _hmac(hmac, dataPacket, senderHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_DIGEST_CHARS/2);
     for (i = 0; i < ENC_HMAC_CHARS; i++)
         dataPacket[i+5+ENC_DATA_SIZE_CHARS] = hmac[i];
 

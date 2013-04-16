@@ -115,7 +115,7 @@ int receiver_checkHmac(field_t *dataPacket) {
     unsigned char i;
     uint8_t hmac[ENC_HMAC_CHARS];
 
-    _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_CHARS/2);
+    _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_DIGEST_CHARS/2);
 
     for (i = 0; i < ENC_HMAC_CHARS; i++) {
         if (hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])

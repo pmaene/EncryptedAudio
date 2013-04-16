@@ -15,38 +15,54 @@
 #include "sha3.h"
 
 // Keys
-#define ENC_PRIVATE_KEY_CHARS   156
-#define ENC_PRIVATE_KEY_DIGITS  39
-#define ENC_PUBLIC_KEY_CHARS    3
-#define ENC_PUBLIC_KEY_DIGITS   1
+#define ENC_PRIVATE_KEY_CHARS          156
+#define ENC_PRIVATE_KEY_DIGITS         39
+#define ENC_PUBLIC_KEY_CHARS           3
+#define ENC_PUBLIC_KEY_DIGITS          1
 
 // Hashes
-#define ENC_HASH_CHARS          32
-#define ENC_HASH_DIGITS         8
+#define __ENC_USE_SHA3__
 
-#define ENC_HMAC_KEY_CHARS      10
-#define ENC_HMAC_KEY_DIGITS     3
-#define ENC_HMAC_CHARS          20
-#define ENC_HMAC_DIGITS         5
+#if defined(__ENC_USE_SHA1__)
+    #define ENC_HASH_DIGEST_CHARS      20
+    #define ENC_HASH_DIGEST_DIGITS     5
+    #define ENC_HASH_DATA_CHARS        64
+    #define ENC_HASH_DATA_DIGITS       8
+#elif defined(__ENC_USE_SHA2__)
+    #define ENC_HASH_DIGEST_CHARS      32
+    #define ENC_HASH_DIGEST_DIGITS     8
+    #define ENC_HASH_DATA_CHARS        64
+    #define ENC_HASH_DATA_DIGITS       8
+#elif defined(__ENC_USE_SHA3__)
+    #define ENC_HASH_DIGEST_CHARS      32
+    #define ENC_HASH_DIGEST_DIGITS     8
+    #define ENC_HASH_DATA_CHARS        136
+    #define ENC_HASH_DATA_DIGITS       17
+#endif
+
+#define ENC_HMAC_KEY_CHARS             10
+#define ENC_HMAC_KEY_DIGITS            3
+#define ENC_HMAC_CHARS                 20
+#define ENC_HMAC_DIGITS                5
 
 // Signatures
-#define ENC_SIGNATURE_CHARS     157
-#define ENC_SIGNATURE_DIGITS    40
-#define ENC_SIGN_PRIME_CHARS    79
-#define ENC_SIGN_PRIME_DIGITS   20
+#define ENC_SIGNATURE_CHARS            157
+#define ENC_SIGNATURE_DIGITS           40
+#define ENC_SIGN_PRIME_CHARS           79
+#define ENC_SIGN_PRIME_DIGITS          20
 
 // Signature Reasons
-#define ENC_SIGNATURE_ACCEPTED  1
-#define ENC_SIGNATURE_REJECTED  0
+#define ENC_SIGNATURE_ACCEPTED         1
+#define ENC_SIGNATURE_REJECTED         0
 
 // AES-CTR
-#define ENC_AES_KEY_CHARS       16
-#define ENC_AES_KEY_DIGITS      4
+#define ENC_AES_KEY_CHARS              16
+#define ENC_AES_KEY_DIGITS             4
 
-#define ENC_CTR_CHARS           16
-#define ENC_CTR_DIGITS          4
-#define ENC_CTR_NONCE_CHARS     2
-#define ENC_CTR_NONCE_DIGITS    1
+#define ENC_CTR_CHARS                  16
+#define ENC_CTR_DIGITS                 4
+#define ENC_CTR_NONCE_CHARS            2
+#define ENC_CTR_NONCE_DIGITS           1
 
 // Diffie-Hellman
 extern const unsigned char Enc_Generator[ENC_PRIVATE_KEY_CHARS];

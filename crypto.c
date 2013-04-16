@@ -1,9 +1,13 @@
 #include "crypto.h"
 
 static void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
-static void _hash_sha1(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+#ifdef __ENC_USE_SHA1__
+    static void _hash_sha1(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+#endif
 static void _hash_sha2(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
-static void _hash_sha3(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+#ifdef __ENC_USE_SHA3__
+    static void _hash_sha3(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+#endif
 
 void _pkcs_prepareHash(uint8_t *preparedHash, const uint8_t *prefix, const size_t prefixLength, uint8_t *hash, size_t hashLength, size_t modulusLength);
 
@@ -108,7 +112,7 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
     unsigned char i = 0;
 
     uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS + 1];
-    uint8_t hashResult[ENC_HASH_CHARS];
+    uint8_t hashResult[ENC_HASH_DIGEST_CHARS];
 
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
 
@@ -117,36 +121,41 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
     #endif
 
     hashMessage[ENC_PRIVATE_KEY_CHARS] = 1;
-    _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
+    _hash(hashResult, hashMessage, ENC_HASH_DIGEST_CHARS, ENC_PRIVATE_KEY_CHARS);
 	for (i = 0; i < ENC_AES_KEY_CHARS; i++)
 		aesKey[i] = hashResult[i];
 
     hashMessage[ENC_PRIVATE_KEY_CHARS] = 2;
-    _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
+    _hash(hashResult, hashMessage, ENC_HASH_DIGEST_CHARS, ENC_PRIVATE_KEY_CHARS);
     for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
         hashKey[i] = hashResult[i];
 
     hashMessage[ENC_PRIVATE_KEY_CHARS] = 3;
-    _hash(hashResult, hashMessage, ENC_HASH_CHARS, ENC_PRIVATE_KEY_CHARS);
+    _hash(hashResult, hashMessage, ENC_HASH_DIGEST_CHARS, ENC_PRIVATE_KEY_CHARS);
 	for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
 		CTRNonce[i] = hashResult[i];
 }
 
 // Hashes
 static void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
-    _hash_sha3(hash, data, hashLength, dataLength);
+    #if defined(__ENC_USE_SHA1__)
+        _hash_sha1(hash, data, hashLength, dataLength);
+    #elif defined(__ENC_USE_SHA2__)
+        _hash_sha2(hash, data, hashLength, dataLength);
+    #elif defined(__ENC_USE_SHA3__)
+        _hash_sha3(hash, data, hashLength, dataLength);
+    #endif
 }
 
-static void _hash_sha1(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
-    struct sha1_ctx ctx;
+#ifdef __ENC_USE_SHA1__
+    static void _hash_sha1(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+        struct sha1_ctx ctx;
 
-    if (hashLength > SHA1_DIGEST_SIZE)
-        hashLength = SHA1_DIGEST_SIZE;
-
-    sha1_init(&ctx);
-    sha1_update(&ctx, dataLength, data);
-    sha1_digest(&ctx, hashLength, hash);
-}
+        sha1_init(&ctx);
+        sha1_update(&ctx, dataLength, data);
+        sha1_digest(&ctx, hashLength, hash);
+    }
+#endif
 
 static void _hash_sha2(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
     struct sha256_ctx ctx;
@@ -156,59 +165,61 @@ static void _hash_sha2(uint8_t *hash, uint8_t *data, unsigned hashLength, unsign
     sha256_digest(&ctx, hashLength, hash);
 }
 
-static void _hash_sha3(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
-    struct sha3_256_ctx ctx;
+#ifdef __ENC_USE_SHA3__
+    static void _hash_sha3(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+        struct sha3_256_ctx ctx;
 
-    sha3_256_init(&ctx);
-    sha3_256_update(&ctx, dataLength, data);
-    sha3_256_digest(&ctx, hashLength, hash);
-}
+        sha3_256_init(&ctx);
+        sha3_256_update(&ctx, dataLength, data);
+        sha3_256_digest(&ctx, hashLength, hash);
+    }
+#endif
 
 void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hmacLength, unsigned dataLength, unsigned keyLength) {
     unsigned i;
 
-    uint8_t innerPad[SHA3_256_DATA_SIZE];
-    uint8_t outerPad[SHA3_256_DATA_SIZE];
-    uint8_t zeroPaddedKey[SHA3_256_DATA_SIZE];
-    uint8_t paddedKey[SHA3_256_DATA_SIZE];
-    uint8_t innerHashMessage[SHA3_256_DATA_SIZE+dataLength];
-    uint8_t outerHashMessage[SHA3_256_DATA_SIZE+ENC_HASH_CHARS];
-    uint8_t hashResult[ENC_HASH_CHARS];
+    uint8_t innerPad[ENC_HASH_DATA_CHARS];
+    uint8_t outerPad[ENC_HASH_DATA_CHARS];
+    uint8_t zeroPaddedKey[ENC_HASH_DATA_CHARS];
+    uint8_t paddedKey[ENC_HASH_DATA_CHARS];
+    uint8_t innerHashMessage[ENC_HASH_DATA_CHARS+dataLength];
+    uint8_t outerHashMessage[ENC_HASH_DATA_CHARS+ENC_HASH_DIGEST_CHARS];
+    uint8_t hashResult[ENC_HASH_DIGEST_CHARS];
 
-    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         zeroPaddedKey[i] = 0;
 
     // Padding Strings
-    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         innerPad[i] = 0x36;
-    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         outerPad[i] = 0x5c;
 
     // Inner Padding
     for (i = 0; i < keyLength; i++)
         zeroPaddedKey[i] = key[i];
-    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         paddedKey[i] = zeroPaddedKey[i] ^ innerPad[i];
 
     // Append Data
-    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         innerHashMessage[i] = paddedKey[i];
     for (i = 0; i < dataLength; i++)
-        innerHashMessage[SHA3_256_DATA_SIZE+i] = data[i];
+        innerHashMessage[ENC_HASH_DATA_CHARS+i] = data[i];
 
-    _hash(hashResult, innerHashMessage, ENC_HASH_CHARS, SHA3_256_DATA_SIZE+dataLength);
+    _hash(hashResult, innerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+dataLength);
 
     // Outer Padding
-    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         paddedKey[i] = zeroPaddedKey[i] ^ outerPad[i];
 
     // Append Hash
-    for (i = 0; i < SHA3_256_DATA_SIZE; i++)
+    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         outerHashMessage[i] = paddedKey[i];
-    for (i = 0; i < ENC_HASH_CHARS; i++)
-        outerHashMessage[SHA3_256_DATA_SIZE+i] = hashResult[i];
+    for (i = 0; i < ENC_HASH_DIGEST_CHARS; i++)
+        outerHashMessage[ENC_HASH_DATA_CHARS+i] = hashResult[i];
 
-    _hash(hashResult, outerHashMessage, ENC_HASH_CHARS, SHA3_256_DATA_SIZE+ENC_HASH_CHARS);
+    _hash(hashResult, outerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+ENC_HASH_DIGEST_CHARS);
 
     for (i = 0; i < hmacLength; i++)
         hmac[i] = hashResult[i];
@@ -216,14 +227,14 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hmacLength, unsi
 
 // Signatures
 void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus) {
-    uint8_t cHash[ENC_HASH_CHARS];
+    uint8_t cHash[ENC_HASH_DIGEST_CHARS];
     uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
 
     digit_t preparedHash[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
-    _hash_sha2(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
-    _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_CHARS, ENC_SIGNATURE_CHARS);
+    _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_DIGEST_CHARS, ENC_SIGNATURE_CHARS);
 
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
@@ -231,14 +242,14 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
 }
 
 void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *p, digit_t *q) {
-    uint8_t cHash[ENC_HASH_CHARS];
+    uint8_t cHash[ENC_HASH_DIGEST_CHARS];
     uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
 
     digit_t preparedHash[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
-    _hash_sha2(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
-    _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_CHARS, ENC_SIGNATURE_CHARS);
+    _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_DIGEST_CHARS, ENC_SIGNATURE_CHARS);
 
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
@@ -246,15 +257,15 @@ void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, d
 }
 
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus) {
-    uint8_t cHash[ENC_HASH_CHARS];
+    uint8_t cHash[ENC_HASH_DIGEST_CHARS];
     uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
 
     digit_t preparedHash[ENC_SIGNATURE_DIGITS];
     digit_t modExpResult[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
-    _hash_sha2(cHash, message, ENC_HASH_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
-    _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_CHARS, ENC_SIGNATURE_CHARS);
+    _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_DIGEST_CHARS, ENC_SIGNATURE_CHARS);
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
     mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
