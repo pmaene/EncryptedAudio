@@ -1,6 +1,7 @@
 #ifndef __ENC_BUFFER_H__
 #define __ENC_BUFFER_H__
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
