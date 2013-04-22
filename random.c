@@ -5,8 +5,6 @@ void getRandomDigit(digit_t *randomDigit, size_t nbDigits) {
 
 	digit_t randomData;
 
-    size_t i;
-
     memset(tmp, 0, nbDigits*sizeof(digit_t));
 
 	randomData = open("/dev/urandom", O_RDONLY);
