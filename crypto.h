@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>size_t
 
 #include "aes.h"
 #include "bigdigits.h"
@@ -21,7 +22,7 @@
 #define ENC_PUBLIC_KEY_DIGITS          1
 
 // Hashes
-#define __ENC_USE_SHA3__
+#define __ENC_USE_SHA2__
 
 #if defined(__ENC_USE_SHA1__)
     #define ENC_HASH_DIGEST_CHARS      20
@@ -82,7 +83,7 @@ void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret
 void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRKey, digit_t *symmetricKey);
 
 // Hashes
-void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hmacLength, unsigned dataLength, unsigned keyLength);
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t dataLength, size_t keyLength);
 
 // Signatures
 void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus);

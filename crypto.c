@@ -1,12 +1,12 @@
 #include "crypto.h"
 
-static void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+static void _hash(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength);
 #ifdef __ENC_USE_SHA1__
-    static void _hash_sha1(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+    static void _hash_sha1(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength);
 #endif
-static void _hash_sha2(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+static void _hash_sha2(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength);
 #ifdef __ENC_USE_SHA3__
-    static void _hash_sha3(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength);
+    static void _hash_sha3(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength);
 #endif
 
 void _pkcs_prepareHash(uint8_t *preparedHash, const uint8_t *prefix, const size_t prefixLength, uint8_t *hash, size_t hashLength, size_t modulusLength);
@@ -109,35 +109,55 @@ void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret
 }
 
 void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *symmetricKey) {
-    unsigned char i = 0;
+    #ifndef __ENC_NO_PRINTS__
+        size_t i;
+    #endif
 
-    uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS + 1];
+    uint8_t hashMessage[ENC_PRIVATE_KEY_CHARS+1];
     uint8_t hashResult[ENC_HASH_DIGEST_CHARS];
 
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
 
     #ifndef __ENC_NO_PRINTS__
-        printf("----> deriveKeys \n");
+        printf("---> _deriveKeys \n");
     #endif
 
     hashMessage[ENC_PRIVATE_KEY_CHARS] = 1;
-    _hash(hashResult, hashMessage, ENC_HASH_DIGEST_CHARS, ENC_PRIVATE_KEY_CHARS);
-	for (i = 0; i < ENC_AES_KEY_CHARS; i++)
-		aesKey[i] = hashResult[i];
+    _hash(hashResult, hashMessage, ENC_HASH_DIGEST_CHARS, ENC_PRIVATE_KEY_CHARS+1);
+    memcpy(aesKey, hashResult, ENC_AES_KEY_CHARS);
 
-    hashMessage[ENC_PRIVATE_KEY_CHARS] = 2;
-    _hash(hashResult, hashMessage, ENC_HASH_DIGEST_CHARS, ENC_PRIVATE_KEY_CHARS);
-    for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
-        hashKey[i] = hashResult[i];
+    memset(hashMessage, 0, (ENC_PRIVATE_KEY_CHARS+1));
+    memcpy(hashMessage, hashResult, ENC_HASH_DIGEST_CHARS);
+    hashMessage[ENC_HASH_DIGEST_CHARS+1] = 2;
+    _hash(hashResult, hashMessage, ENC_HASH_DIGEST_CHARS, ENC_PRIVATE_KEY_CHARS+1);
+    memcpy(hashKey, hashResult, ENC_HMAC_KEY_CHARS);
 
-    hashMessage[ENC_PRIVATE_KEY_CHARS] = 3;
-    _hash(hashResult, hashMessage, ENC_HASH_DIGEST_CHARS, ENC_PRIVATE_KEY_CHARS);
-	for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
-		CTRNonce[i] = hashResult[i];
+    memset(hashMessage, 0, (ENC_PRIVATE_KEY_CHARS+1));
+    memcpy(hashMessage, hashResult, ENC_HASH_DIGEST_CHARS);
+    hashMessage[ENC_HASH_DIGEST_CHARS+1] = 3;
+    _hash(hashResult, hashMessage, ENC_HASH_DIGEST_CHARS, ENC_PRIVATE_KEY_CHARS+1);
+    memcpy(CTRNonce, hashResult, ENC_CTR_NONCE_CHARS);
+
+    #ifndef __ENC_NO_PRINTS__
+        printf("---| aesKey\n");
+        for (i = 0; i < ENC_AES_KEY_CHARS; i++)
+            printf("%x", aesKey[i]);
+        printf("\n");
+
+        printf("---| hashKey\n");
+        for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
+            printf("%x", hashKey[i]);
+        printf("\n");
+
+        printf("---| CTRNonce\n");
+        for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
+            printf("%x", CTRNonce[i]);
+        printf("\n");
+    #endif
 }
 
 // Hashes
-static void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+static void _hash(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength) {
     #if defined(__ENC_USE_SHA1__)
         _hash_sha1(hash, data, hashLength, dataLength);
     #elif defined(__ENC_USE_SHA2__)
@@ -148,7 +168,7 @@ static void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned da
 }
 
 #ifdef __ENC_USE_SHA1__
-    static void _hash_sha1(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+    static void _hash_sha1(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength) {
         struct sha1_ctx ctx;
 
         sha1_init(&ctx);
@@ -157,7 +177,7 @@ static void _hash(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned da
     }
 #endif
 
-static void _hash_sha2(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+static void _hash_sha2(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength) {
     struct sha256_ctx ctx;
 
     sha256_init(&ctx);
@@ -166,7 +186,7 @@ static void _hash_sha2(uint8_t *hash, uint8_t *data, unsigned hashLength, unsign
 }
 
 #ifdef __ENC_USE_SHA3__
-    static void _hash_sha3(uint8_t *hash, uint8_t *data, unsigned hashLength, unsigned dataLength) {
+    static void _hash_sha3(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength) {
         struct sha3_256_ctx ctx;
 
         sha3_256_init(&ctx);
@@ -175,8 +195,8 @@ static void _hash_sha2(uint8_t *hash, uint8_t *data, unsigned hashLength, unsign
     }
 #endif
 
-void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hmacLength, unsigned dataLength, unsigned keyLength) {
-    unsigned i;
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t dataLength, size_t keyLength) {
+    size_t i;
 
     uint8_t innerPad[ENC_HASH_DATA_CHARS];
     uint8_t outerPad[ENC_HASH_DATA_CHARS];
@@ -186,26 +206,20 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hmacLength, unsi
     uint8_t outerHashMessage[ENC_HASH_DATA_CHARS+ENC_HASH_DIGEST_CHARS];
     uint8_t hashResult[ENC_HASH_DIGEST_CHARS];
 
-    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
-        zeroPaddedKey[i] = 0;
+    memset(zeroPaddedKey, 0, ENC_HASH_DATA_CHARS);
 
     // Padding Strings
-    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
-        innerPad[i] = 0x36;
-    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
-        outerPad[i] = 0x5c;
+    memset(innerPad, 0x36, ENC_HASH_DATA_CHARS);
+    memset(outerPad, 0x5c, ENC_HASH_DATA_CHARS);
 
     // Inner Padding
-    for (i = 0; i < keyLength; i++)
-        zeroPaddedKey[i] = key[i];
+    memcpy(zeroPaddedKey, key, keyLength);
     for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         paddedKey[i] = zeroPaddedKey[i] ^ innerPad[i];
 
     // Append Data
-    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
-        innerHashMessage[i] = paddedKey[i];
-    for (i = 0; i < dataLength; i++)
-        innerHashMessage[ENC_HASH_DATA_CHARS+i] = data[i];
+    memcpy(innerHashMessage, paddedKey, ENC_HASH_DATA_CHARS);
+    memcpy(innerHashMessage+ENC_HASH_DATA_CHARS, data, dataLength);
 
     _hash(hashResult, innerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+dataLength);
 
@@ -214,23 +228,20 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, unsigned hmacLength, unsi
         paddedKey[i] = zeroPaddedKey[i] ^ outerPad[i];
 
     // Append Hash
-    for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
-        outerHashMessage[i] = paddedKey[i];
-    for (i = 0; i < ENC_HASH_DIGEST_CHARS; i++)
-        outerHashMessage[ENC_HASH_DATA_CHARS+i] = hashResult[i];
+    memcpy(outerHashMessage, paddedKey, ENC_HASH_DATA_CHARS);
+    memcpy(outerHashMessage+ENC_HASH_DATA_CHARS, hashResult, ENC_HASH_DIGEST_CHARS);
 
     _hash(hashResult, outerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+ENC_HASH_DIGEST_CHARS);
 
-    for (i = 0; i < hmacLength; i++)
-        hmac[i] = hashResult[i];
+    memcpy(hmac, hashResult, hmacLength);
 }
 
 // Signatures
 void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus) {
+    digit_t preparedHash[ENC_SIGNATURE_DIGITS];
+
     uint8_t cHash[ENC_HASH_DIGEST_CHARS];
     uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
-
-    digit_t preparedHash[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
     _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
@@ -242,10 +253,10 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
 }
 
 void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *p, digit_t *q) {
+    digit_t preparedHash[ENC_SIGNATURE_DIGITS];
+
     uint8_t cHash[ENC_HASH_DIGEST_CHARS];
     uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
-
-    digit_t preparedHash[ENC_SIGNATURE_DIGITS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
     _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
@@ -257,11 +268,11 @@ void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, d
 }
 
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus) {
-    uint8_t cHash[ENC_HASH_DIGEST_CHARS];
-    uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
-
     digit_t preparedHash[ENC_SIGNATURE_DIGITS];
     digit_t modExpResult[ENC_SIGNATURE_DIGITS];
+
+    uint8_t cHash[ENC_HASH_DIGEST_CHARS];
+    uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
 
     // PKCS(SHA2( alpha^y | alpha^x ))
     _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
@@ -271,46 +282,42 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
     if (mpEqual(modExpResult, preparedHash, ENC_SIGNATURE_DIGITS)) {
         #ifndef __ENC_NO_PRINTS__
-            printf("----> Verification Successful\n");
+            printf("---> Verification Successful\n");
         #endif
         return ENC_SIGNATURE_ACCEPTED;
     }
 
     #ifndef __ENC_NO_PRINTS__
-        printf("----> Verification Failed\n");
+        printf("---> Verification Failed\n");
     #endif
     return ENC_SIGNATURE_REJECTED;
 }
 
 void _pkcs_prepareHash(uint8_t *preparedHash, const uint8_t *prefix, const size_t prefixLength, uint8_t *hash, size_t hashLength, size_t modulusLength) {
-    unsigned char i;
-    unsigned char psLength;
+    size_t psLength;
 
     preparedHash[0] = 0x00;
     preparedHash[1] = 0x01;
 
     psLength = modulusLength - (prefixLength + hashLength) - 3;
-    for (i = 0; i < psLength; i++)
-        preparedHash[i+2] = 0x00;
+    memset(preparedHash+2, 0x00, psLength);
 
     preparedHash[psLength+2] = 0x00;
 
-    for (i = 0; i < prefixLength; i++)
-        preparedHash[i+(psLength+3)] = prefix[i];
-    for (i = 0; i < hashLength; i++)
-        preparedHash[i+(prefixLength+psLength+3)] = hash[i];
+    memcpy(preparedHash+psLength+3, prefix, prefixLength);
+    memcpy(preparedHash+prefixLength+psLength+3, hash, hashLength);
 }
 
 // Encryption
 void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, uint8_t *nonce, uint32_t packetCounter, size_t dataSize) {
-    unsigned char i;
+    aes_key key;
+
+    size_t blockCounter;
+    size_t i;
+
     unsigned char encryptedBlock[aes_BLOCK_SIZE];
     unsigned char blockToEncrypt[aes_BLOCK_SIZE];
     unsigned char encryptionKey[dataSize];
-
-    unsigned int blockCounter;
-
-    aes_key key;
 
     for (blockCounter = 0; blockCounter < dataSize/aes_BLOCK_SIZE; blockCounter++) {
         for (i = 0; i < aes_BLOCK_SIZE; i++)
@@ -333,12 +340,14 @@ void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, ui
 }
 
 void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, uint8_t *nonce, uint32_t packetCounter, size_t dataSize) {
-    int blockCounter;
     aes_key key;
+
+    size_t blockCounter;
+    size_t i;
+
     unsigned char decryptedBlock[aes_BLOCK_SIZE];
     unsigned char blockToDecrypt[aes_BLOCK_SIZE];
     unsigned char decryptionKey[dataSize];
-    int i;
 
     for (blockCounter = 0; blockCounter < dataSize/aes_BLOCK_SIZE; blockCounter++) {
         for (i = 0; i < aes_BLOCK_SIZE; i++)

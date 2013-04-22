@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <string.h>
 
 #include "bigdigits.h"
 #include "types.h"
@@ -15,6 +15,5 @@
 void buffer_construct();
 void buffer_write(field_t *data, size_t length);
 void buffer_read(field_t *data, size_t length);
-void buffer_destruct();
 
 #endif

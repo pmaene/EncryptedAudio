@@ -19,12 +19,8 @@ void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q, 
     digit_t u[nbPrimeDigits];
     digit_t up[2*nbPrimeDigits];
 
-    #ifndef __ENC_NO_PRINTS__
-        printf("* crtModExp\n");
-    #endif
-
     mpSetZero(one, nbPrimeDigits);
-    one[0] = 1;
+    *one = 1;
 
     mpSubtract(pMinusOne, p, one, nbPrimeDigits);
     mpModulo(eP, e, nbExponentDigits, pMinusOne, nbPrimeDigits);

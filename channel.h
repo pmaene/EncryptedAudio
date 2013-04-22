@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "bigdigits.h"
@@ -15,6 +16,5 @@
 void channel_construct();
 void channel_write(field_t *data, size_t length);
 void channel_read(field_t *data, size_t length);
-void channel_destruct();
 
 #endif

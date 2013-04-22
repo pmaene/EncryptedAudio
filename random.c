@@ -1,12 +1,13 @@
 #include "random.h"
 
 void getRandomDigit(digit_t *randomDigit, size_t nbDigits) {
-	unsigned char tmp[sizeof(digit_t)*nbDigits];
-	unsigned short i;
+	unsigned char tmp[nbDigits*sizeof(digit_t)];
+
 	digit_t randomData;
 
-	for (i = 0; i < sizeof(digit_t)*nbDigits; i++)
-		tmp[i] = 0;
+    size_t i;
+
+    memset(tmp, 0, nbDigits*sizeof(digit_t));
 
 	randomData = open("/dev/urandom", O_RDONLY);
 	read(randomData, &tmp, nbDigits*sizeof(digit_t));

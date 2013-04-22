@@ -1,10 +1,12 @@
 #ifndef __ENC_RANDOM_H__
 #define __ENC_RANDOM_H__
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
+#include <string.h>
 #include <unistd.h>
+
 #include "bigdigits.h"
 #include "types.h"
 

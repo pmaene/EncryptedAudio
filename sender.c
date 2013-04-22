@@ -14,25 +14,24 @@ const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
     "\x4f\x85\x17\x63\xce\xf1\x7a\xe6\xb1\xde\xb0\xb9\x65\xfd\x2a"
     "\x83\xeb\x6d\xf6\x5a\x41";
 
-// Memory Pointers
-digit_t *senderSecret;
-digit_t *receiverModExp;
+digit_t senderSecret[ENC_PRIVATE_KEY_DIGITS];
+digit_t receiverModExp[ENC_PRIVATE_KEY_DIGITS];
 
-uint8_t *senderAESKey;
-uint8_t *senderHashKey;
-uint8_t *senderCTRNonce;
+uint8_t senderAESKey[ENC_AES_KEY_CHARS];
+uint8_t senderHashKey[ENC_HMAC_KEY_CHARS];
+uint8_t senderCTRNonce[ENC_CTR_NONCE_CHARS];
 
-uint32_t *senderPacketCounter;
+uint32_t senderPacketCounter[1];
 
 void sender_construct() {
-    senderSecret = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
-    receiverModExp = calloc(ENC_PRIVATE_KEY_DIGITS, sizeof(digit_t));
+    memset(senderSecret, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
+    memset(receiverModExp, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
 
-	senderAESKey = calloc(ENC_AES_KEY_CHARS, sizeof(uint8_t));
-	senderHashKey = calloc(ENC_HMAC_KEY_CHARS, sizeof(uint8_t));
-	senderCTRNonce = calloc(ENC_CTR_NONCE_CHARS, sizeof(uint8_t));
+    memset(senderAESKey, 0, ENC_AES_KEY_CHARS);
+    memset(senderHashKey, 0, ENC_HMAC_KEY_CHARS);
+    memset(senderCTRNonce, 0, ENC_CTR_NONCE_CHARS);
 
-	senderPacketCounter = calloc(1, sizeof(uint32_t));
+    memset(senderPacketCounter, 0, sizeof(uint32_t));
 }
 
 void sender_senderHello() {
@@ -76,14 +75,15 @@ void sender_deriveKey() {
 }
 
 int sender_sendData() {
-    unsigned short i;
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
 
     field_t data[ENC_DATA_SIZE_CHARS];
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
 
+    #ifndef __ENC_NO_PRINTS__
+        size_t i;
+    #endif
     uint8_t hmac[ENC_HMAC_CHARS];
-    uint32_t packetCounter;
 
     #ifndef __ENC_NO_PRINTS__
         printf("\n\n# Sender\n");
@@ -95,30 +95,25 @@ int sender_sendData() {
     _encryptData(encryptedData, data, senderCTRNonce, *senderPacketCounter, ENC_DATA_SIZE_CHARS);
 
     dataPacket[0] = 0x03;
-    packetCounter = *senderPacketCounter;
-    for (i = sizeof(uint32_t); i > 0; i--) {
-        dataPacket[i] = packetCounter;
-        packetCounter = packetCounter >> 8;
-    }
-
-    for (i = 0; i < ENC_DATA_SIZE_CHARS; i++)
-        dataPacket[i+5] = encryptedData[i];
+    memcpy(dataPacket+1, senderPacketCounter, sizeof(uint32_t));
+    memcpy(dataPacket+5, encryptedData, ENC_DATA_SIZE_CHARS);
 
     // Calculate HMAC
-    _hmac(hmac, dataPacket, senderHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HASH_DIGEST_CHARS/2);
-    for (i = 0; i < ENC_HMAC_CHARS; i++)
-        dataPacket[i+5+ENC_DATA_SIZE_CHARS] = hmac[i];
+    _hmac(hmac, dataPacket, senderHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HMAC_KEY_CHARS);
+    memcpy(dataPacket+5+ENC_DATA_SIZE_CHARS, hmac, ENC_HMAC_CHARS);
+
+    #ifndef __ENC_NO_PRINTS__
+        printf("--| hmac\n");
+        for (i = 0; i < ENC_HMAC_CHARS; i++)
+            printf("%x", hmac[i]);
+        printf("\n");
+    #endif
+
+    #ifndef __ENC_NO_PRINTS__
+        printf("--| senderPacketCounter: %d\n", *senderPacketCounter);
+    #endif
 
     channel_write(dataPacket, ENC_DATA_PACKET_CHARS);
 
     return increaseCounter(senderPacketCounter);
-}
-
-void sender_destruct() {
-    free(senderSecret);
-    free(receiverModExp);
-	free(senderAESKey);
-	free(senderHashKey);
-	free(senderCTRNonce);
-	free(senderPacketCounter);
 }

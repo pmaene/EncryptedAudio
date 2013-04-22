@@ -2,11 +2,11 @@
 
 void _printChannel();
 
-field_t *channel;
+field_t channel[ENC_CHANNEL_CHARS];
 
 void channel_construct() {
     srand(time(NULL));
-    channel = calloc(ENC_CHANNEL_CHARS, sizeof(field_t));
+    memset(channel, 0, ENC_CHANNEL_CHARS*sizeof(field_t));
 }
 
 void channel_write(field_t *data, size_t length) {
@@ -18,6 +18,10 @@ void channel_write(field_t *data, size_t length) {
     if ((rand() % 100) > ENC_DROP_RATE) {
         for (i = 0; i < length; i++)
             channel[i] = data[i];
+
+        #ifndef __ENC_NO_PRINTS__
+            _printChannel();
+        #endif
     }
 }
 
@@ -28,17 +32,14 @@ void channel_read(field_t *data, size_t length) {
         data[i] = channel[i];
 }
 
-void channel_destruct() {
-    free(channel);
-}
-
 void _printChannel() {
-    #ifndef __ENC_NO_PRINTS__
-        unsigned short i;
+    unsigned short i;
 
-        for (i = 0; i < ENC_CHANNEL_CHARS; i++)
-            printf("%x", channel[i]);
+    printf("\n# Channel\n");
+    printf("---------\n\n");
 
-        printf("\n");
-    #endif
+    for (i = 0; i < ENC_CHANNEL_CHARS; i++)
+        printf("%x", channel[i]);
+
+    printf("\n\n");
 }

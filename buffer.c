@@ -2,12 +2,12 @@
 
 void _printBuffer();
 
-field_t *buffer;
-bool *modified;
+field_t buffer[ENC_BUFFER_CHARS];
+bool modified;
 
 void buffer_construct() {
-    buffer = calloc(ENC_BUFFER_CHARS, sizeof(field_t));
-    modified = calloc(1, sizeof(bool));
+    memset(buffer, 0, ENC_BUFFER_CHARS*sizeof(field_t));
+    modified = false;
 }
 
 void buffer_write(field_t *data, size_t length) {
@@ -16,9 +16,13 @@ void buffer_write(field_t *data, size_t length) {
     if (!modified) {
         for (i = 0; i < length; i++)
             buffer[i] = data[i];
+
+        #ifndef __ENC_NO_PRINTS__
+            _printBuffer();
+        #endif
     }
 
-    *modified = true;
+    modified = true;
 }
 
 void buffer_read(field_t *data, size_t length) {
@@ -27,23 +31,21 @@ void buffer_read(field_t *data, size_t length) {
     for (i = 0; i < length; i++)
         data[i] = buffer[i];
 
-    *modified = false;
+    modified = false;
 }
 
 bool buffer_isModified() {
     return modified;
 }
 
-void buffer_destruct() {
-    free(buffer);
-    free(modified);
-}
-
 void _printBuffer() {
     unsigned short i;
+
+    printf("\n# Buffer\n");
+    printf("--------\n\n");
 
     for (i = 0; i < ENC_BUFFER_CHARS; i++)
         printf("%x", buffer[i]);
 
-    printf("\n");
+    printf("\n\n");
 }

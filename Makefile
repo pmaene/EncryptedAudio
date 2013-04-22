@@ -1,11 +1,15 @@
 CC=gcc
 CFLAGS=-O2 -Wall -g
+CLIBS=
 
-lrt:=$(shell echo "int main() {}"|gcc -x c - -lrt 2>&1)
-ifeq ($(lrt),)
-  CLIBS:=-lrt
-else
-  CLIBS:=
+UNAME=$(shell uname)
+ifeq ($(UNAME), Darwin)
+    CFLAGS=-Wall -g
+endif
+
+LRT=$(shell echo "int main() {}"|gcc -x c - -lrt 2>&1)
+ifeq ($(LRT), )
+    CLIBS=-lrt
 endif
 
 all:	main

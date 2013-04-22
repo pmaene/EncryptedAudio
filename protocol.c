@@ -1,8 +1,6 @@
 #include "protocol.h"
 
 void senderHello(field_t *sendPacket, digit_t *senderSecret) {
-    unsigned char i;
-
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
 
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
@@ -19,15 +17,12 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
     mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 
     sendPacket[0] = 0x00;
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
-        sendPacket[i+1] = cModExpResult[i];
+    memcpy(sendPacket+1, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 }
 
 int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp) {
     if (0x00 != receivedPacket[0])
         return ENC_REJECT_PACKET_TAG;
-
-    unsigned char i;
 
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cSenderModExp[ENC_PRIVATE_KEY_CHARS];
@@ -53,14 +48,9 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 
 	// Concatenate alpha^y | alpha^x
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
-        signatureMessage[i] = cModExpResult[i];
-
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++) {
-        signatureMessage[ENC_PRIVATE_KEY_CHARS+i] = receivedPacket[i+1];
-        cSenderModExp[i] = receivedPacket[i+1];
-    }
-
+    memcpy(signatureMessage, cModExpResult, ENC_PRIVATE_KEY_CHARS);
+    memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, receivedPacket+1, ENC_PRIVATE_KEY_CHARS);
+    memcpy(cSenderModExp, receivedPacket+1, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
 
     // Create Signature
@@ -72,10 +62,8 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_SIGNATURE_CHARS);
 
     sendPacket[0] = 0x01;
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
-        sendPacket[i+1] = cModExpResult[i];
-    for (i = 0; i < ENC_SIGNATURE_CHARS; i++)
-        sendPacket[(ENC_PRIVATE_KEY_CHARS+1) + i] = cSignature[i];
+    memcpy(sendPacket+1, cModExpResult, ENC_PRIVATE_KEY_CHARS);
+    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS+1, cSignature, ENC_SIGNATURE_CHARS);
 
     return ENC_ACCEPT_PACKET;
 }
@@ -83,8 +71,6 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
 int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, digit_t *receiverModExp, unsigned char *senderPrivateExp) {
     if (0x01 != receivedPacket[0])
         return ENC_REJECT_PACKET_TAG;
-
-    unsigned char i;
 
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cReceiverModExp[ENC_PRIVATE_KEY_CHARS];
@@ -109,20 +95,13 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 
     // Concatenate alpha^y | alpha^x
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++) {
-        signatureMessage[i] = receivedPacket[i+1];
-        cReceiverModExp[i] = receivedPacket[i+1];
-    }
-
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
-        signatureMessage[ENC_PRIVATE_KEY_CHARS+i] = cModExpResult[i];
-
+    memcpy(signatureMessage, receivedPacket+1, ENC_PRIVATE_KEY_CHARS);
+    memcpy(cReceiverModExp, receivedPacket+1, ENC_PRIVATE_KEY_CHARS);
+    memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(receiverModExp, ENC_PRIVATE_KEY_DIGITS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
 
     // Verify Signature
-    for (i = 0; i < ENC_SIGNATURE_CHARS; i++)
-        cSignature[i] = receivedPacket[(ENC_PRIVATE_KEY_CHARS+1) + i];
-
+    memcpy(cSignature, receivedPacket+ENC_PRIVATE_KEY_CHARS+1, ENC_SIGNATURE_CHARS);
     mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_SIGNATURE_CHARS);
     mpConvFromOctets(publicExp, ENC_SIGNATURE_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
     mpConvFromOctets(modulus, ENC_SIGNATURE_DIGITS, Enc_ReceiverModulus, ENC_SIGNATURE_CHARS);
@@ -130,11 +109,8 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
         return ENC_REJECT_PACKET_SIGNATURE;
 
     // Concatenate alpha^x | alpha^y
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
-        signatureMessage[i] = cModExpResult[i];
-
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
-        signatureMessage[(ENC_PRIVATE_KEY_CHARS-1)+i] = cReceiverModExp[i];
+    memcpy(signatureMessage, cModExpResult, ENC_PRIVATE_KEY_CHARS);
+    memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
 
     // Create Signature
     mpConvFromOctets(exponent, ENC_SIGNATURE_DIGITS, senderPrivateExp, ENC_PRIVATE_KEY_CHARS);
@@ -145,10 +121,8 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_SIGNATURE_CHARS);
 
     sendPacket[0] = 0x01;
-    for (i = 0; i < ENC_PRIVATE_KEY_CHARS; i++)
-        sendPacket[i+1] = cReceiverModExp[i];
-    for (i = 0; i < ENC_SIGNATURE_CHARS; i++)
-        sendPacket[(ENC_PRIVATE_KEY_CHARS+1) + i] = cSignature[i];
+    memcpy(sendPacket+1, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
+    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS, cSignature, ENC_SIGNATURE_CHARS);
 
     return ENC_ACCEPT_PACKET;
 }

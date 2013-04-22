@@ -2,6 +2,7 @@
 #define __ENC_PROTOCOL_H__
 
 #include <stdio.h>
+#include <string.h>
 
 #include "bigdigits.h"
 #include "crypto.h"

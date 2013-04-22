@@ -40,23 +40,18 @@ int main(int argc, char **argv) {
     sender_construct();
     receiver_construct();
 
+    // Execution Time
+    _getTime(&startTime);
+
     // Handshake
     _handshake();
 
-    _getTime(&startTime);
-
     // Transmit
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 5; i++) {
         buffer_write(dataToEncrypt, ENC_DATA_SIZE_CHARS);
         _transmit();
         receiver_receiveData();
     }
-
-    // Destruct
-    receiver_destruct();
-    sender_destruct();
-    channel_destruct();
-    buffer_destruct();
 
     // Execution Time
     _getTime(&stopTime);
@@ -93,6 +88,13 @@ void _handshake() {
         _handshake();
 }
 
+void _transmit() {
+    if(sender_sendData() == ENC_COUNTER_WRAPAROUND) {
+        _handshake();
+        _transmit();
+    }
+}
+
 void _getTime(struct timespec *time) {
     #ifdef __MACH__
         clock_serv_t clock;
@@ -106,11 +108,3 @@ void _getTime(struct timespec *time) {
         clock_gettime(CLOCK_REALTIME, time);
     #endif
 }
-
-void _transmit() {
-    if(sender_sendData() == ENC_COUNTER_WRAPAROUND) {
-        _handshake();
-        _transmit();
-    }
-}
-
