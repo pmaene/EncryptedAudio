@@ -79,6 +79,9 @@ int sender_sendData() {
 
     field_t data[ENC_DATA_SIZE_CHARS];
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
+    #ifdef __ENC_PRINT_ENCRYPTION
+        digit_t dataDigits[ENC_DATA_SIZE_DIGITS];
+    #endif
 
     #ifndef __ENC_NO_PRINTS__
         size_t i;
@@ -92,8 +95,19 @@ int sender_sendData() {
 
     sender_deriveKey();
     buffer_read(data, ENC_DATA_SIZE_CHARS);
+    #ifdef __ENC_PRINT_ENCRYPTION
+        printf("Data before encryption:\n");
+        mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
+        mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
+        printf("\n");
+    #endif
     _encryptData(encryptedData, data, senderCTRNonce, *senderPacketCounter, ENC_DATA_SIZE_CHARS);
-
+    #ifdef __ENC_PRINT_ENCRYPTION
+        printf("Data after encryption:\n");
+        mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
+        mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
+        printf("\n");
+    #endif
     dataPacket[0] = 0x03;
     memcpy(dataPacket+1, senderPacketCounter, sizeof(uint32_t));
     memcpy(dataPacket+5, encryptedData, ENC_DATA_SIZE_CHARS);

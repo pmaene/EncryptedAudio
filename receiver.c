@@ -72,6 +72,11 @@ int receiver_receiveData() {
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
 
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
+    field_t data[ENC_DATA_SIZE_CHARS];
+
+    #ifdef __ENC_PRINT_ENCRYPTION
+        digit_t dataDigits[ENC_DATA_SIZE_DIGITS];
+    #endif
 
     uint32_t receivedPacketCounter;
 
@@ -102,6 +107,21 @@ int receiver_receiveData() {
         #endif
 
         memcpy(encryptedData, dataPacket+5, ENC_DATA_SIZE_CHARS);
+
+        #ifdef __ENC_PRINT_ENCRYPTION
+            printf("Data before decryption:\n");
+            mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
+            mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
+            printf("\n");
+        #endif        
+        _decryptData(data, encryptedData, receiverCTRNonce, *receiverPacketCounter, ENC_DATA_SIZE_CHARS);
+        #ifdef __ENC_PRINT_ENCRYPTION
+            printf("Data after decryption:\n");
+            mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
+            mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
+            printf("\n");
+        #endif        
+
 
         return ENC_ACCEPT_PACKET;
     }
