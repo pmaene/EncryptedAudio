@@ -309,7 +309,7 @@ void _pkcs_prepareHash(uint8_t *preparedHash, const uint8_t *prefix, const size_
 }
 
 // Encryption
-void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, uint8_t *nonce, uint32_t packetCounter, size_t dataSize) {
+void _encryptData(unsigned char *encryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToEncrypt, size_t dataSize) {
     aes_key key;
 
     size_t blockCounter;
@@ -317,53 +317,38 @@ void _encryptData(unsigned char *encryptedData, unsigned char *dataToEncrypt, ui
 
     unsigned char encryptedBlock[aes_BLOCK_SIZE];
     unsigned char blockToEncrypt[aes_BLOCK_SIZE];
-    unsigned char encryptionKey[dataSize];
 
     for (blockCounter = 0; blockCounter < dataSize/aes_BLOCK_SIZE; blockCounter++) {
-        for (i = 0; i < aes_BLOCK_SIZE; i++)
-            blockToEncrypt[i] = dataToEncrypt[i+blockCounter*aes_BLOCK_SIZE];
+        memcpy(blockToEncrypt, nonce, ENC_CTR_NONCE_CHARS);
+        memcpy(blockToEncrypt+ENC_CTR_NONCE_CHARS, &packetCounter, sizeof(uint32_t));
+        memcpy(blockToEncrypt+ENC_CTR_NONCE_CHARS+sizeof(uint32_t), &blockCounter, sizeof(size_t));
 
-        // encryptionKey = [ nonce (ENC_CTR_NONCE_CHARS bytes) | packetCounter (32 bits) | blockCounter (32 bits) ]
-        for (i = 0; i < ENC_CTR_NONCE_DIGITS; i++)
-            encryptionKey[i] = nonce[i];
-        for (i = 0; i < sizeof(packetCounter); i++)
-            encryptionKey[i+ENC_CTR_NONCE_DIGITS] = packetCounter;
-        for (i = 0; i < sizeof(blockCounter); i++)
-            encryptionKey[i+ENC_CTR_NONCE_DIGITS+sizeof(packetCounter)] = blockCounter;
-
-    	aes_set_encrypt_key(&key, encryptionKey, dataSize);
+        aes_set_encrypt_key(&key, aesKey, dataSize);
         aes_encrypt(&key, blockToEncrypt, encryptedBlock);
 
         for (i = 0; i < aes_BLOCK_SIZE; i++)
-            encryptedData[i+blockCounter*aes_BLOCK_SIZE] = encryptedBlock[i];
+            encryptedData[i+blockCounter*aes_BLOCK_SIZE] = encryptedBlock[i] ^ dataToEncrypt[i+blockCounter*aes_BLOCK_SIZE];
     }
 }
 
-void _decryptData(unsigned char *decryptedData, unsigned char *encryptedData, uint8_t *nonce, uint32_t packetCounter, size_t dataSize) {
+void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToDecrypt, size_t dataSize) {
     aes_key key;
 
     size_t blockCounter;
     size_t i;
 
-    unsigned char decryptedBlock[aes_BLOCK_SIZE];
-    unsigned char blockToDecrypt[aes_BLOCK_SIZE];
-    unsigned char decryptionKey[dataSize];
+    unsigned char encryptedBlock[aes_BLOCK_SIZE];
+    unsigned char blockToEncrypt[aes_BLOCK_SIZE];
 
     for (blockCounter = 0; blockCounter < dataSize/aes_BLOCK_SIZE; blockCounter++) {
-        for (i = 0; i < aes_BLOCK_SIZE; i++)
-            blockToDecrypt[i] = encryptedData[i+blockCounter*aes_BLOCK_SIZE];
+        memcpy(blockToEncrypt, nonce, ENC_CTR_NONCE_CHARS);
+        memcpy(blockToEncrypt+ENC_CTR_NONCE_CHARS, &packetCounter, sizeof(uint32_t));
+        memcpy(blockToEncrypt+ENC_CTR_NONCE_CHARS+sizeof(uint32_t), &blockCounter, sizeof(size_t));
 
-        // decryptionKey = [ nonce (ENC_CTR_NONCE_CHARS bytes) | packetCounter (32 bits) | blockCounter (32 bits) ]
-        for (i = 0; i < ENC_CTR_NONCE_DIGITS; i++)
-            decryptionKey[i] = nonce[i];
-        for (i = 0; i < sizeof(packetCounter); i++)
-            decryptionKey[i+ENC_CTR_NONCE_DIGITS] = packetCounter;
-        for (i = 0; i < sizeof(blockCounter); i++)
-            decryptionKey[i+ENC_CTR_NONCE_DIGITS+sizeof(packetCounter)] = blockCounter;
+        aes_set_encrypt_key(&key, aesKey, dataSize);
+        aes_encrypt(&key, blockToEncrypt, encryptedBlock);
 
-        aes_set_decrypt_key(&key, decryptionKey, dataSize);
-        aes_decrypt(&key, blockToDecrypt, decryptedBlock);
         for (i = 0; i < aes_BLOCK_SIZE; i++)
-            decryptedData[i+blockCounter*aes_BLOCK_SIZE] = decryptedBlock[i];
+            decryptedData[i+blockCounter*aes_BLOCK_SIZE] = encryptedBlock[i] ^ dataToDecrypt[i+blockCounter*aes_BLOCK_SIZE];
     }
 }

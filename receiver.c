@@ -109,14 +109,15 @@ int receiver_receiveData() {
         memcpy(encryptedData, dataPacket+5, ENC_DATA_SIZE_CHARS);
 
         #ifdef __ENC_PRINT_ENCRYPTION
-            printf("Data before decryption:\n");
+            printf("--| encryptedData\n");
             mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
             mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
-            printf("\n");
-        #endif        
-        _decryptData(data, encryptedData, receiverCTRNonce, *receiverPacketCounter, ENC_DATA_SIZE_CHARS);
+        #endif
+
+        _decryptData(data, receiverAESKey, receiverCTRNonce, *receiverPacketCounter, encryptedData, ENC_DATA_SIZE_CHARS);
+
         #ifdef __ENC_PRINT_ENCRYPTION
-            printf("Data after decryption:\n");
+            printf("--| data\n");
             mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
             mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
             printf("\n");
