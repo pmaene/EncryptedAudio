@@ -113,7 +113,9 @@ int receiver_receiveData() {
             mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
             mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
         #endif
-        _decryptData(data, encryptedData, receiverCTRNonce, *receiverPacketCounter, ENC_DATA_SIZE_CHARS);
+
+        _decryptData(data, receiverAESKey, receiverCTRNonce, *receiverPacketCounter, encryptedData, ENC_DATA_SIZE_CHARS);
+
         #ifdef __ENC_PRINT_ENCRYPTION
             printf("--| data\n");
             mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);

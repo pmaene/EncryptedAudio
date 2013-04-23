@@ -77,11 +77,11 @@ void sender_deriveKey() {
 int sender_sendData() {
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
 
-    field_t data[ENC_DATA_SIZE_CHARS];
-    field_t dataPacket[ENC_DATA_PACKET_CHARS];
     #ifdef __ENC_PRINT_ENCRYPTION
         digit_t dataDigits[ENC_DATA_SIZE_DIGITS];
     #endif
+    field_t data[ENC_DATA_SIZE_CHARS];
+    field_t dataPacket[ENC_DATA_PACKET_CHARS];
 
     #ifndef __ENC_NO_PRINTS__
         size_t i;
@@ -100,7 +100,9 @@ int sender_sendData() {
         mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
         mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
     #endif
-    _encryptData(encryptedData, data, senderCTRNonce, *senderPacketCounter, ENC_DATA_SIZE_CHARS);
+
+    _encryptData(encryptedData, senderAESKey, senderCTRNonce, *senderPacketCounter, data, ENC_DATA_SIZE_CHARS);
+
     #ifdef __ENC_PRINT_ENCRYPTION
         printf("--| encryptedData\n");
         mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);

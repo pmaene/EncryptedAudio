@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     _handshake();
 
     // Transmit
-    for (i = 0; i < 100; i++) {
+    for (i = 0; i < 5; i++) {
         buffer_write(dataToEncrypt, ENC_DATA_SIZE_CHARS);
         _transmit();
         receiver_receiveData();
