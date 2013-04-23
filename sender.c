@@ -96,18 +96,17 @@ int sender_sendData() {
     sender_deriveKey();
     buffer_read(data, ENC_DATA_SIZE_CHARS);
     #ifdef __ENC_PRINT_ENCRYPTION
-        printf("Data before encryption:\n");
+        printf("--| data\n");
         mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
         mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
-        printf("\n");
     #endif
     _encryptData(encryptedData, data, senderCTRNonce, *senderPacketCounter, ENC_DATA_SIZE_CHARS);
     #ifdef __ENC_PRINT_ENCRYPTION
-        printf("Data after encryption:\n");
+        printf("--| encryptedData\n");
         mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
         mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
-        printf("\n");
     #endif
+
     dataPacket[0] = 0x03;
     memcpy(dataPacket+1, senderPacketCounter, sizeof(uint32_t));
     memcpy(dataPacket+5, encryptedData, ENC_DATA_SIZE_CHARS);
