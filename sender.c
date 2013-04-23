@@ -95,6 +95,11 @@ int sender_sendData() {
 
     sender_deriveKey();
     buffer_read(data, ENC_DATA_SIZE_CHARS);
+
+    #ifndef __ENC_NO_PRINTS__
+//        printf("--| senderPacketCounter: %d\n", *senderPacketCounter);
+    #endif
+
     #ifdef __ENC_PRINT_ENCRYPTION
         printf("Data before encryption:\n");
         mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);

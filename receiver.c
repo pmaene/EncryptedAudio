@@ -120,8 +120,7 @@ int receiver_receiveData() {
             mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
             mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
             printf("\n");
-        #endif        
-
+        #endif
 
         return ENC_ACCEPT_PACKET;
     }
