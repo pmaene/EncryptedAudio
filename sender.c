@@ -56,22 +56,31 @@ int sender_senderAcknowledge() {
     #ifndef __ENC_NO_PRINTS__
         printf("--> sender_senderAcknowledge\n");
     #endif
+    
     returnStatus = senderAcknowledge(sendPacket, receivedPacket, senderSecret, receiverModExp, (unsigned char *) Enc_SenderPrivateExp);
 
+/*
+    memcpy(encSignature, receivedPacket+ENC_PRIVATE_KEY_CHARS+1, ENC_ENCRYPTED_SIGNATURE_CHARS);
+    _decryptData(signature, senderAESKey, senderCTRNonce, 1, encSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS+1, encSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+*/
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
     return returnStatus;
 }
 
-void sender_deriveKey() {
+void sender_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
     #ifndef __ENC_NO_PRINTS__
         printf("--> sender_deriveKey\n");
     #endif
 
+    memcpy(receiverModExp, modExp, ENC_PRIVATE_KEY_DIGITS);
 	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
 	_deriveKeys(senderAESKey, senderHashKey, senderCTRNonce, symmetricKey);
+    memcpy(aesKey, senderAESKey, ENC_AES_KEY_CHARS);
+    memcpy(CTRNonce, senderCTRNonce, ENC_CTR_NONCE_CHARS);
 }
 
 int sender_sendData() {
@@ -93,7 +102,6 @@ int sender_sendData() {
         printf("--------\n");
     #endif
 
-    sender_deriveKey();
     buffer_read(data, ENC_DATA_SIZE_CHARS);
 
     #ifndef __ENC_NO_PRINTS__

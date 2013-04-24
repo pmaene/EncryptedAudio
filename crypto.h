@@ -49,6 +49,7 @@
 // Signatures
 #define ENC_SIGNATURE_CHARS            157
 #define ENC_SIGNATURE_DIGITS           40
+#define ENC_ENCRYPTED_SIGNATURE_CHARS  160      // ENC_SIGNATURE_CHARS rounded up to a multiple of 16
 #define ENC_SIGN_PRIME_CHARS           79
 #define ENC_SIGN_PRIME_DIGITS          20
 

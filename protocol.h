@@ -8,13 +8,15 @@
 #include "crypto.h"
 #include "random.h"
 #include "types.h"
+#include "sender.h"
+#include "receiver.h"
 
 // Data Sizes
 #define ENC_DATA_SIZE_CHARS         128
 #define ENC_DATA_SIZE_DIGITS        32
 
 // Packet Sizes
-#define ENC_KEY_PACKET_CHARS        314
+#define ENC_KEY_PACKET_CHARS        317
 #define ENC_DATA_PACKET_CHARS       ENC_DATA_SIZE_CHARS + ENC_HMAC_CHARS + 5
 #define ENC_DATA_PACKET_DIGITS      ENC_DATA_PACKET_CHARS/4
 

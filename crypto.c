@@ -323,7 +323,8 @@ void _encryptData(unsigned char *encryptedData, uint8_t *aesKey, uint8_t *nonce,
         memcpy(blockToEncrypt+ENC_CTR_NONCE_CHARS, &packetCounter, sizeof(uint32_t));
         memcpy(blockToEncrypt+ENC_CTR_NONCE_CHARS+sizeof(uint32_t), &blockCounter, sizeof(size_t));
 
-        aes_set_encrypt_key(&key, aesKey, dataSize);
+        aes_set_encrypt_key(&key, aesKey, ENC_AES_KEY_BITS);
+
         aes_encrypt(&key, blockToEncrypt, encryptedBlock);
 
         for (i = 0; i < aes_BLOCK_SIZE; i++)
@@ -345,7 +346,7 @@ void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce,
         memcpy(blockToEncrypt+ENC_CTR_NONCE_CHARS, &packetCounter, sizeof(uint32_t));
         memcpy(blockToEncrypt+ENC_CTR_NONCE_CHARS+sizeof(uint32_t), &blockCounter, sizeof(size_t));
 
-        aes_set_encrypt_key(&key, aesKey, dataSize);
+        aes_set_encrypt_key(&key, aesKey, ENC_AES_KEY_BITS);
         aes_encrypt(&key, blockToEncrypt, encryptedBlock);
 
         for (i = 0; i < aes_BLOCK_SIZE; i++)

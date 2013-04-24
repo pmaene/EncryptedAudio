@@ -26,7 +26,7 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
 
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cSenderModExp[ENC_PRIVATE_KEY_CHARS];
-    unsigned char cSignature[ENC_SIGNATURE_CHARS];
+    unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
 
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
@@ -36,7 +36,11 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     digit_t q[ENC_SIGN_PRIME_DIGITS];
     digit_t signature[ENC_SIGNATURE_DIGITS];
 
+    field_t encSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
+
     uint8_t signatureMessage[2*ENC_PRIVATE_KEY_CHARS];
+    uint8_t receiverCTRNonce[ENC_CTR_NONCE_CHARS];
+    uint8_t receiverAESKey[ENC_AES_KEY_CHARS];
 
     // Generate y
     getRandomDigit(receiverSecret, ENC_DH_SECRET_DIGITS);
@@ -53,17 +57,34 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     memcpy(cSenderModExp, receivedPacket+1, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
 
-    // Create Signature
+    // Derive the receiver keys from senderModExp
+    receiver_deriveKey(receiverAESKey, receiverCTRNonce, senderModExp);
+
+    // Create signature
+    memset(signature, 0, sizeof(signature));    
     mpConvFromOctets(exponent, ENC_SIGNATURE_DIGITS, receiverPrivateExp, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(p, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeOne, ENC_SIGN_PRIME_CHARS);
     mpConvFromOctets(q, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
     _sign_crt(signature, signatureMessage, exponent, p, q);
 
-    mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_SIGNATURE_CHARS);
+    #ifdef __ENC_PRINT_ENCRYPTION    
+        printf("\nSignature before encryption:\n");
+        mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
+    #endif
+
+    // Encrypt signature
+    mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);  
+    _encryptData(encSignature, receiverAESKey, receiverCTRNonce, 1, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+    #ifdef __ENC_PRINT_ENCRYPTION    
+        printf("\nSignature after encryption:\n");
+        memcpy(signature, encSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+        //mpConvFromOctets(encSignature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+        mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
+    #endif
 
     sendPacket[0] = 0x01;
     memcpy(sendPacket+1, cModExpResult, ENC_PRIVATE_KEY_CHARS);
-    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS+1, cSignature, ENC_SIGNATURE_CHARS);
+    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS+1, encSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     return ENC_ACCEPT_PACKET;
 }
@@ -74,7 +95,8 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cReceiverModExp[ENC_PRIVATE_KEY_CHARS];
-    unsigned char cSignature[ENC_SIGNATURE_CHARS];
+    unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
+    unsigned char cEncryptedSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
 
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
@@ -87,6 +109,8 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     digit_t signature[ENC_SIGNATURE_DIGITS];
 
     uint8_t signatureMessage[2*ENC_PRIVATE_KEY_CHARS];
+    uint8_t senderCTRNonce[ENC_CTR_NONCE_CHARS];
+    uint8_t senderAESKey[ENC_AES_KEY_CHARS];
 
     // Calculate alpha^x mod p = alpha^senderSecret mod prime
     mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
@@ -100,9 +124,25 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(receiverModExp, ENC_PRIVATE_KEY_DIGITS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
 
-    // Verify Signature
-    memcpy(cSignature, receivedPacket+ENC_PRIVATE_KEY_CHARS+1, ENC_SIGNATURE_CHARS);
-    mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_SIGNATURE_CHARS);
+    //deriveKey from receiverModExp
+    sender_deriveKey(senderAESKey, senderCTRNonce, receiverModExp);
+    
+    // Decrypt signature
+    memcpy(cEncryptedSignature, receivedPacket+ENC_PRIVATE_KEY_CHARS+1, ENC_ENCRYPTED_SIGNATURE_CHARS);
+    _decryptData(cSignature, senderAESKey, senderCTRNonce, 1, cEncryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+
+    #ifdef __ENC_PRINT_ENCRYPTION
+        printf("\nEncrypted signature:\n");
+        mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cEncryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+        mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
+    #endif
+
+    // Verify signature
+    #ifdef __ENC_PRINT_ENCRYPTION
+        printf("\nDecrypted signature:\n");
+        mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+        mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
+    #endif
     mpConvFromOctets(publicExp, ENC_SIGNATURE_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
     mpConvFromOctets(modulus, ENC_SIGNATURE_DIGITS, Enc_ReceiverModulus, ENC_SIGNATURE_CHARS);
     if (!_verify(signature, signatureMessage, publicExp, modulus))
