@@ -43,12 +43,6 @@ int receiver_receiverHello() {
 
     field_t receivedPacket[ENC_KEY_PACKET_CHARS];
     field_t sendPacket[ENC_KEY_PACKET_CHARS];
-//    field_t signature[ENC_ENCRYPTED_SIGNATURE_CHARS];
-//    digit_t signatureDigits[ENC_SIGNATURE_DIGITS];
-//    field_t encSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
-//    uint32_t packetNumber;
-
-//    packetNumber = 1;
     channel_read(receivedPacket, ENC_KEY_PACKET_CHARS);
 
     #ifndef __ENC_NO_PRINTS__
@@ -56,19 +50,6 @@ int receiver_receiverHello() {
     #endif
 
     returnStatus = receiverHello(sendPacket, receivedPacket, receiverSecret, senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
-/*    receiver_deriveKey();
-
-    memset(signature, 0, sizeof(signature));
-    memcpy(signature, sendPacket+ENC_PRIVATE_KEY_CHARS+1, ENC_SIGNATURE_CHARS);
-
-    mpConvFromOctets(signatureDigits, ENC_SIGNATURE_DIGITS, signature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-    printf("\nSignature before encryption:\n");
-    mpPrintNL(signatureDigits, ENC_SIGNATURE_DIGITS);
-
-    _encryptData(encSignature, receiverAESKey, receiverCTRNonce, packetNumber, signature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-
-    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS+1, encSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-*/
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
     return returnStatus;

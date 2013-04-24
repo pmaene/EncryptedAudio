@@ -78,7 +78,6 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     #ifdef __ENC_PRINT_ENCRYPTION    
         printf("\nSignature after encryption:\n");
         memcpy(signature, encSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-        //mpConvFromOctets(encSignature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif
 
@@ -158,11 +157,14 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvFromOctets(q, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeTwo, ENC_SIGN_PRIME_CHARS);
     _sign_crt(signature, signatureMessage, exponent, p, q);
 
+    // Encrypt signature
+    memset(cSignature, 0, sizeof(cSignature));
     mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_SIGNATURE_CHARS);
+    _encryptData(cEncryptedSignature, senderAESKey, senderCTRNonce, 2, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     sendPacket[0] = 0x01;
     memcpy(sendPacket+1, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
-    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS, cSignature, ENC_SIGNATURE_CHARS);
+    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     return ENC_ACCEPT_PACKET;
 }
