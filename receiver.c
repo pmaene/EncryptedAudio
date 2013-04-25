@@ -172,8 +172,8 @@ int receiver_checkSenderAcknowledge() {
         mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
         mpModExp(modExpResult, generator, receiverSecret, prime, ENC_PRIVATE_KEY_DIGITS);
         mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
-        memcpy(signatureMessage, cModExpResult, ENC_PRIVATE_KEY_CHARS);
-        memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, senderModExp, ENC_PRIVATE_KEY_CHARS);
+        memcpy(signatureMessage, senderModExp, ENC_PRIVATE_KEY_CHARS);
+        memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
         mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, decryptedSignature, ENC_SIGNATURE_CHARS);
 
         printf("\nSignatureMessage:\n");
