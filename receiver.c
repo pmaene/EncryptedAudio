@@ -54,7 +54,9 @@ int receiver_receiverHello() {
 
     return returnStatus;
 }
-
+int receiver_checkSenderAcknowledge() {
+    return returnStatus;
+}
 void receiver_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 

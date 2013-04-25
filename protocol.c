@@ -168,6 +168,11 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
     return ENC_ACCEPT_PACKET;
 }
+int checkSenderAcknowledge(field_t *ackPacket) {
+    
+    
+    return ENC_ACCEPT_PACKET;
+}
 
 int increaseCounter(uint32_t *counter) {
 	uint32_t nextValue = *counter + 1;

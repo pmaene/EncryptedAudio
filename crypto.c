@@ -328,7 +328,7 @@ void _encryptData(unsigned char *encryptedData, uint8_t *aesKey, uint8_t *nonce,
         aes_encrypt(&key, blockToEncrypt, encryptedBlock);
 
         for (i = 0; i < aes_BLOCK_SIZE; i++)
-            encryptedData[i+blockCounter*aes_BLOCK_SIZE] = encryptedBlock[i] ^ dataToEncrypt[i+blockCounter*aes_BLOCK_SIZE];
+            encryptedData[i+bloqueens of the stone ageckCounter*aes_BLOCK_SIZE] = encryptedBlock[i] ^ dataToEncrypt[i+blockCounter*aes_BLOCK_SIZE];
     }
 }
 

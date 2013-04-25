@@ -86,6 +86,10 @@ void _handshake() {
     // SenderAcknowledge
     if (ENC_ACCEPT_PACKET != sender_senderAcknowledge())
         _handshake();
+
+    // Receiver checks the senderAcknowledge
+    if (ENC_ACCEPT_PACKET != receiver_checkSenderAcknowledge())
+        _handshake();
 }
 
 void _transmit() {
