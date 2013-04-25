@@ -26,7 +26,7 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
 
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cSenderModExp[ENC_PRIVATE_KEY_CHARS];
-    unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
+    unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];  
 
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
@@ -89,9 +89,7 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
 }
 
 int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, digit_t *receiverModExp, unsigned char *senderPrivateExp) {
-    if (0x01 != receivedPacket[0])
-        return ENC_REJECT_PACKET_TAG;
-
+    size_t i;
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cReceiverModExp[ENC_PRIVATE_KEY_CHARS];
     unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
@@ -111,6 +109,10 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     uint8_t signatureMessage[2*ENC_PRIVATE_KEY_CHARS];
     uint8_t senderCTRNonce[ENC_CTR_NONCE_CHARS];
     uint8_t senderAESKey[ENC_AES_KEY_CHARS];
+
+    if (0x01 != receivedPacket[0])
+        return ENC_REJECT_PACKET_TAG;
+
 
     // Calculate alpha^x mod p = alpha^senderSecret mod prime
     mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
@@ -160,12 +162,23 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
     // Encrypt signature
     memset(cSignature, 0, sizeof(cSignature));
-    mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_SIGNATURE_CHARS);
+    mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
     _encryptData(encryptedSignature, senderAESKey, senderCTRNonce, 0, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
+    printf("\nSignatureMessage:\n");
+    for (i=0; i<ENC_PRIVATE_KEY_CHARS*2; i++)
+        printf("%x",signatureMessage[i]);
+    printf("\n");
+
+
+    printf("\nsignature before encryption:\n");
+    for (i = 0; i < ENC_ENCRYPTED_SIGNATURE_CHARS; i++)
+        printf("%x", cSignature[i]);
+    printf("\n");
+
     sendPacket[0] = 0x01;
-    memcpy(sendPacket+1, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
-    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+    mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+    memcpy(sendPacket+1, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     return ENC_ACCEPT_PACKET;
 }
