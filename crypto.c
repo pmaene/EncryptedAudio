@@ -119,7 +119,7 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
 
     #ifndef __ENC_NO_PRINTS__
-        printf("---> _deriveKeys \n");
+        printf("----> _deriveKeys \n");
     #endif
 
     hashMessage[ENC_PRIVATE_KEY_CHARS] = 1;
@@ -139,17 +139,17 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
     memcpy(CTRNonce, hashResult, ENC_CTR_NONCE_CHARS);
 
     #ifndef __ENC_NO_PRINTS__
-        printf("---| aesKey\n");
+        printf("----| aesKey\n");
         for (i = 0; i < ENC_AES_KEY_CHARS; i++)
             printf("%x", aesKey[i]);
         printf("\n");
 
-        printf("---| hashKey\n");
+        printf("----| hashKey\n");
         for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
             printf("%x", hashKey[i]);
         printf("\n");
 
-        printf("---| CTRNonce\n");
+        printf("----| CTRNonce\n");
         for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
             printf("%x", CTRNonce[i]);
         printf("\n");
@@ -282,13 +282,13 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
     if (mpEqual(modExpResult, preparedHash, ENC_SIGNATURE_DIGITS)) {
         #ifndef __ENC_NO_PRINTS__
-            printf("---> Verification Successful\n");
+            printf("----> Verification Successful\n");
         #endif
         return ENC_SIGNATURE_ACCEPTED;
     }
 
     #ifndef __ENC_NO_PRINTS__
-        printf("---> Verification Failed\n");
+        printf("----> Verification Failed\n");
     #endif
     return ENC_SIGNATURE_REJECTED;
 }
