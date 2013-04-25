@@ -159,7 +159,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvFromOctets(p, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeOne, ENC_SIGN_PRIME_CHARS);
     mpConvFromOctets(q, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeTwo, ENC_SIGN_PRIME_CHARS);
     _sign_crt(signature, signatureMessage, exponent, p, q);
-
+    mpPrintNL(exponent, ENC_PRIVATE_KEY_DIGITS);
     // Encrypt signature
     memset(cSignature, 0, sizeof(cSignature));
     mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);

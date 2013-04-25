@@ -139,6 +139,7 @@ int receiver_checkSenderAcknowledge() {
     unsigned char ackSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
     unsigned char decryptedSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
+    unsigned char cSenderModExp[ENC_PRIVATE_KEY_CHARS];
 
     uint8_t signatureMessage[2*ENC_PRIVATE_KEY_CHARS];
 
@@ -172,7 +173,8 @@ int receiver_checkSenderAcknowledge() {
         mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
         mpModExp(modExpResult, generator, receiverSecret, prime, ENC_PRIVATE_KEY_DIGITS);
         mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
-        memcpy(signatureMessage, senderModExp, ENC_PRIVATE_KEY_CHARS);
+        mpConvToOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
+        memcpy(signatureMessage, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
         memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
         mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, decryptedSignature, ENC_SIGNATURE_CHARS);
 
@@ -181,8 +183,12 @@ int receiver_checkSenderAcknowledge() {
             printf("%x",signatureMessage[i]);
         printf("\n");
         // Check signature
-        mpConvFromOctets(modulus, ENC_SIGNATURE_DIGITS, Enc_ReceiverModulus, ENC_SIGNATURE_CHARS);        
+        mpConvFromOctets(modulus, ENC_SIGNATURE_DIGITS, Enc_ReceiverModulus, ENC_SIGNATURE_CHARS);
         mpConvFromOctets(publicExp, ENC_SIGNATURE_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
+        printf("\npublicExp:\n");
+        mpPrintNL(publicExp, ENC_SIGNATURE_DIGITS);
+        printf("\n");
+
         if (!_verify(signature, signatureMessage, publicExp, modulus)) {
             return ENC_INVALID_ACK;
         } else { 
