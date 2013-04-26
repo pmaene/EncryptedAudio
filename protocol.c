@@ -26,7 +26,7 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
 
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cSenderModExp[ENC_PRIVATE_KEY_CHARS];
-    unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];  
+    unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
 
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
@@ -180,11 +180,6 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
     memcpy(sendPacket+1, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
-    return ENC_ACCEPT_PACKET;
-}
-int checkSenderAcknowledge(field_t *ackPacket) {
-    
-    
     return ENC_ACCEPT_PACKET;
 }
 
