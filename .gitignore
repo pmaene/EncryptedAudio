@@ -21,5 +21,5 @@ main.*/
 *.out
 *.pdf
 
-# Ignore comipiled binaries
+# Ignore compiled binaries
 main

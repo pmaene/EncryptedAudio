@@ -56,14 +56,9 @@ int sender_senderAcknowledge() {
     #ifndef __ENC_NO_PRINTS__
         printf("--> sender_senderAcknowledge\n");
     #endif
-    
+
     returnStatus = senderAcknowledge(sendPacket, receivedPacket, senderSecret, receiverModExp, (unsigned char *) Enc_SenderPrivateExp);
 
-/*
-    memcpy(encSignature, receivedPacket+ENC_PRIVATE_KEY_CHARS+1, ENC_ENCRYPTED_SIGNATURE_CHARS);
-    _decryptData(signature, senderAESKey, senderCTRNonce, 1, encSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-    memcpy(sendPacket+ENC_PRIVATE_KEY_CHARS+1, encSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-*/
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
     return returnStatus;
@@ -86,7 +81,7 @@ void sender_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
 int sender_sendData() {
     unsigned char encryptedData[ENC_DATA_SIZE_CHARS];
 
-    #ifdef __ENC_PRINT_ENCRYPTION
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS
         digit_t dataDigits[ENC_DATA_SIZE_DIGITS];
     #endif
     field_t data[ENC_DATA_SIZE_CHARS];
@@ -105,10 +100,10 @@ int sender_sendData() {
     buffer_read(data, ENC_DATA_SIZE_CHARS);
 
     #ifndef __ENC_NO_PRINTS__
-//        printf("--| senderPacketCounter: %d\n", *senderPacketCounter);
+        printf("--| senderPacketCounter: %d\n", *senderPacketCounter);
     #endif
 
-    #ifdef __ENC_PRINT_ENCRYPTION
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS
         printf("--| data\n");
         mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
         mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
@@ -116,7 +111,7 @@ int sender_sendData() {
 
     _encryptData(encryptedData, senderAESKey, senderCTRNonce, *senderPacketCounter, data, ENC_DATA_SIZE_CHARS);
 
-    #ifdef __ENC_PRINT_ENCRYPTION
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS
         printf("--| encryptedData\n");
         mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
         mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);

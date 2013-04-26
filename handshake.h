@@ -9,6 +9,4 @@ enum state {
     HANDSHAKE_FINISHED
 };
 
-void _handshake();
-
 #endif

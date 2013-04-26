@@ -20,7 +20,7 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
     memcpy(sendPacket+1, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 }
 
-int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp) {
+int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp) {
     if (0x00 != receivedPacket[0])
         return ENC_REJECT_PACKET_TAG;
 
@@ -30,7 +30,6 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
 
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
-    digit_t modExpResult[ENC_PRIVATE_KEY_DIGITS];
     digit_t p[ENC_SIGN_PRIME_DIGITS];
     digit_t prime[ENC_PRIVATE_KEY_DIGITS];
     digit_t q[ENC_SIGN_PRIME_DIGITS];
@@ -48,8 +47,8 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
 	// Calculate alpha^y mod p = alpha^receiverSecret mod prime
     mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
-    mpModExp(modExpResult, generator, receiverSecret, prime, ENC_PRIVATE_KEY_DIGITS);
-    mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
+    mpModExp(receiverModExp, generator, receiverSecret, prime, ENC_PRIVATE_KEY_DIGITS);
+    mpConvToOctets(receiverModExp, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 
 	// Concatenate alpha^y | alpha^x
     memcpy(signatureMessage, cModExpResult, ENC_PRIVATE_KEY_CHARS);
@@ -57,25 +56,25 @@ int receiverHello(field_t *sendPacket, field_t *receivedPacket, digit_t *receive
     memcpy(cSenderModExp, receivedPacket+1, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
 
-    // Derive the receiver keys from senderModExp
+    // Derive Keys
     receiver_deriveKey(receiverAESKey, receiverCTRNonce, senderModExp);
 
-    // Create signature
+    // Create Signature
     memset(signature, 0, sizeof(signature));
     mpConvFromOctets(exponent, ENC_SIGNATURE_DIGITS, receiverPrivateExp, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(p, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeOne, ENC_SIGN_PRIME_CHARS);
     mpConvFromOctets(q, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
     _sign_crt(signature, signatureMessage, exponent, p, q);
 
-    #ifdef __ENC_PRINT_ENCRYPTION
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS
         printf("---| signature\n");
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif
 
-    // Encrypt signature
+    // Encrypt Signature
     mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
     _encryptData(encryptedSignature, receiverAESKey, receiverCTRNonce, 0, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-    #ifdef __ENC_PRINT_ENCRYPTION
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS
         printf("---| encyptedSignature\n");
         memcpy(signature, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
@@ -133,7 +132,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
     mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
-    #ifdef __ENC_PRINT_ENCRYPTION
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS
         printf("---| encryptedSignature\n");
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif
@@ -141,7 +140,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     // Verify signature
-    #ifdef __ENC_PRINT_ENCRYPTION
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS
         printf("---| signature\n");
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif
