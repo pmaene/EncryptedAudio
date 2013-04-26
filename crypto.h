@@ -9,7 +9,6 @@
 #include "aes.h"
 #include "bigdigits.h"
 #include "crt.h"
-#include "pkcs.h"
 #include "types.h"
 #include "sha1.h"
 #include "sha2.h"

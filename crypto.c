@@ -1,5 +1,27 @@
 #include "crypto.h"
 
+/* From RFC 3447, Public-Key Cryptography Standards (PKCS) #1: RSA
+ * Cryptography Specifications Version 2.1.
+ *
+ *     id-sha256    OBJECT IDENTIFIER ::=
+ *       {joint-iso-itu-t(2) country(16) us(840) organization(1)
+ *         gov(101) csor(3) nistalgorithm(4) hashalgs(2) 1}
+ */
+const uint8_t
+sha256_prefix[19] =
+{
+  /* 19 octets prefix, 32 octets hash, total 51 */
+  0x30,      49, /* SEQUENCE */
+    0x30,    13, /* SEQUENCE */
+      0x06,   9, /* OBJECT IDENTIFIER */
+        0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01,
+      0x05,   0, /* NULL */
+    0x04,    32  /* OCTET STRING */
+      /* Here comes the raw hash value */
+};
+
+const size_t sha256_prefix_size = sizeof(sha256_prefix);
+
 static void _hash(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength);
 #ifdef __ENC_USE_SHA1__
     static void _hash_sha1(uint8_t *hash, uint8_t *data, size_t hashLength, size_t dataLength);
@@ -119,7 +141,7 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
     mpConvToOctets(symmetricKey, ENC_PRIVATE_KEY_DIGITS, hashMessage, ENC_PRIVATE_KEY_CHARS);
 
     #ifndef __ENC_NO_PRINTS__
-        printf("----> _deriveKeys \n");
+        printf("---> _deriveKeys \n");
     #endif
 
     hashMessage[ENC_PRIVATE_KEY_CHARS] = 1;
@@ -139,17 +161,17 @@ void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *
     memcpy(CTRNonce, hashResult, ENC_CTR_NONCE_CHARS);
 
     #ifndef __ENC_NO_PRINTS__
-        printf("----| aesKey\n");
+        printf("---| aesKey\n");
         for (i = 0; i < ENC_AES_KEY_CHARS; i++)
             printf("%x", aesKey[i]);
         printf("\n");
 
-        printf("----| hashKey\n");
+        printf("---| hashKey\n");
         for (i = 0; i < ENC_HMAC_KEY_CHARS; i++)
             printf("%x", hashKey[i]);
         printf("\n");
 
-        printf("----| CTRNonce\n");
+        printf("---| CTRNonce\n");
         for (i = 0; i < ENC_CTR_NONCE_CHARS; i++)
             printf("%x", CTRNonce[i]);
         printf("\n");
@@ -279,16 +301,16 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_DIGEST_CHARS, ENC_SIGNATURE_CHARS);
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
-    mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);    
+    mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
     if (mpEqual(modExpResult, preparedHash, ENC_SIGNATURE_DIGITS)) {
         #ifndef __ENC_NO_PRINTS__
-            printf("----> Verification Successful\n");
+            printf("---> Verification Successful\n");
         #endif
         return ENC_SIGNATURE_ACCEPTED;
     }
 
     #ifndef __ENC_NO_PRINTS__
-        printf("----> Verification Failed\n");
+        printf("---> Verification Failed\n");
     #endif
     return ENC_SIGNATURE_REJECTED;
 }

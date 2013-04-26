@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __MACH__
+    #include <unistd.h>
+#endif
 
 #include "bigdigits.h"
 #include "types.h"

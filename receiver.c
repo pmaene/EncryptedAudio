@@ -20,8 +20,8 @@ const unsigned char Enc_ReceiverPrivateExp[ENC_PRIVATE_KEY_CHARS] =
 
 bool senderTrusted = false;
 
-digit_t receiverModExp[ENC_PRIVATE_KEY_DIGITS];
 digit_t receiverSecret[ENC_PRIVATE_KEY_DIGITS];
+digit_t receiver_receiverModExp[ENC_PRIVATE_KEY_DIGITS];
 digit_t senderModExp[ENC_PRIVATE_KEY_DIGITS];
 
 uint8_t receiverAESKey[ENC_AES_KEY_CHARS];
@@ -31,7 +31,7 @@ uint8_t receiverCTRNonce[ENC_CTR_NONCE_CHARS];
 uint32_t receiverPacketCounter[1];
 
 void receiver_construct() {
-    memset(receiverModExp, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
+    memset(receiver_receiverModExp, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
     memset(receiverSecret, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
     memset(senderModExp, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
 
@@ -53,7 +53,7 @@ int receiver_receiverHello() {
         printf("--> receiver_receiverHello\n");
     #endif
 
-    returnStatus = receiverHello(sendPacket, receiverModExp, receivedPacket, receiverSecret, senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
+    returnStatus = receiverHello(sendPacket, receiver_receiverModExp, receivedPacket, receiverSecret, senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
     return returnStatus;
@@ -157,7 +157,7 @@ int receiver_checkSenderAcknowledge() {
         _decryptData(decryptedSignature, receiverAESKey, receiverCTRNonce, 0, ackSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
         // Calculate alpha^x | alpha^y
-        mpConvToOctets(receiverModExp, ENC_PRIVATE_KEY_DIGITS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
+        mpConvToOctets(receiver_receiverModExp, ENC_PRIVATE_KEY_DIGITS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
         mpConvToOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
 
         memcpy(signatureMessage, cSenderModExp, ENC_PRIVATE_KEY_CHARS);

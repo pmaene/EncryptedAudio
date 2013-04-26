@@ -15,7 +15,7 @@ const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
     "\x83\xeb\x6d\xf6\x5a\x41";
 
 digit_t senderSecret[ENC_PRIVATE_KEY_DIGITS];
-digit_t receiverModExp[ENC_PRIVATE_KEY_DIGITS];
+digit_t sender_receiverModExp[ENC_PRIVATE_KEY_DIGITS];
 
 uint8_t senderAESKey[ENC_AES_KEY_CHARS];
 uint8_t senderHashKey[ENC_HMAC_KEY_CHARS];
@@ -25,7 +25,7 @@ uint32_t senderPacketCounter[1];
 
 void sender_construct() {
     memset(senderSecret, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
-    memset(receiverModExp, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
+    memset(sender_receiverModExp, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
 
     memset(senderAESKey, 0, ENC_AES_KEY_CHARS);
     memset(senderHashKey, 0, ENC_HMAC_KEY_CHARS);
@@ -57,7 +57,7 @@ int sender_senderAcknowledge() {
         printf("--> sender_senderAcknowledge\n");
     #endif
 
-    returnStatus = senderAcknowledge(sendPacket, receivedPacket, senderSecret, receiverModExp, (unsigned char *) Enc_SenderPrivateExp);
+    returnStatus = senderAcknowledge(sendPacket, receivedPacket, senderSecret, sender_receiverModExp, (unsigned char *) Enc_SenderPrivateExp);
 
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
@@ -71,8 +71,8 @@ void sender_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
         printf("--> sender_deriveKey\n");
     #endif
 
-    memcpy(receiverModExp, modExp, ENC_PRIVATE_KEY_DIGITS);
-	_calculateSymmetricKey(symmetricKey, receiverModExp, senderSecret);
+    memcpy(sender_receiverModExp, modExp, ENC_PRIVATE_KEY_DIGITS);
+	_calculateSymmetricKey(symmetricKey, sender_receiverModExp, senderSecret);
 	_deriveKeys(senderAESKey, senderHashKey, senderCTRNonce, symmetricKey);
     memcpy(aesKey, senderAESKey, ENC_AES_KEY_CHARS);
     memcpy(CTRNonce, senderCTRNonce, ENC_CTR_NONCE_CHARS);
