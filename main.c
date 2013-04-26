@@ -12,9 +12,13 @@
 #include "sender.h"
 #include "receiver.h"
 
+#include "handshake.h"
+
 void _handshake();
 void _transmit();
 void _getTime(struct timespec *ts);
+
+enum state handshakeState;
 
 int main(int argc, char **argv) {
     uint32_t i;
@@ -44,7 +48,9 @@ int main(int argc, char **argv) {
     _getTime(&startTime);
 
     // Handshake
-    _handshake();
+    handshakeState = SENDER_HELLO;
+    while (HANDSHAKE_FINISHED != handshakeState)
+        _handshake();
 
     // Transmit
     for (i = 0; i < 1; i++) {
@@ -68,28 +74,6 @@ int main(int argc, char **argv) {
     printf("%lus %lums\n", difference.tv_sec, difference.tv_nsec/1000000);
 
     exit(EXIT_SUCCESS);
-}
-
-void _handshake() {
-    #ifndef __ENC_NO_PRINTS__
-        printf("\n# Key Exchange\n");
-        printf("--------------\n\n");
-    #endif
-
-    // SenderHello
-    sender_senderHello();
-
-    // ReceiverHello
-    if (ENC_ACCEPT_PACKET != receiver_receiverHello())
-        _handshake();
-
-    // SenderAcknowledge
-    if (ENC_ACCEPT_PACKET != sender_senderAcknowledge())
-        _handshake();
-
-    // Receiver checks the senderAcknowledge internally
-    //while (ENC_ACCEPT_PACKET != receiver_checkSenderAcknowledge()) {}
-    receiver_checkSenderAcknowledge();
 }
 
 void _transmit() {
