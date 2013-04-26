@@ -18,7 +18,7 @@ const unsigned char Enc_ReceiverPrivateExp[ENC_PRIVATE_KEY_CHARS] =
     "\xa1\xaa\xb7\x88\x01\x2b\xbd\x60\x97\x41\xbf\x5b\x6e\x06\x55"
     "\xf9\x03\xb5\xd1\xd3\xc1";
 
-bool senderAckIsValid = false;
+bool senderTrusted = false;
 
 digit_t receiverSecret[ENC_PRIVATE_KEY_DIGITS];
 digit_t senderModExp[ENC_PRIVATE_KEY_DIGITS];
@@ -134,8 +134,6 @@ int receiver_receiveData() {
 }
 
 int receiver_checkSenderAcknowledge() {
-    size_t i;
-
     unsigned char ackSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
     unsigned char decryptedSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
@@ -152,50 +150,41 @@ int receiver_checkSenderAcknowledge() {
     digit_t signature[ENC_SIGNATURE_DIGITS];
     digit_t modulus[ENC_SIGNATURE_DIGITS];
 
-    if (senderAckIsValid == false) {
-        channel_read(senderAck, 1+ENC_ENCRYPTED_SIGNATURE_CHARS);
+    if (senderTrusted == false) {
+        channel_read(senderAck, ENC_ENCRYPTED_SIGNATURE_CHARS+1);
 
         if (senderAck[0] != 1)
             return ENC_REJECT_PACKET_TAG;
         
         memcpy(ackSignature, senderAck+1, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
-        // Decrypt signature
+        // Decrypt Signature
         _decryptData(decryptedSignature, receiverAESKey, receiverCTRNonce, 0, ackSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-
-        printf("\ndecryptedSignature:\n");
-        for (i = 0; i < ENC_ENCRYPTED_SIGNATURE_CHARS; i++)
-            printf("%x", decryptedSignature[i]);
-        printf("\n");        
 
         // Calculate alpha^x | alpha ^y
         mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
         mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
         mpModExp(modExpResult, generator, receiverSecret, prime, ENC_PRIVATE_KEY_DIGITS);
+
         mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
         mpConvToOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
+
         memcpy(signatureMessage, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
         memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
-        mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, decryptedSignature, ENC_SIGNATURE_CHARS);
 
-        printf("\nSignatureMessage:\n");
-        for (i=0; i<ENC_PRIVATE_KEY_CHARS*2; i++)
-            printf("%x",signatureMessage[i]);
-        printf("\n");
-        // Check signature
-        mpConvFromOctets(modulus, ENC_SIGNATURE_DIGITS, Enc_ReceiverModulus, ENC_SIGNATURE_CHARS);
+        mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, decryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+
+        // Check Signature
+        mpConvFromOctets(modulus, ENC_SIGNATURE_DIGITS, Enc_SenderModulus, ENC_SIGNATURE_CHARS);
         mpConvFromOctets(publicExp, ENC_SIGNATURE_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
-        printf("\npublicExp:\n");
-        mpPrintNL(publicExp, ENC_SIGNATURE_DIGITS);
-        printf("\n");
 
-        if (!_verify(signature, signatureMessage, publicExp, modulus)) {
+        if (!_verify(signature, signatureMessage, publicExp, modulus))
             return ENC_INVALID_ACK;
-        } else { 
-            senderAckIsValid = true;
-            return ENC_ACCEPT_PACKET;
-        }
+        
+        senderTrusted = true;
+        return ENC_ACCEPT_PACKET;
     }
+
     return ENC_INVALID_ACK;
 }
 

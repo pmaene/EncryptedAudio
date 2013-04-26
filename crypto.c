@@ -279,7 +279,7 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, sha256_prefix_size, cHash, ENC_HASH_DIGEST_CHARS, ENC_SIGNATURE_CHARS);
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
-    mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);
+    mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGNATURE_DIGITS);    
     if (mpEqual(modExpResult, preparedHash, ENC_SIGNATURE_DIGITS)) {
         #ifndef __ENC_NO_PRINTS__
             printf("----> Verification Successful\n");
