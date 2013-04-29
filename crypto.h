@@ -46,9 +46,12 @@
 #define ENC_HMAC_DIGITS                5
 
 // Signatures
-#define ENC_SIGNATURE_CHARS            157
-#define ENC_SIGNATURE_DIGITS           40
-#define ENC_ENCRYPTED_SIGNATURE_CHARS  160      // ENC_SIGNATURE_CHARS rounded up to a multiple of 16
+#define ENC_SIGNATURE_CHARS            156
+#define ENC_SIGNATURE_DIGITS           39
+#define ENC_ENCRYPTED_SIGNATURE_CHARS  160
+#define ENC_ENCRYPTED_SIGNATURE_DIGITS 40
+#define ENC_SIGN_MODULUS_CHARS         157
+#define ENC_SIGN_MODULUS_DIGITS        40
 #define ENC_SIGN_PRIME_CHARS           79
 #define ENC_SIGN_PRIME_DIGITS          20
 
@@ -71,10 +74,10 @@ extern const unsigned char Enc_Generator[ENC_PRIVATE_KEY_CHARS];
 extern const unsigned char Enc_Prime[ENC_PRIVATE_KEY_CHARS];
 
 // RSA
-extern const unsigned char Enc_SenderModulus[ENC_SIGNATURE_CHARS];
+extern const unsigned char Enc_SenderModulus[ENC_SIGN_MODULUS_CHARS];
 extern const unsigned char Enc_SenderPrimeOne[ENC_SIGN_PRIME_CHARS];
 extern const unsigned char Enc_SenderPrimeTwo[ENC_SIGN_PRIME_CHARS];
-extern const unsigned char Enc_ReceiverModulus[ENC_SIGNATURE_CHARS];
+extern const unsigned char Enc_ReceiverModulus[ENC_SIGN_MODULUS_CHARS];
 extern const unsigned char Enc_ReceiverPrimeOne[ENC_SIGN_PRIME_CHARS];
 extern const unsigned char Enc_ReceiverPrimeTwo[ENC_SIGN_PRIME_CHARS];
 extern const unsigned char Enc_PublicExp[ENC_PUBLIC_KEY_CHARS];

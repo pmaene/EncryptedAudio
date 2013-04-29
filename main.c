@@ -21,7 +21,7 @@ void _getTime(struct timespec *ts);
 enum state handshakeState;
 
 int main(int argc, char **argv) {
-    uint32_t i;
+    size_t i;
 
     struct timespec difference;
     struct timespec startTime;
