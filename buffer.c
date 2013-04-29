@@ -17,7 +17,7 @@ void buffer_write(field_t *data, size_t length) {
         for (i = 0; i < length; i++)
             buffer[i] = data[i];
 
-        #ifndef __ENC_NO_PRINTS__
+        #ifndef __ENC_NO_BUFFER_PRINTS__
             _printBuffer();
         #endif
     }
@@ -38,14 +38,16 @@ bool buffer_isModified() {
     return modified;
 }
 
-void _printBuffer() {
-    unsigned short i;
+#ifndef __ENC_NO_BUFFER_PRINTS__
+    void _printBuffer() {
+        unsigned short i;
 
-    printf("\n# Buffer\n");
-    printf("--------\n\n");
+        printf("\n# Buffer\n");
+        printf("--------\n\n");
 
-    for (i = 0; i < ENC_BUFFER_CHARS; i++)
-        printf("%x", buffer[i]);
+        for (i = 0; i < ENC_BUFFER_CHARS; i++)
+            printf("%x", buffer[i]);
 
-    printf("\n\n");
-}
+        printf("\n\n");
+    }
+#endif

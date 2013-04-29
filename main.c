@@ -48,12 +48,17 @@ int main(int argc, char **argv) {
     _getTime(&startTime);
 
     // Handshake
+    #ifndef __ENC_NO_PRINTS__
+        printf("\n# Key Exchange\n");
+        printf("--------------\n\n");
+    #endif
+
     handshakeState = SENDER_HELLO;
     while (HANDSHAKE_FINISHED != handshakeState)
         _handshake();
 
     // Transmit
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 1; i++) {
         buffer_write(dataToEncrypt, ENC_DATA_SIZE_CHARS);
         _transmit();
         receiver_receiveData();
@@ -77,11 +82,6 @@ int main(int argc, char **argv) {
 }
 
 void _handshake() {
-    #ifndef __ENC_NO_PRINTS__
-        printf("\n# Key Exchange\n");
-        printf("--------------\n\n");
-    #endif
-
     switch (handshakeState) {
         case SENDER_HELLO:
             sender_senderHello();

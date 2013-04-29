@@ -19,7 +19,7 @@ void channel_write(field_t *data, size_t length) {
         for (i = 0; i < length; i++)
             channel[i] = data[i];
 
-        #ifndef __ENC_NO_PRINTS__
+        #ifndef __ENC_NO_CHANNEL_PRINTS__
             _printChannel();
         #endif
     }
@@ -32,14 +32,16 @@ void channel_read(field_t *data, size_t length) {
         data[i] = channel[i];
 }
 
-void _printChannel() {
-    unsigned short i;
+#ifndef __ENC_NO_CHANNEL_PRINTS__
+    void _printChannel() {
+        unsigned short i;
 
-    printf("\n# Channel\n");
-    printf("---------\n\n");
+        printf("\n# Channel\n");
+        printf("---------\n\n");
 
-    for (i = 0; i < ENC_CHANNEL_CHARS; i++)
-        printf("%x", channel[i]);
+        for (i = 0; i < ENC_CHANNEL_CHARS; i++)
+            printf("%x", channel[i]);
 
-    printf("\n\n");
-}
+        printf("\n\n");
+    }
+#endif

@@ -66,7 +66,7 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     mpConvFromOctets(q, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
     _sign_crt(signature, signatureMessage, exponent, p, q);
 
-    #ifndef __ENC_NO_ENCRYPTION_PRINTS
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         printf("---| signature\n");
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif
@@ -74,7 +74,7 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     // Encrypt Signature
     mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
     _encryptData(encryptedSignature, receiverAESKey, receiverCTRNonce, 0, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-    #ifndef __ENC_NO_ENCRYPTION_PRINTS
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         printf("---| encyptedSignature\n");
         memcpy(signature, encryptedSignature, ENC_SIGNATURE_CHARS);
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
@@ -132,7 +132,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
     mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
-    #ifndef __ENC_NO_ENCRYPTION_PRINTS
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         printf("---| encryptedSignature\n");
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif
@@ -140,7 +140,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     // Verify signature
-    #ifndef __ENC_NO_ENCRYPTION_PRINTS
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         printf("---| signature\n");
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif

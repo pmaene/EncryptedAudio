@@ -79,7 +79,7 @@ int receiver_receiveData() {
     field_t dataPacket[ENC_DATA_PACKET_CHARS];
     field_t data[ENC_DATA_SIZE_CHARS];
 
-    #ifndef __ENC_NO_ENCRYPTION_PRINTS
+    #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         digit_t dataDigits[ENC_DATA_SIZE_DIGITS];
     #endif
 
@@ -112,7 +112,7 @@ int receiver_receiveData() {
 
         memcpy(encryptedData, dataPacket+5, ENC_DATA_SIZE_CHARS);
 
-        #ifndef __ENC_NO_ENCRYPTION_PRINTS
+        #ifndef __ENC_NO_ENCRYPTION_PRINTS__
             printf("--| encryptedData\n");
             mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, encryptedData, ENC_DATA_SIZE_CHARS);
             mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
@@ -120,7 +120,7 @@ int receiver_receiveData() {
 
         _decryptData(data, receiverAESKey, receiverCTRNonce, *receiverPacketCounter, encryptedData, ENC_DATA_SIZE_CHARS);
 
-        #ifndef __ENC_NO_ENCRYPTION_PRINTS
+        #ifndef __ENC_NO_ENCRYPTION_PRINTS__
             printf("--| data\n");
             mpConvFromOctets(dataDigits, ENC_DATA_SIZE_DIGITS, data, ENC_DATA_SIZE_CHARS);
             mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
