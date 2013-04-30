@@ -76,7 +76,7 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     _encryptData(encryptedSignature, receiverAESKey, receiverCTRNonce, 0, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
     #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         printf("---| encyptedSignature\n");
-        memcpy(signature, encryptedSignature, ENC_SIGNATURE_CHARS);
+        mpConvFromOctets(signature, ENC_ENCRYPTED_SIGNATURE_DIGITS, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif
 
@@ -128,24 +128,25 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
     // Decrypt signature
     memcpy(encryptedSignature, receivedPacket+ENC_PRIVATE_KEY_CHARS+1, ENC_ENCRYPTED_SIGNATURE_CHARS);
-    _decryptData(cSignature, senderAESKey, senderCTRNonce, 0, (unsigned char *) encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-
-    mpConvToOctets(signature, ENC_SIGNATURE_DIGITS, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-
     #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         printf("---| encryptedSignature\n");
+        mpConvFromOctets(signature, ENC_ENCRYPTED_SIGNATURE_DIGITS, encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif
 
-    mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+    _decryptData(cSignature, senderAESKey, senderCTRNonce, 0, (unsigned char *) encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     // Verify signature
+    mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
     #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         printf("---| signature\n");
         mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     #endif
+
     mpConvFromOctets(publicExp, ENC_SIGN_MODULUS_CHARS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
     mpConvFromOctets(modulus, ENC_SIGN_MODULUS_DIGITS, Enc_ReceiverModulus, ENC_SIGN_MODULUS_CHARS);
+    mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+    mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     if (!_verify(signature, signatureMessage, publicExp, modulus))
         return ENC_REJECT_PACKET_SIGNATURE;
 
