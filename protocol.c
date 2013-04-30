@@ -133,12 +133,12 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
     // Verify signature
     mpConvFromOctets(signature, ENC_ENCRYPTED_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+
     #ifndef __ENC_NO_ENCRYPTION_PRINTS__
-        printf("---| signature\n");
+        printf("---| signature in senderAcknowledge\n");
         mpPrintNL(signature, ENC_SIGN_MODULUS_DIGITS);
     #endif
-
-    mpConvFromOctets(publicExp, ENC_SIGN_MODULUS_CHARS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
+    mpConvFromOctets(publicExp, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
     mpConvFromOctets(modulus, ENC_SIGN_MODULUS_DIGITS, Enc_ReceiverModulus, ENC_SIGN_MODULUS_CHARS);
     if (!_verify(signature, signatureMessage, publicExp, modulus))
         return ENC_REJECT_PACKET_SIGNATURE;
