@@ -1,6 +1,6 @@
 #include "protocol.h"
 
-void senderHello(field_t *sendPacket, digit_t *senderSecret) {
+void senderHello(field_t *sendPacket, digit_t *senderModExp, digit_t *senderSecret) {
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
 
     digit_t generator[ENC_PRIVATE_KEY_DIGITS];
@@ -15,9 +15,9 @@ void senderHello(field_t *sendPacket, digit_t *senderSecret) {
     mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
     mpModExp(modExpResult, generator, senderSecret, prime, ENC_PRIVATE_KEY_DIGITS);
     mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
-
     sendPacket[0] = 0x00;
     memcpy(sendPacket+1, cModExpResult, ENC_PRIVATE_KEY_CHARS);
+    memcpy(senderModExp, modExpResult, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
 }
 
 int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp) {
@@ -87,17 +87,14 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     return ENC_ACCEPT_PACKET;
 }
 
-int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, digit_t *receiverModExp, unsigned char *senderPrivateExp) {
+int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, digit_t *receiverModExp, digit_t *senderModExp, unsigned char *senderPrivateExp) {
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cReceiverModExp[ENC_PRIVATE_KEY_CHARS];
     unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
 
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
-    digit_t generator[ENC_PRIVATE_KEY_DIGITS];
-    digit_t modExpResult[ENC_PRIVATE_KEY_DIGITS];
     digit_t modulus[ENC_SIGN_MODULUS_DIGITS];
     digit_t p[ENC_SIGN_PRIME_DIGITS];
-    digit_t prime[ENC_PRIVATE_KEY_DIGITS];
     digit_t publicExp[ENC_SIGN_MODULUS_DIGITS];
     digit_t q[ENC_SIGN_PRIME_DIGITS];
     digit_t signature[ENC_SIGNATURE_DIGITS];
@@ -111,11 +108,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     if (0x01 != receivedPacket[0])
         return ENC_REJECT_PACKET_TAG;
 
-    // Calculate alpha^x mod p = alpha^senderSecret mod prime
-    mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
-    mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
-    mpModExp(modExpResult, generator, senderSecret, prime, ENC_PRIVATE_KEY_DIGITS),
-    mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
+    mpConvToOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 
     // Concatenate alpha^y | alpha^x
     memcpy(signatureMessage, receivedPacket+1, ENC_PRIVATE_KEY_CHARS);

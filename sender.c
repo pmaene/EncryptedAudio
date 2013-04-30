@@ -15,6 +15,7 @@ const unsigned char Enc_SenderPrivateExp[ENC_PRIVATE_KEY_CHARS] =
     "\x83\xeb\x6d\xf6\x5a\x41";
 
 digit_t senderSecret[ENC_PRIVATE_KEY_DIGITS];
+digit_t sender_senderModExp[ENC_PRIVATE_KEY_DIGITS];
 digit_t sender_receiverModExp[ENC_PRIVATE_KEY_DIGITS];
 
 uint8_t senderAESKey[ENC_AES_KEY_CHARS];
@@ -40,7 +41,7 @@ void sender_senderHello() {
     #ifndef __ENC_NO_PRINTS__
         printf("--> sender_senderHello\n");
     #endif
-    senderHello(sendPacket, senderSecret);
+    senderHello(sendPacket, sender_senderModExp, senderSecret);
 
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 }
@@ -57,7 +58,7 @@ int sender_senderAcknowledge() {
         printf("--> sender_senderAcknowledge\n");
     #endif
 
-    returnStatus = senderAcknowledge(sendPacket, receivedPacket, senderSecret, sender_receiverModExp, (unsigned char *) Enc_SenderPrivateExp);
+    returnStatus = senderAcknowledge(sendPacket, receivedPacket, senderSecret, sender_receiverModExp, sender_senderModExp, (unsigned char *) Enc_SenderPrivateExp);
 
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
