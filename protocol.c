@@ -135,7 +135,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvFromOctets(signature, ENC_ENCRYPTED_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     #ifndef __ENC_NO_ENCRYPTION_PRINTS__
-        printf("---| signature in senderAcknowledge\n");
+        printf("---| signature\n");
         mpPrintNL(signature, ENC_SIGN_MODULUS_DIGITS);
     #endif
     mpConvFromOctets(publicExp, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
