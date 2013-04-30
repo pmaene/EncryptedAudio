@@ -181,7 +181,7 @@ int receiver_checkHmac(field_t *dataPacket) {
     size_t i;
     uint8_t hmac[ENC_HMAC_CHARS];
 
-    _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, 5+ENC_DATA_SIZE_CHARS, ENC_HMAC_KEY_CHARS);
+    _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, ENC_DATA_SIZE_CHARS+5, ENC_HMAC_KEY_CHARS);
 
     for (i = 0; i < ENC_HMAC_CHARS; i++) {
         if (hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])
