@@ -303,9 +303,6 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
     mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGN_MODULUS_DIGITS);
-    printf("\n\n");
-    mpPrintNL(modExpResult, ENC_SIGN_MODULUS_DIGITS);
-    printf("\n\n");
     if (mpEqual(modExpResult, preparedHash, ENC_SIGNATURE_DIGITS)) {
         #ifndef __ENC_NO_PRINTS__
             printf("---> Verification Successful\n");

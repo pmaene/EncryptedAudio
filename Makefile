@@ -7,7 +7,7 @@ ifeq ($(UNAME), Darwin)
     CFLAGS=-Wall -g
 endif
 
-LRT=$(shell echo "int main() {}"|gcc -x c - -lrt 2>&1)
+LRT=$(shell echo "int main() {}" | gcc -x c - -lrt 2>&1)
 ifeq ($(LRT), )
     CLIBS=-lrt
 endif

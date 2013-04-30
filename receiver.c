@@ -155,6 +155,7 @@ int receiver_checkSenderAcknowledge() {
 
         // Decrypt Signature
         _decryptData(decryptedSignature, receiverAESKey, receiverCTRNonce, 0, ackSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+        mpConvFromOctets(signature, ENC_ENCRYPTED_SIGNATURE_DIGITS, decryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
         // Calculate alpha^x | alpha^y
         mpConvToOctets(receiver_receiverModExp, ENC_PRIVATE_KEY_DIGITS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
@@ -163,12 +164,9 @@ int receiver_checkSenderAcknowledge() {
         memcpy(signatureMessage, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
         memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
 
-        mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, decryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-
         // Check Signature
         mpConvFromOctets(publicExp, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
         mpConvFromOctets(modulus, ENC_SIGN_MODULUS_DIGITS, Enc_SenderModulus, ENC_SIGN_MODULUS_CHARS);
-
         if (!_verify(signature, signatureMessage, publicExp, modulus))
             return ENC_INVALID_ACK;
 
