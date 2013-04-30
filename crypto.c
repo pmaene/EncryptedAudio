@@ -291,25 +291,20 @@ void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, d
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus) {
     digit_t preparedHash[ENC_SIGN_MODULUS_DIGITS];
     digit_t modExpResult[ENC_SIGN_MODULUS_DIGITS];
-    digit_t modExpSignature[ENC_SIGN_MODULUS_DIGITS];
 
     uint8_t cHash[ENC_HASH_DIGEST_CHARS];
     uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
 
-    memset(preparedHash, 0x00, ENC_SIGN_MODULUS_DIGITS*sizeof(digit_t));
-    memset(modExpSignature, 0x00, ENC_SIGN_MODULUS_DIGITS*sizeof(digit_t));
+    mpSetZero(preparedHash, ENC_SIGN_MODULUS_DIGITS);
 
     // PKCS(SHA2( alpha^y | alpha^x ))
     _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, cHash, ENC_SIGNATURE_CHARS, sha256_prefix_size, ENC_HASH_DIGEST_CHARS, ENC_SIGNATURE_CHARS);
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
-    mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
-    mpSetEqual(modExpSignature, signature, ENC_SIGNATURE_DIGITS);
-    mpModExp(modExpResult, modExpSignature, publicExponent, modulus, ENC_SIGN_MODULUS_DIGITS);
+    mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGN_MODULUS_DIGITS);
     printf("\n\n");
-    mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
-    mpPrintNL(preparedHash, ENC_SIGN_MODULUS_DIGITS);
+    mpPrintNL(modExpResult, ENC_SIGN_MODULUS_DIGITS);
     printf("\n\n");
     if (mpEqual(modExpResult, preparedHash, ENC_SIGNATURE_DIGITS)) {
         #ifndef __ENC_NO_PRINTS__

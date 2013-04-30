@@ -142,7 +142,7 @@ int receiver_checkSenderAcknowledge() {
     field_t senderAck[1+ENC_ENCRYPTED_SIGNATURE_CHARS];
 
     digit_t publicExp[ENC_SIGN_MODULUS_DIGITS];
-    digit_t signature[ENC_SIGNATURE_DIGITS];
+    digit_t signature[ENC_SIGN_MODULUS_DIGITS];
     digit_t modulus[ENC_SIGN_MODULUS_DIGITS];
 
     if (senderTrusted == false) {

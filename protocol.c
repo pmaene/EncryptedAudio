@@ -100,13 +100,15 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     digit_t prime[ENC_PRIVATE_KEY_DIGITS];
     digit_t publicExp[ENC_SIGN_MODULUS_DIGITS];
     digit_t q[ENC_SIGN_PRIME_DIGITS];
-    digit_t signature[ENC_SIGNATURE_DIGITS];
+    digit_t signature[ENC_SIGN_MODULUS_DIGITS];
 
     field_t encryptedSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
 
     uint8_t signatureMessage[2*ENC_PRIVATE_KEY_CHARS];
     uint8_t senderCTRNonce[ENC_CTR_NONCE_CHARS];
     uint8_t senderAESKey[ENC_AES_KEY_CHARS];
+
+    mpSetZero(signature, ENC_SIGN_MODULUS_DIGITS);
 
     if (0x01 != receivedPacket[0])
         return ENC_REJECT_PACKET_TAG;
@@ -137,16 +139,14 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     _decryptData(cSignature, senderAESKey, senderCTRNonce, 0, (unsigned char *) encryptedSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     // Verify signature
-    mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
+    mpConvFromOctets(signature, ENC_ENCRYPTED_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
     #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         printf("---| signature\n");
-        mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
+        mpPrintNL(signature, ENC_SIGN_MODULUS_DIGITS);
     #endif
 
     mpConvFromOctets(publicExp, ENC_SIGN_MODULUS_CHARS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
     mpConvFromOctets(modulus, ENC_SIGN_MODULUS_DIGITS, Enc_ReceiverModulus, ENC_SIGN_MODULUS_CHARS);
-    mpConvFromOctets(signature, ENC_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
-    mpPrintNL(signature, ENC_SIGNATURE_DIGITS);
     if (!_verify(signature, signatureMessage, publicExp, modulus))
         return ENC_REJECT_PACKET_SIGNATURE;
 
