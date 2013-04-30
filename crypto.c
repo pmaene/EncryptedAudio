@@ -304,15 +304,6 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
 
     mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGN_MODULUS_DIGITS);
 
-
-    //TODO: Verwijder onderstaande prints
-    printf("\nsignature:\n");
-    mpPrintNL(signature, ENC_SIGN_MODULUS_DIGITS);   
-    printf("\nmodExpresult:\n");
-    mpPrintNL(modExpResult, ENC_SIGN_MODULUS_DIGITS);
-    printf("\npreparedHash:\n");
-    mpPrintNL(preparedHash, ENC_SIGN_MODULUS_DIGITS);
-
     if (mpEqual(modExpResult, preparedHash, ENC_SIGNATURE_DIGITS)) {
         #ifndef __ENC_NO_PRINTS__
             printf("---> Verification Successful\n");
