@@ -88,6 +88,9 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
 }
 
 int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, digit_t *receiverModExp, digit_t *senderModExp, unsigned char *senderPrivateExp) {
+    if (0x01 != receivedPacket[0])
+        return ENC_REJECT_PACKET_TAG;
+
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
     unsigned char cReceiverModExp[ENC_PRIVATE_KEY_CHARS];
     unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
@@ -106,10 +109,6 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     uint8_t senderAESKey[ENC_AES_KEY_CHARS];
 
     mpSetZero(signature, ENC_SIGN_MODULUS_DIGITS);
-
-    if (0x01 != receivedPacket[0])
-        return ENC_REJECT_PACKET_TAG;
-
     mpConvToOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 
     // Concatenate alpha^y | alpha^x
