@@ -10,14 +10,10 @@ void channel_construct() {
 }
 
 void channel_write(field_t *data, size_t length) {
-    unsigned short i;
-
-    for (i = 0; i < ENC_CHANNEL_CHARS; i++)
-        channel[i] = 0;
+    memset(channel, 0x00, length);
 
     if ((rand() % 100) > ENC_DROP_RATE) {
-        for (i = 0; i < length; i++)
-            channel[i] = data[i];
+        memcpy(channel, data, length);
 
         #ifndef __ENC_NO_CHANNEL_PRINTS__
             _printChannel();
@@ -26,10 +22,7 @@ void channel_write(field_t *data, size_t length) {
 }
 
 void channel_read(field_t *data, size_t length) {
-    unsigned short i;
-
-    for (i = 0; i < length; i++)
-        data[i] = channel[i];
+    memcpy(data, channel, length);
 }
 
 #ifndef __ENC_NO_CHANNEL_PRINTS__

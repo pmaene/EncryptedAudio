@@ -11,26 +11,18 @@ void buffer_construct() {
 }
 
 void buffer_write(field_t *data, size_t length) {
-    unsigned short i;
-
     if (!modified) {
-        for (i = 0; i < length; i++)
-            buffer[i] = data[i];
+        memcpy(buffer, data, length);
+        modified = true;
 
         #ifndef __ENC_NO_BUFFER_PRINTS__
             _printBuffer();
         #endif
     }
-
-    modified = true;
 }
 
 void buffer_read(field_t *data, size_t length) {
-    unsigned int i;
-
-    for (i = 0; i < length; i++)
-        data[i] = buffer[i];
-
+    memcpy(data, buffer, length);
     modified = false;
 }
 
