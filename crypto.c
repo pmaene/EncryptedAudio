@@ -300,7 +300,7 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
     // PKCS(SHA2( alpha^y | alpha^x ))
     _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, cHash, ENC_SIGNATURE_CHARS, sha256_prefix_size, ENC_HASH_DIGEST_CHARS, ENC_SIGNATURE_CHARS);
-    mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS); 
+    mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
     mpModExp(modExpResult, signature, publicExponent, modulus, ENC_SIGN_MODULUS_DIGITS);
 

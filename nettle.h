@@ -87,6 +87,8 @@ do {            \
                       \
   } while (0)
 
-void _nettle_write_be32(unsigned length, uint8_t *dst, uint32_t *src);
+void
+_nettle_write_be32(unsigned length, uint8_t *dst,
+       uint32_t *src);
 
 #endif
