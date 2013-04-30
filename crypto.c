@@ -216,14 +216,14 @@ static void _hash_sha2(uint8_t *hash, uint8_t *data, size_t hashLength, size_t d
     }
 #endif
 
-void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t dataLength, size_t keyLength) {
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key) {
     size_t i;
 
     uint8_t innerPad[ENC_HASH_DATA_CHARS];
     uint8_t outerPad[ENC_HASH_DATA_CHARS];
     uint8_t zeroPaddedKey[ENC_HASH_DATA_CHARS];
     uint8_t paddedKey[ENC_HASH_DATA_CHARS];
-    uint8_t innerHashMessage[ENC_HASH_DATA_CHARS+dataLength];
+    uint8_t innerHashMessage[ENC_HASH_DATA_CHARS+ENC_DATA_SIZE_CHARS+5];
     uint8_t outerHashMessage[ENC_HASH_DATA_CHARS+ENC_HASH_DIGEST_CHARS];
     uint8_t hashResult[ENC_HASH_DIGEST_CHARS];
 
@@ -234,15 +234,15 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t
     memset(outerPad, 0x5c, ENC_HASH_DATA_CHARS);
 
     // Inner Padding
-    memcpy(zeroPaddedKey, key, keyLength);
+    memcpy(zeroPaddedKey, key, ENC_HMAC_KEY_CHARS);
     for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         paddedKey[i] = zeroPaddedKey[i] ^ innerPad[i];
 
     // Append Data
     memcpy(innerHashMessage, paddedKey, ENC_HASH_DATA_CHARS);
-    memcpy(innerHashMessage+ENC_HASH_DATA_CHARS, data, dataLength);
+    memcpy(innerHashMessage+ENC_HASH_DATA_CHARS, data, ENC_DATA_SIZE_CHARS+5);
 
-    _hash(hashResult, innerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+dataLength);
+    _hash(hashResult, innerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+ENC_DATA_SIZE_CHARS+5);
 
     // Outer Padding
     for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
@@ -254,7 +254,7 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t
 
     _hash(hashResult, outerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+ENC_HASH_DIGEST_CHARS);
 
-    memcpy(hmac, hashResult, hmacLength);
+    memcpy(hmac, hashResult, ENC_HMAC_CHARS);
 }
 
 // Signatures
@@ -285,7 +285,7 @@ void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, d
 
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
-    crtModExp(signature, preparedHash, privateExponent, p, q, ENC_SIGNATURE_DIGITS, ENC_PRIVATE_KEY_DIGITS, ENC_SIGN_PRIME_DIGITS);
+    crtModExp(signature, preparedHash, privateExponent, p, q);
 }
 
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus) {

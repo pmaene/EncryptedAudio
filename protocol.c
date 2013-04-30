@@ -8,7 +8,7 @@ void senderHello(field_t *sendPacket, digit_t *senderModExp, digit_t *senderSecr
     digit_t prime[ENC_PRIVATE_KEY_DIGITS];
 
     // Generate x
-    getRandomDigit(senderSecret, ENC_DH_SECRET_DIGITS);
+    getRandomDigit(senderSecret);
 
 	// Calculate alpha^x mod p = generator^senderSecret mod prime
     mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
@@ -42,7 +42,7 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     uint8_t receiverAESKey[ENC_AES_KEY_CHARS];
 
     // Generate y
-    getRandomDigit(receiverSecret, ENC_DH_SECRET_DIGITS);
+    getRandomDigit(receiverSecret);
 
 	// Calculate alpha^y mod p = alpha^receiverSecret mod prime
     mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
@@ -135,7 +135,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvFromOctets(signature, ENC_ENCRYPTED_SIGNATURE_DIGITS, cSignature, ENC_ENCRYPTED_SIGNATURE_CHARS);
 
     #ifndef __ENC_NO_ENCRYPTION_PRINTS__
-        printf("---| signature in senderAcknowledge\n");
+        printf("---| signature\n");
         mpPrintNL(signature, ENC_SIGN_MODULUS_DIGITS);
     #endif
     mpConvFromOctets(publicExp, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);

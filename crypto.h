@@ -9,6 +9,7 @@
 #include "aes.h"
 #include "bigdigits.h"
 #include "crt.h"
+#include "protocol.h"
 #include "types.h"
 #include "sha1.h"
 #include "sha2.h"
@@ -87,7 +88,7 @@ void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret
 void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRKey, digit_t *symmetricKey);
 
 // Hashes
-void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t dataLength, size_t keyLength);
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key);
 
 // Signatures
 void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus);

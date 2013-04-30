@@ -1,11 +1,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#ifdef __MACH__
-    #include <mach/clock.h>
-    #include <mach/mach.h>
-#endif
-
 #include "protocol.h"
 
 #include "channel.h"
@@ -16,16 +11,11 @@
 
 void _handshake();
 void _transmit();
-void _getTime(struct timespec *ts);
 
 enum state handshakeState;
 
 int main(int argc, char **argv) {
     size_t i;
-
-    struct timespec difference;
-    struct timespec startTime;
-    struct timespec stopTime;
 
     unsigned char dataToEncrypt[ENC_DATA_SIZE_CHARS] =
         "\x01\x02\x03\x04\xf6\x8d\x59\xaa\xc1\x93\x67\xc7\xde\x23\x4b"
@@ -38,45 +28,31 @@ int main(int argc, char **argv) {
         "\x07\x4f\x48\x8e\x34\x7b\xf4\xd7\xff\x25\x5f\x2d\x13\x4d\x87"
         "\x4b\x06\x54\x19\x04\x03\x02\x01";
 
+    // Initialize RNG
+    srand(time(NULL));
+
     // Construct
     buffer_construct();
     channel_construct();
     sender_construct();
     receiver_construct();
 
-    // Execution Time
-    _getTime(&startTime);
-
     // Handshake
-    #ifndef __ENC_NO_PRINTS__
-        printf("\n# Key Exchange\n");
-        printf("--------------\n\n");
-    #endif
+	#ifndef __ENC_NO_PRINTS__
+		printf("\n# Key Exchange\n");
+		printf("--------------\n\n");
+	#endif
 
     handshakeState = SENDER_HELLO;
     while (HANDSHAKE_FINISHED != handshakeState)
         _handshake();
 
     // Transmit
-    for (i = 0; i < 1; i++) {
+    for (i = 0; i < 10; i++) {
         buffer_write(dataToEncrypt, ENC_DATA_SIZE_CHARS);
         _transmit();
         receiver_receiveData();
     }
-
-    // Execution Time
-    _getTime(&stopTime);
-
-    if ((stopTime.tv_nsec-startTime.tv_nsec) < 0) {
-        difference.tv_sec = stopTime.tv_sec-startTime.tv_sec-1;
-        difference.tv_nsec = 1000000000+stopTime.tv_nsec-startTime.tv_nsec;
-    } else {
-        difference.tv_sec = stopTime.tv_sec-startTime.tv_sec;
-        difference.tv_nsec = stopTime.tv_nsec-startTime.tv_nsec;
-    }
-
-    printf("\n# Execution Time\n");
-    printf("%lus %lums\n", difference.tv_sec, difference.tv_nsec/1000000);
 
     exit(EXIT_SUCCESS);
 }
@@ -112,18 +88,4 @@ void _transmit() {
 
         _transmit();
     }
-}
-
-void _getTime(struct timespec *time) {
-    #ifdef __MACH__
-        clock_serv_t clock;
-        mach_timespec_t machTime;
-        host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &clock);
-        clock_get_time(clock, &machTime);
-        mach_port_deallocate(mach_task_self(), clock);
-        time->tv_sec = machTime.tv_sec;
-        time->tv_nsec = machTime.tv_nsec;
-    #else
-        clock_gettime(CLOCK_REALTIME, time);
-    #endif
 }
