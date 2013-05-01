@@ -14,5 +14,5 @@ endif
 
 all:	main
 
-main:	aes.c bigdigits.c buffer.c channel.c crt.c crypto.c main.c nettle.c protocol.c random.c receiver.c sender.c sha1.c sha2.c sha3.c
+main:	aes.c bigdigits.c buffer.c channel.c crt.c crypto.c decode.c encode.c functions.c main.c nettle.c protocol.c random.c receiver.c sender.c sha1.c sha2.c sha3.c wavpcm_io.c
 		$(CC) $(CFLAGS) $^ $(CLIBS) -o $@

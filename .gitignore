@@ -29,3 +29,6 @@ main
 
 Debug/
 Release/
+
+# Do not version generated files
+*.wav
