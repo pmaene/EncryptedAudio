@@ -16,4 +16,6 @@ void buffer_construct();
 void buffer_write(field_t *data, size_t length);
 void buffer_read(field_t *data, size_t length);
 
+bool buffer_isModified();
+
 #endif

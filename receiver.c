@@ -1,6 +1,4 @@
-#include "channel.h"
 #include "receiver.h"
-#include "protocol.h"
 
 int receiver_checkHmac(field_t *dataPacket);
 
@@ -126,6 +124,9 @@ int receiver_receiveData() {
             mpPrintNL(dataDigits, ENC_DATA_SIZE_DIGITS);
             printf("\n");
         #endif
+
+        while (buffer_isModified()) {}
+        buffer_write(data, ENC_DATA_SIZE_CHARS);
 
         return ENC_ACCEPT_PACKET;
     }
