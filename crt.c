@@ -64,12 +64,9 @@ void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q) 
     pthread_join(threads[0], &status);
     pthread_join(threads[1], &status);
 
-    printf("----> Threads Joined\n");
-
-    printf("----| modExpResultOne\n");
-    mpPrintNL(modExpResultOne, ENC_SIGNATURE_DIGITS);
-    printf("----| modExpResultTwo\n");
-    mpPrintNL(modExpResultTwo, ENC_SIGNATURE_DIGITS);
+    #ifndef __ENC_NO_PRINTS__
+        printf("----> Threads Joined\n");
+    #endif
 
     mpSubtract(modExpResultsDifference, modExpResultTwo, modExpResultOne, ENC_SIGN_PRIME_DIGITS);
     if (mpCompare(modExpResultTwo, modExpResultOne, ENC_SIGNATURE_DIGITS) < 0)
@@ -86,10 +83,11 @@ void *_crtModExp_HalfExp(void *arguments) {
     digit_t modExpTmpModulo[ENC_SIGNATURE_DIGITS];
 
     struct threadArguments *threadArguments;
-
     threadArguments = (struct threadArguments *) arguments;
 
-    printf("----> Starting Thread %d\n", threadArguments->id);
+    #ifndef __ENC_NO_PRINTS__
+        printf("----> Starting Thread %d\n", threadArguments->id);
+    #endif
 
     mpSetZero(modExpTmpExponent, ENC_SIGNATURE_DIGITS);
     mpSetEqual(modExpTmpExponent, threadArguments->exponent, ENC_SIGN_PRIME_DIGITS);
