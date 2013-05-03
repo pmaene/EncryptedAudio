@@ -20,6 +20,7 @@ void _transmit();
 enum state handshakeState;
 
 int main(int argc, char **argv) {
+	/*
 	size_t bufPos;
 	size_t read;
 
@@ -33,6 +34,7 @@ int main(int argc, char **argv) {
 	struct decode_chunk_struct decode_chunk_right;
 	struct encode_chunk_struct encode_chunk_left;
 	struct encode_chunk_struct encode_chunk_right;
+	*/
 
     // Initialize RNG
     srand(time(NULL));
@@ -53,6 +55,7 @@ int main(int argc, char **argv) {
     while (HANDSHAKE_FINISHED != handshakeState)
         _handshake();
 
+    /*
     // Transmit
 	memset(&input, 0, sizeof(struct wavpcm_input));
 	input.resource = INPUTWAVFILE;
@@ -92,6 +95,7 @@ int main(int argc, char **argv) {
 	}
 
 	wavpcm_output_close(&output);
+	*/
 
     exit(EXIT_SUCCESS);
 }
