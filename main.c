@@ -33,9 +33,11 @@ int main(int argc, char **argv) {
 	short buffer[BUFFERSIZE];
 	short encoded[BUFFERSIZE];
 
-    struct timespec difference;
-    struct timespec startTime;
-    struct timespec stopTime;
+    #ifndef __ENC_NO_PRINTS__
+        struct timespec difference;
+        struct timespec startTime;
+        struct timespec stopTime;
+    #endif
 
 	struct wavpcm_input input;
 	struct wavpcm_output output;
@@ -54,19 +56,20 @@ int main(int argc, char **argv) {
     sender_construct();
     receiver_construct();
 
-    _getTime(&startTime);
+    // Execution Time
+    #ifndef __ENC_NO_PRINTS__
+        _getTime(&startTime);
+    #endif
 
     // Handshake
 	#ifndef __ENC_NO_PRINTS__
-		printf("\n# Key Exchange\n");
+		printf("# Key Exchange\n");
 		printf("--------------\n\n");
 	#endif
 
     handshakeState = SENDER_HELLO;
     while (HANDSHAKE_FINISHED != handshakeState)
         _handshake();
-
-    _getTime(&stopTime);
 
     // Transmit
 	memset(&input, 0, sizeof(struct wavpcm_input));
@@ -108,16 +111,21 @@ int main(int argc, char **argv) {
 
 	wavpcm_output_close(&output);
 
-    if ((stopTime.tv_nsec-startTime.tv_nsec) < 0) {
-        difference.tv_sec = stopTime.tv_sec-startTime.tv_sec-1;
-        difference.tv_nsec = 1000000000+stopTime.tv_nsec-startTime.tv_nsec;
-    } else {
-        difference.tv_sec = stopTime.tv_sec-startTime.tv_sec;
-        difference.tv_nsec = stopTime.tv_nsec-startTime.tv_nsec;
-    }
+    // Execution Time
+    #ifndef __ENC_NO_PRINTS__
+        _getTime(&stopTime);
 
-    printf("\n# Execution Time\n");
-    printf("%lus %lums\n", difference.tv_sec, difference.tv_nsec/1000000);
+        if ((stopTime.tv_nsec-startTime.tv_nsec) < 0) {
+            difference.tv_sec = stopTime.tv_sec-startTime.tv_sec-1;
+            difference.tv_nsec = 1000000000+stopTime.tv_nsec-startTime.tv_nsec;
+        } else {
+            difference.tv_sec = stopTime.tv_sec-startTime.tv_sec;
+            difference.tv_nsec = stopTime.tv_nsec-startTime.tv_nsec;
+        }
+
+        printf("\n# Execution Time\n");
+        printf("%lus %lums\n", difference.tv_sec, difference.tv_nsec/1000000);
+    #endif
 
     pthread_exit(NULL);
 

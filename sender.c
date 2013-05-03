@@ -94,7 +94,7 @@ int sender_sendData() {
     uint8_t hmac[ENC_HMAC_CHARS];
 
     #ifndef __ENC_NO_PRINTS__
-        printf("\n\n# Sender\n");
+        printf("\n# Sender\n");
         printf("--------\n");
     #endif
 

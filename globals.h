@@ -7,4 +7,4 @@
 #define INPUTWAVFILE  "input.wav"
 #define OUTPUTWAVFILE "output.wav"
 
-#define VERBOSE
+//#define VERBOSE
