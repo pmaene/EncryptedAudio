@@ -10,6 +10,7 @@ void senderHello(field_t *sendPacket, digit_t *senderModExp, digit_t *senderSecr
 
 	// Calculate alpha^x mod p = generator^senderSecret mod prime
     mpModExp(modExpResult, Enc_Generator_Digits, senderSecret, Enc_Prime_Digits, ENC_PRIVATE_KEY_DIGITS);
+    mpPrintNL(Enc_Generator_Digits, ENC_PRIVATE_KEY_DIGITS);
     mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
     sendPacket[0] = 0x00;
     memcpy(sendPacket+1, cModExpResult, ENC_PRIVATE_KEY_CHARS);
@@ -39,14 +40,12 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
 	// Calculate alpha^y mod p = alpha^receiverSecret mod prime
     mpModExp(receiverModExp, Enc_Generator_Digits, receiverSecret, Enc_Prime_Digits, ENC_PRIVATE_KEY_DIGITS);
     mpConvToOctets(receiverModExp, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
-    mpPrintNL(receiverModExp, ENC_PRIVATE_KEY_DIGITS);
 
 	// Concatenate alpha^y | alpha^x
     memcpy(signatureMessage, cModExpResult, ENC_PRIVATE_KEY_CHARS);
     memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, receivedPacket+1, ENC_PRIVATE_KEY_CHARS);
     memcpy(cSenderModExp, receivedPacket+1, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
-
     // Derive Keys
     receiver_deriveKey(receiverAESKey, receiverCTRNonce, senderModExp);
 
@@ -122,6 +121,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
         printf("---| signature\n");
         mpPrintNL(signature, ENC_SIGN_MODULUS_DIGITS);
     #endif
+
     if (!_verify(signature, signatureMessage, Enc_PublicExp_Digits, Enc_ReceiverModulus_Digits))
         return ENC_REJECT_PACKET_SIGNATURE;
 
@@ -156,3 +156,4 @@ int increaseCounter(uint32_t *counter) {
 		return ENC_ACCEPT_PACKET;
 	}
 }
+

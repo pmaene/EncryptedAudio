@@ -385,7 +385,7 @@ void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce,
 
 void _conv_from_octets() {
     mpConvFromOctets(Enc_Generator_Digits, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
-    mpConvFromOctets(Enc_Prime_Digits, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
+    mpConvFromOctets(Enc_Prime_Digits, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
     mpConvFromOctets(Enc_SenderModulus_Digits, ENC_SIGN_MODULUS_DIGITS, Enc_SenderModulus, ENC_SIGN_MODULUS_CHARS);
     mpConvFromOctets(Enc_SenderPrimeOne_Digits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeOne, ENC_SIGN_PRIME_CHARS);
     mpConvFromOctets(Enc_SenderPrimeTwo_Digits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeTwo, ENC_SIGN_PRIME_CHARS);
