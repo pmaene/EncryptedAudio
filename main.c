@@ -47,6 +47,9 @@ int main(int argc, char **argv) {
     // Execution Time
     _getTime(&startTime);
 
+    // Convert all constant chars to digit_t
+    _conv_from_octets();
+
     // Handshake
     #ifndef __ENC_NO_PRINTS__
         printf("\n# Key Exchange\n");

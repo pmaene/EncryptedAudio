@@ -121,12 +121,19 @@ const unsigned char  Enc_ReceiverPrimeTwo[ENC_SIGN_PRIME_CHARS] =
 const unsigned char         Enc_PublicExp[ENC_PUBLIC_KEY_CHARS] =
     "\x01\x00\x01";
 
+digit_t Enc_Generator_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_Prime_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_SenderModulus_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_SenderPrimeOne_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_SenderPrimeTwo_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_ReceiverModulus_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_ReceiverPrimeOne_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_ReceiverPrimeTwo_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_PublicExp_Digits[ENC_PRIVATE_KEY_DIGITS];
+
 // Keys
 void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret) {
-    digit_t prime[ENC_PRIVATE_KEY_DIGITS];
-
-    mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
-    mpModExp(key, modExpResult, secret, prime, ENC_PRIVATE_KEY_DIGITS);
+    mpModExp(key, modExpResult, secret, Enc_Prime_Digits, ENC_PRIVATE_KEY_DIGITS);
 }
 
 void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *symmetricKey) {
@@ -374,4 +381,16 @@ void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce,
         for (i = 0; i < aes_BLOCK_SIZE; i++)
             decryptedData[i+blockCounter*aes_BLOCK_SIZE] = encryptedBlock[i] ^ dataToDecrypt[i+blockCounter*aes_BLOCK_SIZE];
     }
+}
+
+void _conv_from_octets() {
+    mpConvFromOctets(Enc_Generator_Digits, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
+    mpConvFromOctets(Enc_Prime_Digits, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
+    mpConvFromOctets(Enc_SenderModulus_Digits, ENC_SIGN_MODULUS_DIGITS, Enc_SenderModulus, ENC_SIGN_MODULUS_CHARS);
+    mpConvFromOctets(Enc_SenderPrimeOne_Digits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeOne, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_SenderPrimeTwo_Digits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeTwo, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_ReceiverModulus_Digits, ENC_SIGN_MODULUS_DIGITS, Enc_ReceiverModulus, ENC_SIGN_MODULUS_CHARS);
+    mpConvFromOctets(Enc_ReceiverPrimeOne_Digits, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeOne, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_ReceiverPrimeTwo_Digits, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_PublicExp_Digits, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
 }

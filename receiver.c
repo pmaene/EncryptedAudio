@@ -141,9 +141,7 @@ int receiver_checkSenderAcknowledge() {
 
     field_t senderAck[1+ENC_ENCRYPTED_SIGNATURE_CHARS];
 
-    digit_t publicExp[ENC_SIGN_MODULUS_DIGITS];
     digit_t signature[ENC_SIGN_MODULUS_DIGITS];
-    digit_t modulus[ENC_SIGN_MODULUS_DIGITS];
 
     if (senderTrusted == false) {
         channel_read(senderAck, ENC_ENCRYPTED_SIGNATURE_CHARS+1);
@@ -165,9 +163,7 @@ int receiver_checkSenderAcknowledge() {
         memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
 
         // Check Signature
-        mpConvFromOctets(publicExp, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
-        mpConvFromOctets(modulus, ENC_SIGN_MODULUS_DIGITS, Enc_SenderModulus, ENC_SIGN_MODULUS_CHARS);
-        if (!_verify(signature, signatureMessage, publicExp, modulus))
+        if (!_verify(signature, signatureMessage, Enc_PublicExp_Digits, Enc_SenderModulus_Digits))
             return ENC_INVALID_ACK;
 
         senderTrusted = true;
