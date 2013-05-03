@@ -2,6 +2,7 @@
 #define __ENC_NETTLE_H__
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #define READ_UINT32(p)        \
 (  (((uint32_t) (p)[0]) << 24)      \

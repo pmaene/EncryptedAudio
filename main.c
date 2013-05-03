@@ -1,5 +1,11 @@
+#include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
+
+#ifdef __MACH__
+    #include <mach/clock.h>
+    #include <mach/mach.h>
+#endif
 
 #include "channel.h"
 #include "handshake.h"
@@ -16,6 +22,7 @@
 
 void _handshake();
 void _transmit();
+void _getTime(struct timespec *ts);
 
 enum state handshakeState;
 
@@ -25,6 +32,10 @@ int main(int argc, char **argv) {
 
 	short buffer[BUFFERSIZE];
 	short encoded[BUFFERSIZE];
+
+    struct timespec difference;
+    struct timespec startTime;
+    struct timespec stopTime;
 
 	struct wavpcm_input input;
 	struct wavpcm_output output;
@@ -43,6 +54,8 @@ int main(int argc, char **argv) {
     sender_construct();
     receiver_construct();
 
+    _getTime(&startTime);
+
     // Handshake
 	#ifndef __ENC_NO_PRINTS__
 		printf("\n# Key Exchange\n");
@@ -52,6 +65,8 @@ int main(int argc, char **argv) {
     handshakeState = SENDER_HELLO;
     while (HANDSHAKE_FINISHED != handshakeState)
         _handshake();
+
+    _getTime(&stopTime);
 
     // Transmit
 	memset(&input, 0, sizeof(struct wavpcm_input));
@@ -93,6 +108,19 @@ int main(int argc, char **argv) {
 
 	wavpcm_output_close(&output);
 
+    if ((stopTime.tv_nsec-startTime.tv_nsec) < 0) {
+        difference.tv_sec = stopTime.tv_sec-startTime.tv_sec-1;
+        difference.tv_nsec = 1000000000+stopTime.tv_nsec-startTime.tv_nsec;
+    } else {
+        difference.tv_sec = stopTime.tv_sec-startTime.tv_sec;
+        difference.tv_nsec = stopTime.tv_nsec-startTime.tv_nsec;
+    }
+
+    printf("\n# Execution Time\n");
+    printf("%lus %lums\n", difference.tv_sec, difference.tv_nsec/1000000);
+
+    pthread_exit(NULL);
+
     exit(EXIT_SUCCESS);
 }
 
@@ -127,4 +155,18 @@ void _transmit() {
 
         _transmit();
     }
+}
+
+void _getTime(struct timespec *time) {
+    #ifdef __MACH__
+        clock_serv_t clock;
+        mach_timespec_t machTime;
+        host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &clock);
+        clock_get_time(clock, &machTime);
+        mach_port_deallocate(mach_task_self(), clock);
+        time->tv_sec = machTime.tv_sec;
+        time->tv_nsec = machTime.tv_nsec;
+    #else
+        clock_gettime(CLOCK_REALTIME, time);
+    #endif
 }

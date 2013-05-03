@@ -1,6 +1,7 @@
 #ifndef __ENC_CRT_H__
 #define __ENC_CRT_H__
 
+#include <pthread.h>
 #include <stdio.h>
 
 #include "bigdigits.h"
