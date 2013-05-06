@@ -19,8 +19,8 @@ const unsigned char Enc_ReceiverPrivateExp[ENC_PRIVATE_KEY_CHARS] =
 bool senderTrusted = false;
 
 digit_t receiverSecret[ENC_PRIVATE_KEY_DIGITS];
-digit_t receiver_senderModExp[ENC_PRIVATE_KEY_DIGITS];
 digit_t receiver_receiverModExp[ENC_PRIVATE_KEY_DIGITS];
+digit_t receiver_senderModExp[ENC_PRIVATE_KEY_DIGITS];
 
 uint8_t receiverAESKey[ENC_AES_KEY_CHARS];
 uint8_t receiverHashKey[ENC_HMAC_KEY_CHARS];
