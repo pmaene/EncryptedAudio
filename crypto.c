@@ -375,3 +375,15 @@ void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce,
             decryptedData[i+blockCounter*aes_BLOCK_SIZE] = encryptedBlock[i] ^ dataToDecrypt[i+blockCounter*aes_BLOCK_SIZE];
     }
 }
+
+void _conv_from_octets() {
+    mpConvFromOctets(Enc_PrimeDigits, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
+    mpConvFromOctets(Enc_GeneratorDigits, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
+    mpConvFromOctets(Enc_SenderModulusDigits, ENC_SIGN_MODULUS_DIGITS, Enc_SenderModulus, ENC_SIGN_MODULUS_CHARS);
+    mpConvFromOctets(Enc_SenderPrimeOneDigits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeOne, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_SenderPrimeTwoDigits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeTwo, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_ReceiverModulusDigits, ENC_SIGN_MODULUS_DIGITS, Enc_ReceiverModulus, ENC_SIGN_MODULUS_CHARS);
+    mpConvFromOctets(Enc_ReceiverPrimeOneDigits, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeOne, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_ReceiverPrimeTwoDigits, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_PublicExpDigits, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
+}

@@ -39,6 +39,9 @@ int main(int argc, char **argv) {
     // Initialize RNG
     srand(time(NULL));
 
+    
+    _conv_from_octets();
+
     // Construct
     buffer_construct();
     channel_construct();
