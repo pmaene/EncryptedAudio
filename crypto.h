@@ -71,17 +71,17 @@
 #define ENC_CTR_NONCE_DIGITS           2
 
 // Diffie-Hellman
-extern const unsigned char Enc_Generator[ENC_PRIVATE_KEY_CHARS];
-extern const unsigned char Enc_Prime[ENC_PRIVATE_KEY_CHARS];
+digit_t Enc_GeneratorDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_PrimeDigits[ENC_PRIVATE_KEY_DIGITS];
 
 // RSA
-extern const unsigned char Enc_SenderModulus[ENC_SIGN_MODULUS_CHARS];
-extern const unsigned char Enc_SenderPrimeOne[ENC_SIGN_PRIME_CHARS];
-extern const unsigned char Enc_SenderPrimeTwo[ENC_SIGN_PRIME_CHARS];
-extern const unsigned char Enc_ReceiverModulus[ENC_SIGN_MODULUS_CHARS];
-extern const unsigned char Enc_ReceiverPrimeOne[ENC_SIGN_PRIME_CHARS];
-extern const unsigned char Enc_ReceiverPrimeTwo[ENC_SIGN_PRIME_CHARS];
-extern const unsigned char Enc_PublicExp[ENC_PUBLIC_KEY_CHARS];
+digit_t Enc_SenderModulusDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_SenderPrimeOneDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_SenderPrimeTwoDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_ReceiverModulusDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_ReceiverPrimeOneDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_ReceiverPrimeTwoDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_PublicExpDigits[ENC_PRIVATE_KEY_DIGITS];
 
 // Keys
 void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret);
@@ -97,5 +97,6 @@ int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit
 
 void _encryptData(unsigned char *encryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToEncrypt, size_t dataSize);
 void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToDecrypt, size_t dataSize);
+void _conv_from_octets();
 
 #endif
