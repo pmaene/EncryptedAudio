@@ -3,17 +3,13 @@
 void senderHello(field_t *sendPacket, digit_t *senderModExp, digit_t *senderSecret) {
     unsigned char cModExpResult[ENC_PRIVATE_KEY_CHARS];
 
-    digit_t generator[ENC_PRIVATE_KEY_DIGITS];
     digit_t modExpResult[ENC_PRIVATE_KEY_DIGITS];
-    digit_t prime[ENC_PRIVATE_KEY_DIGITS];
 
     // Generate x
     getRandomDigit(senderSecret);
 
 	// Calculate alpha^x mod p = generator^senderSecret mod prime
-    mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
-    mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
-    mpModExp(modExpResult, generator, senderSecret, prime, ENC_PRIVATE_KEY_DIGITS);
+    mpModExp(modExpResult, Enc_GeneratorDigits, senderSecret, Enc_PrimeDigits, ENC_PRIVATE_KEY_DIGITS);
     mpConvToOctets(modExpResult, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
     sendPacket[0] = 0x00;
     memcpy(sendPacket+1, cModExpResult, ENC_PRIVATE_KEY_CHARS);
@@ -29,10 +25,6 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
 
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
-    digit_t generator[ENC_PRIVATE_KEY_DIGITS];
-    digit_t p[ENC_SIGN_PRIME_DIGITS];
-    digit_t prime[ENC_PRIVATE_KEY_DIGITS];
-    digit_t q[ENC_SIGN_PRIME_DIGITS];
     digit_t signature[ENC_SIGNATURE_DIGITS];
 
     field_t encryptedSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
@@ -45,9 +37,7 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     getRandomDigit(receiverSecret);
 
 	// Calculate alpha^y mod p = alpha^receiverSecret mod prime
-    mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
-    mpConvFromOctets(generator, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
-    mpModExp(receiverModExp, generator, receiverSecret, prime, ENC_PRIVATE_KEY_DIGITS);
+    mpModExp(receiverModExp, Enc_GeneratorDigits, receiverSecret, Enc_PrimeDigits, ENC_PRIVATE_KEY_DIGITS);
     mpConvToOctets(receiverModExp, ENC_PRIVATE_KEY_DIGITS, cModExpResult, ENC_PRIVATE_KEY_CHARS);
 
 	// Concatenate alpha^y | alpha^x
@@ -62,9 +52,7 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     // Create Signature
     memset(signature, 0, sizeof(signature));
     mpConvFromOctets(exponent, ENC_SIGNATURE_DIGITS, receiverPrivateExp, ENC_PRIVATE_KEY_CHARS);
-    mpConvFromOctets(p, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeOne, ENC_SIGN_PRIME_CHARS);
-    mpConvFromOctets(q, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
-    _sign_crt(signature, signatureMessage, exponent, p, q);
+    _sign_crt(signature, signatureMessage, exponent, Enc_ReceiverPrimeOneDigits, Enc_ReceiverPrimeTwoDigits);
 
     #ifndef __ENC_NO_ENCRYPTION_PRINTS__
         printf("---| signature\n");
@@ -96,10 +84,6 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
 
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
-    digit_t modulus[ENC_SIGN_MODULUS_DIGITS];
-    digit_t p[ENC_SIGN_PRIME_DIGITS];
-    digit_t publicExp[ENC_SIGN_MODULUS_DIGITS];
-    digit_t q[ENC_SIGN_PRIME_DIGITS];
     digit_t signature[ENC_SIGN_MODULUS_DIGITS];
 
     field_t encryptedSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
@@ -137,9 +121,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
         printf("---| signature\n");
         mpPrintNL(signature, ENC_SIGN_MODULUS_DIGITS);
     #endif
-    mpConvFromOctets(publicExp, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
-    mpConvFromOctets(modulus, ENC_SIGN_MODULUS_DIGITS, Enc_ReceiverModulus, ENC_SIGN_MODULUS_CHARS);
-    if (!_verify(signature, signatureMessage, publicExp, modulus))
+    if (!_verify(signature, signatureMessage, Enc_PublicExpDigits, Enc_ReceiverModulusDigits))
         return ENC_REJECT_PACKET_SIGNATURE;
 
     // Concatenate alpha^x | alpha^y
@@ -148,9 +130,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
 
     // Create Signature
     mpConvFromOctets(exponent, ENC_SIGNATURE_DIGITS, senderPrivateExp, ENC_PRIVATE_KEY_CHARS);
-    mpConvFromOctets(p, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeOne, ENC_SIGN_PRIME_CHARS);
-    mpConvFromOctets(q, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeTwo, ENC_SIGN_PRIME_CHARS);
-    _sign_crt(signature, signatureMessage, exponent, p, q);
+    _sign_crt(signature, signatureMessage, exponent, Enc_SenderPrimeOneDigits, Enc_SenderPrimeTwoDigits);
 
     // Encrypt signature
     memset(cSignature, 0, sizeof(cSignature));
