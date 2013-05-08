@@ -84,6 +84,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     unsigned char cSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
 
     digit_t exponent[ENC_PRIVATE_KEY_DIGITS];
+
     digit_t signature[ENC_SIGN_MODULUS_DIGITS];
 
     field_t encryptedSignature[ENC_ENCRYPTED_SIGNATURE_CHARS];
