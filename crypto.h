@@ -92,7 +92,7 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key);
 
 // Signatures
 void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus);
-void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *p, digit_t *q);
+void _sign_crt(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *p, digit_t *q);
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus);
 
 void _encryptData(unsigned char *encryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToEncrypt, size_t dataSize);

@@ -273,14 +273,16 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
     mpModExp(signature, preparedHash, privateExponent, modulus, ENC_SIGNATURE_DIGITS);
 }
 
-void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *p, digit_t *q) {
+void _sign_crt(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *p, digit_t *q) {
     digit_t preparedHash[ENC_SIGNATURE_DIGITS];
 
     uint8_t cHash[ENC_HASH_DIGEST_CHARS];
     uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
+    uint8_t cMessage[2*ENC_PRIVATE_KEY_CHARS];
 
+    mpConvToOctets(message, 2*ENC_PRIVATE_KEY_DIGITS, cMessage, 2*ENC_PRIVATE_KEY_CHARS);
     // PKCS(SHA2( alpha^y | alpha^x ))
-    _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _hash_sha2(cHash, cMessage, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, cHash, ENC_SIGNATURE_CHARS, sha256_prefix_size, ENC_HASH_DIGEST_CHARS, ENC_SIGNATURE_CHARS);
 
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
