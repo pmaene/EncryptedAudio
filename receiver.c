@@ -141,7 +141,6 @@ int receiver_checkSenderAcknowledge() {
     uint8_t signatureMessage[2*ENC_PRIVATE_KEY_CHARS];
 
     field_t senderAck[1+ENC_ENCRYPTED_SIGNATURE_CHARS];
-
     digit_t signature[ENC_SIGN_MODULUS_DIGITS];
 
     if (senderTrusted == false) {
@@ -162,7 +161,7 @@ int receiver_checkSenderAcknowledge() {
 
         memcpy(signatureMessage, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
         memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
-
+        
         // Check Signature
         if (!_verify(signature, signatureMessage, Enc_PublicExpDigits, Enc_SenderModulusDigits))
             return ENC_INVALID_ACK;
