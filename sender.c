@@ -123,7 +123,7 @@ int sender_sendData() {
     memcpy(dataPacket+5, encryptedData, ENC_DATA_SIZE_CHARS);
 
     // Calculate HMAC
-    _hmac(hmac, dataPacket, senderHashKey, ENC_HMAC_CHARS, ENC_DATA_SIZE_CHARS+5, ENC_HMAC_KEY_CHARS);
+    _hmac(hmac, dataPacket, senderHashKey);
     memcpy(dataPacket+5+ENC_DATA_SIZE_CHARS, hmac, ENC_HMAC_CHARS);
 
     #ifndef __ENC_NO_PRINTS__
