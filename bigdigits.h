@@ -28,8 +28,8 @@ This notice must always be retained in any copy.
 
 /**** USER CONFIGURABLE SECTION ****/
 
-/* We do not want the library to do any allocations. */
 #define NO_ALLOCS 1
+#define USE_64WITH32 1
 
 /* Define type and size of DIGIT */
 

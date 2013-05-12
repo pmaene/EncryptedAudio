@@ -1,6 +1,4 @@
-#include "channel.h"
 #include "receiver.h"
-#include "protocol.h"
 
 int receiver_checkHmac(field_t *dataPacket);
 
@@ -22,7 +20,7 @@ bool senderTrusted = false;
 
 digit_t receiverSecret[ENC_PRIVATE_KEY_DIGITS];
 digit_t receiver_receiverModExp[ENC_PRIVATE_KEY_DIGITS];
-digit_t senderModExp[ENC_PRIVATE_KEY_DIGITS];
+digit_t receiver_senderModExp[ENC_PRIVATE_KEY_DIGITS];
 
 uint8_t receiverAESKey[ENC_AES_KEY_CHARS];
 uint8_t receiverHashKey[ENC_HMAC_KEY_CHARS];
@@ -33,7 +31,7 @@ uint32_t receiverPacketCounter[1];
 void receiver_construct() {
     memset(receiver_receiverModExp, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
     memset(receiverSecret, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
-    memset(senderModExp, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
+    memset(receiver_senderModExp, 0, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
 
     memset(receiverAESKey, 0, ENC_AES_KEY_CHARS*sizeof(uint8_t));
     memset(receiverHashKey, 0, ENC_HMAC_KEY_CHARS*sizeof(uint8_t));
@@ -53,7 +51,7 @@ int receiver_receiverHello() {
         printf("--> receiver_receiverHello\n");
     #endif
 
-    returnStatus = receiverHello(sendPacket, receiver_receiverModExp, receivedPacket, receiverSecret, senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
+    returnStatus = receiverHello(sendPacket, receiver_receiverModExp, receivedPacket, receiverSecret, receiver_senderModExp, (unsigned char *) Enc_ReceiverPrivateExp);
     channel_write(sendPacket, ENC_KEY_PACKET_CHARS);
 
     return returnStatus;
@@ -66,8 +64,8 @@ void receiver_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
         printf("--> receiver_deriveKey\n");
     #endif
 
-    memcpy(senderModExp, modExp, ENC_PRIVATE_KEY_DIGITS);
-	_calculateSymmetricKey(symmetricKey, senderModExp, receiverSecret);
+    memcpy(receiver_senderModExp, modExp, ENC_PRIVATE_KEY_DIGITS);
+	_calculateSymmetricKey(symmetricKey, receiver_senderModExp, receiverSecret);
 	_deriveKeys(receiverAESKey, receiverHashKey, receiverCTRNonce, symmetricKey);
     memcpy(aesKey, receiverAESKey, ENC_AES_KEY_CHARS);
     memcpy(CTRNonce, receiverCTRNonce, ENC_CTR_NONCE_CHARS);
@@ -127,6 +125,9 @@ int receiver_receiveData() {
             printf("\n");
         #endif
 
+        while (buffer_isModified()) {}
+        buffer_write(data, ENC_DATA_SIZE_CHARS);
+
         return ENC_ACCEPT_PACKET;
     }
 }
@@ -140,7 +141,6 @@ int receiver_checkSenderAcknowledge() {
     uint8_t signatureMessage[2*ENC_PRIVATE_KEY_CHARS];
 
     field_t senderAck[1+ENC_ENCRYPTED_SIGNATURE_CHARS];
-
     digit_t signature[ENC_SIGN_MODULUS_DIGITS];
 
     if (senderTrusted == false) {
@@ -157,13 +157,13 @@ int receiver_checkSenderAcknowledge() {
 
         // Calculate alpha^x | alpha^y
         mpConvToOctets(receiver_receiverModExp, ENC_PRIVATE_KEY_DIGITS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
-        mpConvToOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
+        mpConvToOctets(receiver_senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
 
         memcpy(signatureMessage, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
         memcpy(signatureMessage+ENC_PRIVATE_KEY_CHARS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
-
+        
         // Check Signature
-        if (!_verify(signature, signatureMessage, Enc_PublicExp_Digits, Enc_SenderModulus_Digits))
+        if (!_verify(signature, signatureMessage, Enc_PublicExpDigits, Enc_SenderModulusDigits))
             return ENC_INVALID_ACK;
 
         senderTrusted = true;
@@ -177,7 +177,7 @@ int receiver_checkHmac(field_t *dataPacket) {
     size_t i;
     uint8_t hmac[ENC_HMAC_CHARS];
 
-    _hmac(hmac, dataPacket, receiverHashKey, ENC_HMAC_CHARS, ENC_DATA_SIZE_CHARS+5, ENC_HMAC_KEY_CHARS);
+    _hmac(hmac, dataPacket, receiverHashKey);
 
     for (i = 0; i < ENC_HMAC_CHARS; i++) {
         if (hmac[i] != dataPacket[5+ENC_DATA_SIZE_CHARS+i])

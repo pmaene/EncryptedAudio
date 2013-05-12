@@ -9,6 +9,7 @@
 #include "aes.h"
 #include "bigdigits.h"
 #include "crt.h"
+#include "protocol.h"
 #include "types.h"
 #include "sha1.h"
 #include "sha2.h"
@@ -70,31 +71,32 @@
 #define ENC_CTR_NONCE_DIGITS           2
 
 // Diffie-Hellman
-digit_t Enc_Generator_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_Prime_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_GeneratorDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_PrimeDigits[ENC_PRIVATE_KEY_DIGITS];
 
 // RSA
-digit_t Enc_SenderModulus_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_SenderPrimeOne_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_SenderPrimeTwo_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_ReceiverModulus_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_ReceiverPrimeOne_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_ReceiverPrimeTwo_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_PublicExp_Digits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_SenderModulusDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_SenderPrimeOneDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_SenderPrimeTwoDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_ReceiverModulusDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_ReceiverPrimeOneDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_ReceiverPrimeTwoDigits[ENC_PRIVATE_KEY_DIGITS];
+digit_t Enc_PublicExpDigits[ENC_PRIVATE_KEY_DIGITS];
 
 // Keys
 void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret);
 void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRKey, digit_t *symmetricKey);
 
 // Hashes
-void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t dataLength, size_t keyLength);
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key);
 
 // Signatures
 void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus);
-void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *p, digit_t *q);
+void _sign_crt(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *p, digit_t *q);
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus);
 
 void _encryptData(unsigned char *encryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToEncrypt, size_t dataSize);
 void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToDecrypt, size_t dataSize);
 void _conv_from_octets();
+
 #endif

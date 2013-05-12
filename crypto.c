@@ -121,19 +121,12 @@ const unsigned char  Enc_ReceiverPrimeTwo[ENC_SIGN_PRIME_CHARS] =
 const unsigned char         Enc_PublicExp[ENC_PUBLIC_KEY_CHARS] =
     "\x01\x00\x01";
 
-digit_t Enc_Generator_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_Prime_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_SenderModulus_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_SenderPrimeOne_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_SenderPrimeTwo_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_ReceiverModulus_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_ReceiverPrimeOne_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_ReceiverPrimeTwo_Digits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_PublicExp_Digits[ENC_PRIVATE_KEY_DIGITS];
-
 // Keys
 void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret) {
-    mpModExp(key, modExpResult, secret, Enc_Prime_Digits, ENC_PRIVATE_KEY_DIGITS);
+    digit_t prime[ENC_PRIVATE_KEY_DIGITS];
+
+    mpConvFromOctets(prime, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
+    mpModExp(key, modExpResult, secret, prime, ENC_PRIVATE_KEY_DIGITS);
 }
 
 void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRNonce, digit_t *symmetricKey) {
@@ -223,14 +216,14 @@ static void _hash_sha2(uint8_t *hash, uint8_t *data, size_t hashLength, size_t d
     }
 #endif
 
-void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t dataLength, size_t keyLength) {
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key) {
     size_t i;
 
     uint8_t innerPad[ENC_HASH_DATA_CHARS];
     uint8_t outerPad[ENC_HASH_DATA_CHARS];
     uint8_t zeroPaddedKey[ENC_HASH_DATA_CHARS];
     uint8_t paddedKey[ENC_HASH_DATA_CHARS];
-    uint8_t innerHashMessage[ENC_HASH_DATA_CHARS+dataLength];
+    uint8_t innerHashMessage[ENC_HASH_DATA_CHARS+ENC_DATA_SIZE_CHARS+5];
     uint8_t outerHashMessage[ENC_HASH_DATA_CHARS+ENC_HASH_DIGEST_CHARS];
     uint8_t hashResult[ENC_HASH_DIGEST_CHARS];
 
@@ -241,15 +234,15 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t
     memset(outerPad, 0x5c, ENC_HASH_DATA_CHARS);
 
     // Inner Padding
-    memcpy(zeroPaddedKey, key, keyLength);
+    memcpy(zeroPaddedKey, key, ENC_HMAC_KEY_CHARS);
     for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
         paddedKey[i] = zeroPaddedKey[i] ^ innerPad[i];
 
     // Append Data
     memcpy(innerHashMessage, paddedKey, ENC_HASH_DATA_CHARS);
-    memcpy(innerHashMessage+ENC_HASH_DATA_CHARS, data, dataLength);
+    memcpy(innerHashMessage+ENC_HASH_DATA_CHARS, data, ENC_DATA_SIZE_CHARS+5);
 
-    _hash(hashResult, innerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+dataLength);
+    _hash(hashResult, innerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+ENC_DATA_SIZE_CHARS+5);
 
     // Outer Padding
     for (i = 0; i < ENC_HASH_DATA_CHARS; i++)
@@ -261,7 +254,7 @@ void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key, size_t hmacLength, size_t
 
     _hash(hashResult, outerHashMessage, ENC_HASH_DIGEST_CHARS, ENC_HASH_DATA_CHARS+ENC_HASH_DIGEST_CHARS);
 
-    memcpy(hmac, hashResult, hmacLength);
+    memcpy(hmac, hashResult, ENC_HMAC_CHARS);
 }
 
 // Signatures
@@ -280,19 +273,21 @@ void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit
     mpModExp(signature, preparedHash, privateExponent, modulus, ENC_SIGNATURE_DIGITS);
 }
 
-void _sign_crt(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *p, digit_t *q) {
+void _sign_crt(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *p, digit_t *q) {
     digit_t preparedHash[ENC_SIGNATURE_DIGITS];
 
     uint8_t cHash[ENC_HASH_DIGEST_CHARS];
     uint8_t cPreparedHash[ENC_SIGNATURE_CHARS];
+    uint8_t cMessage[2*ENC_PRIVATE_KEY_CHARS];
 
+    mpConvToOctets(message, 2*ENC_PRIVATE_KEY_DIGITS, cMessage, 2*ENC_PRIVATE_KEY_CHARS);
     // PKCS(SHA2( alpha^y | alpha^x ))
-    _hash_sha2(cHash, message, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
+    _hash_sha2(cHash, cMessage, ENC_HASH_DIGEST_CHARS, 2*ENC_PRIVATE_KEY_CHARS);
     _pkcs_prepareHash(cPreparedHash, sha256_prefix, cHash, ENC_SIGNATURE_CHARS, sha256_prefix_size, ENC_HASH_DIGEST_CHARS, ENC_SIGNATURE_CHARS);
 
     mpConvFromOctets(preparedHash, ENC_SIGNATURE_DIGITS, (unsigned char *) cPreparedHash, ENC_SIGNATURE_CHARS);
 
-    crtModExp(signature, preparedHash, privateExponent, p, q, ENC_SIGNATURE_DIGITS, ENC_PRIVATE_KEY_DIGITS, ENC_SIGN_PRIME_DIGITS);
+    crtModExp(signature, preparedHash, privateExponent, p, q);
 }
 
 int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus) {
@@ -384,13 +379,13 @@ void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce,
 }
 
 void _conv_from_octets() {
-    mpConvFromOctets(Enc_Generator_Digits, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
-    mpConvFromOctets(Enc_Prime_Digits, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
-    mpConvFromOctets(Enc_SenderModulus_Digits, ENC_SIGN_MODULUS_DIGITS, Enc_SenderModulus, ENC_SIGN_MODULUS_CHARS);
-    mpConvFromOctets(Enc_SenderPrimeOne_Digits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeOne, ENC_SIGN_PRIME_CHARS);
-    mpConvFromOctets(Enc_SenderPrimeTwo_Digits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeTwo, ENC_SIGN_PRIME_CHARS);
-    mpConvFromOctets(Enc_ReceiverModulus_Digits, ENC_SIGN_MODULUS_DIGITS, Enc_ReceiverModulus, ENC_SIGN_MODULUS_CHARS);
-    mpConvFromOctets(Enc_ReceiverPrimeOne_Digits, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeOne, ENC_SIGN_PRIME_CHARS);
-    mpConvFromOctets(Enc_ReceiverPrimeTwo_Digits, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
-    mpConvFromOctets(Enc_PublicExp_Digits, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
+    mpConvFromOctets(Enc_PrimeDigits, ENC_PRIVATE_KEY_DIGITS, Enc_Prime, ENC_PRIVATE_KEY_CHARS);
+    mpConvFromOctets(Enc_GeneratorDigits, ENC_PRIVATE_KEY_DIGITS, Enc_Generator, ENC_PRIVATE_KEY_CHARS);
+    mpConvFromOctets(Enc_SenderModulusDigits, ENC_SIGN_MODULUS_DIGITS, Enc_SenderModulus, ENC_SIGN_MODULUS_CHARS);
+    mpConvFromOctets(Enc_SenderPrimeOneDigits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeOne, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_SenderPrimeTwoDigits, ENC_SIGN_PRIME_DIGITS, Enc_SenderPrimeTwo, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_ReceiverModulusDigits, ENC_SIGN_MODULUS_DIGITS, Enc_ReceiverModulus, ENC_SIGN_MODULUS_CHARS);
+    mpConvFromOctets(Enc_ReceiverPrimeOneDigits, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeOne, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_ReceiverPrimeTwoDigits, ENC_SIGN_PRIME_DIGITS, Enc_ReceiverPrimeTwo, ENC_SIGN_PRIME_CHARS);
+    mpConvFromOctets(Enc_PublicExpDigits, ENC_SIGN_MODULUS_DIGITS, Enc_PublicExp, ENC_PUBLIC_KEY_CHARS);
 }
