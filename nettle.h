@@ -2,6 +2,7 @@
 #define __ENC_NETTLE_H__
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #define READ_UINT32(p)        \
 (  (((uint32_t) (p)[0]) << 24)      \
@@ -88,7 +89,7 @@ do {            \
   } while (0)
 
 void
-_nettle_write_be32(unsigned length, uint8_t *dst,
-       uint32_t *src);
+_nettle_write_be32(unsigned length, uint8_t *restrict dst,
+       uint32_t *restrict src);
 
 #endif

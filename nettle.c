@@ -1,8 +1,8 @@
 #include "nettle.h"
 
 void
-_nettle_write_be32(unsigned length, uint8_t *dst,
-       uint32_t *src)
+_nettle_write_be32(unsigned length, uint8_t *restrict dst,
+       uint32_t *restrict src)
 {
   unsigned i;
   unsigned words;

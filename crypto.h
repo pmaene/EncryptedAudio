@@ -71,32 +71,33 @@
 #define ENC_CTR_NONCE_DIGITS           2
 
 // Diffie-Hellman
-digit_t Enc_GeneratorDigits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_PrimeDigits[ENC_PRIVATE_KEY_DIGITS];
+extern digit_t Enc_GeneratorDigits[ENC_PRIVATE_KEY_DIGITS];
+extern digit_t Enc_PrimeDigits[ENC_PRIVATE_KEY_DIGITS];
 
 // RSA
-digit_t Enc_SenderModulusDigits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_SenderPrimeOneDigits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_SenderPrimeTwoDigits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_ReceiverModulusDigits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_ReceiverPrimeOneDigits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_ReceiverPrimeTwoDigits[ENC_PRIVATE_KEY_DIGITS];
-digit_t Enc_PublicExpDigits[ENC_PRIVATE_KEY_DIGITS];
+extern digit_t Enc_SenderModulusDigits[ENC_PRIVATE_KEY_DIGITS];
+extern digit_t Enc_SenderPrimeOneDigits[ENC_PRIVATE_KEY_DIGITS];
+extern digit_t Enc_SenderPrimeTwoDigits[ENC_PRIVATE_KEY_DIGITS];
+extern digit_t Enc_ReceiverModulusDigits[ENC_PRIVATE_KEY_DIGITS];
+extern digit_t Enc_ReceiverPrimeOneDigits[ENC_PRIVATE_KEY_DIGITS];
+extern digit_t Enc_ReceiverPrimeTwoDigits[ENC_PRIVATE_KEY_DIGITS];
+extern digit_t Enc_PublicExpDigits[ENC_PRIVATE_KEY_DIGITS];
 
 // Keys
-void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret);
-void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRKey, digit_t *symmetricKey);
+void _calculateSymmetricKey(digit_t *restrict key, digit_t *restrict modExpResult, digit_t *restrict secret);
+void _deriveKeys(uint8_t *restrict aesKey, uint8_t *restrict hashKey, uint8_t *restrict CTRKey, digit_t *restrict symmetricKey);
 
 // Hashes
-void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key);
+void _hmac(uint8_t *restrict hmac, uint8_t *restrict data, uint8_t *restrict key);
 
 // Signatures
-void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus);
-void _sign_crt(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *p, digit_t *q);
-int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus);
+void _sign(digit_t *restrict signature, uint8_t *restrict message, digit_t *restrict privateExponent, digit_t *restrict modulus);
+void _sign_crt(digit_t *restrict signature, digit_t *restrict message, digit_t *restrict privateExponent, digit_t *restrict p, digit_t *restrict q);
+int _verify(digit_t *restrict signature, uint8_t *restrict message, digit_t *restrict publicExponent, digit_t *restrict modulus);
 
-void _encryptData(unsigned char *encryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToEncrypt, size_t dataSize);
-void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToDecrypt, size_t dataSize);
-void _conv_from_octets();
+void _encryptData(unsigned char *restrict encryptedData, uint8_t *restrict aesKey, uint8_t *restrict nonce, uint32_t packetCounter, unsigned char *restrict dataToEncrypt, size_t dataSize);
+void _decryptData(unsigned char *restrict decryptedData, uint8_t *restrict aesKey, uint8_t *restrict nonce, uint32_t packetCounter, unsigned char *restrict dataToDecrypt, size_t dataSize);
+
+void _convFromOctets();
 
 #endif

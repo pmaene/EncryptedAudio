@@ -12,7 +12,7 @@
 void receiver_construct();
 
 int receiver_receiverHello();
-void receiver_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp);
+void receiver_deriveKey(uint8_t *restrict aesKey, uint8_t *restrict CTRNonce, digit_t *restrict modExp);
 int receiver_receiveData();
 int receiver_checkSenderAcknowledge();
 

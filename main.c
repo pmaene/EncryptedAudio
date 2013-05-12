@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     srand(time(NULL));
 
     
-    _conv_from_octets();
+    _convFromOctets();
 
     // Construct
     buffer_construct();

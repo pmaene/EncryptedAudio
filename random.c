@@ -1,6 +1,7 @@
 #include "random.h"
 
-void getRandomDigit(digit_t *randomDigit) {
+void getRandomDigit(digit_t *restrict randomDigit) {
+	/*
 	size_t i;
 	unsigned char tmp[ENC_DH_SECRET_DIGITS*sizeof(digit_t)];
 
@@ -10,4 +11,7 @@ void getRandomDigit(digit_t *randomDigit) {
 		tmp[i] = rand();
 
 	mpConvFromOctets(randomDigit, ENC_DH_SECRET_DIGITS, tmp, ENC_DH_SECRET_DIGITS*sizeof(digit_t));
+	*/
+
+	randomDigit[ENC_DH_SECRET_DIGITS] = 0x01;
 }

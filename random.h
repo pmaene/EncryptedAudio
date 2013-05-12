@@ -9,6 +9,6 @@
 #include "protocol.h"
 #include "types.h"
 
-void getRandomDigit(digit_t *randomDigit);
+void getRandomDigit(digit_t *restrict randomDigit);
 
 #endif

@@ -65,7 +65,7 @@ int sender_senderAcknowledge() {
     return returnStatus;
 }
 
-void sender_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
+void sender_deriveKey(uint8_t *restrict aesKey, uint8_t *restrict CTRNonce, digit_t *restrict modExp) {
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
     #ifndef __ENC_NO_PRINTS__

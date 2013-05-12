@@ -10,7 +10,7 @@ void buffer_construct() {
     modified = false;
 }
 
-void buffer_write(field_t *data, size_t length) {
+void buffer_write(field_t *restrict data, size_t length) {
     if (!modified) {
         memcpy(buffer, data, length);
         modified = true;
@@ -21,7 +21,7 @@ void buffer_write(field_t *data, size_t length) {
     }
 }
 
-void buffer_read(field_t *data, size_t length) {
+void buffer_read(field_t *restrict data, size_t length) {
     memcpy(data, buffer, length);
     modified = false;
 }

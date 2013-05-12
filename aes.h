@@ -65,13 +65,13 @@ struct aes_key_st {
 typedef struct aes_key_st aes_key;
 
 /* bits can be 128, 192 or 256 */
-int aes_set_encrypt_key(aes_key * key, const unsigned char *userKey,
+int aes_set_encrypt_key(aes_key *restrict  key, const unsigned char *restrict userKey,
 			int bits);
 
-void aes_encrypt(const aes_key * key, const unsigned char *in, unsigned char *out);
+void aes_encrypt(const aes_key *restrict key, const unsigned char *restrict in, unsigned char *restrict out);
 
-int aes_set_decrypt_key(aes_key * key, const unsigned char *userKey, int bits);
+int aes_set_decrypt_key(aes_key *restrict  key, const unsigned char *restrict userKey, int bits);
 
-void aes_decrypt(const aes_key *key, const unsigned char *in, unsigned char *out);
+void aes_decrypt(const aes_key *restrict key, const unsigned char *restrict in, unsigned char *restrict out);
 
 #endif
