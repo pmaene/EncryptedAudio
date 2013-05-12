@@ -7,6 +7,6 @@
 #include "crypto.h"
 #include "types.h"
 
-void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q);
+void crtModExp(digit_t *restrict result, digit_t *restrict x, digit_t *restrict e, digit_t *restrict p, digit_t *restrict q);
 
 #endif

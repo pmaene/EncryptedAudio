@@ -1154,6 +1154,7 @@ void mpXorBits(DIGIT_T a[], const DIGIT_T b[], const DIGIT_T c[], size_t ndigits
 	/* Computes bitwise a = b XOR c */
 {
 	size_t i;
+
 	for (i = 0; i < ndigits; i++)
 		a[i] = b[i] ^ c[i];
 }

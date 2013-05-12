@@ -57,7 +57,7 @@ int receiver_receiverHello() {
     return returnStatus;
 }
 
-void receiver_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
+void receiver_deriveKey(uint8_t *restrict aesKey, uint8_t *restrict CTRNonce, digit_t *restrict modExp) {
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
     #ifndef __ENC_NO_PRINTS__
@@ -173,7 +173,7 @@ int receiver_checkSenderAcknowledge() {
     return ENC_INVALID_ACK;
 }
 
-int receiver_checkHmac(field_t *dataPacket) {
+int receiver_checkHmac(field_t *restrict dataPacket) {
     size_t i;
     uint8_t hmac[ENC_HMAC_CHARS];
 

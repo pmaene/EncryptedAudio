@@ -1,6 +1,6 @@
 #include "protocol.h"
 
-void senderHello(field_t *sendPacket, digit_t *senderModExp, digit_t *senderSecret) {
+void senderHello(field_t *restrict sendPacket, digit_t *restrict senderModExp, digit_t *restrict senderSecret) {
     digit_t modExpResult[ENC_PRIVATE_KEY_DIGITS];
 
     // Generate x
@@ -13,7 +13,7 @@ void senderHello(field_t *sendPacket, digit_t *senderModExp, digit_t *senderSecr
     memcpy(senderModExp, modExpResult, ENC_PRIVATE_KEY_DIGITS*sizeof(digit_t));
 }
 
-int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp) {
+int receiverHello(field_t *restrict sendPacket, digit_t *restrict receiverModExp, field_t *restrict receivedPacket, digit_t *restrict receiverSecret, digit_t *restrict senderModExp, unsigned char *restrict receiverPrivateExp) {
     if (0x00 != receivedPacket[0])
         return ENC_REJECT_PACKET_TAG;
 
@@ -68,7 +68,7 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     return ENC_ACCEPT_PACKET;
 }
 
-int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, digit_t *receiverModExp, digit_t *senderModExp, unsigned char *senderPrivateExp) {
+int senderAcknowledge(field_t *restrict sendPacket, field_t *restrict receivedPacket, digit_t *restrict senderSecret, digit_t *restrict receiverModExp, digit_t *restrict senderModExp, unsigned char *restrict senderPrivateExp) {
     if (0x01 != receivedPacket[0])
         return ENC_REJECT_PACKET_TAG;
 

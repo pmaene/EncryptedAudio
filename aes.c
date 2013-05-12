@@ -424,7 +424,7 @@ static const u32 rcon[] = {
 /**
  * Expand the cipher key into the encryption key schedule.
  */
-int aes_set_encrypt_key(aes_key * key, const unsigned char *userKey,
+int aes_set_encrypt_key(aes_key *restrict key, const unsigned char *restrict userKey,
 			int bits)
 {
 
@@ -525,7 +525,7 @@ int aes_set_encrypt_key(aes_key * key, const unsigned char *userKey,
  * Encrypt a single block
  * in and out can overlap
  */
-void aes_encrypt(const aes_key * key, const unsigned char* in, unsigned char *out)
+void aes_encrypt(const aes_key *restrict  key, const unsigned char*restrict  in, unsigned char *restrict out)
 {
 
 	const u32 *rk;
@@ -1085,7 +1085,7 @@ static const u32 Td4[256] = {
 /**
  * Expand the cipher key into the decryption key schedule.
  */
-int aes_set_decrypt_key(aes_key * key, const unsigned char *userKey, int bits)
+int aes_set_decrypt_key(aes_key *restrict key, const unsigned char *restrict userKey, int bits)
 {
 
 	u32 *rk;
@@ -1145,7 +1145,7 @@ int aes_set_decrypt_key(aes_key * key, const unsigned char *userKey, int bits)
  * Decrypt a single block
  * in and out can overlap
  */
-void aes_decrypt(const aes_key *key, const unsigned char *in, unsigned char *out)
+void aes_decrypt(const aes_key *restrict key, const unsigned char *restrict in, unsigned char *restrict out)
 {
 
 	const u32 *rk;

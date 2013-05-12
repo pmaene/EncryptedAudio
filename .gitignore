@@ -32,3 +32,4 @@ Release/
 
 # Do not version generated files
 output.wav
+Profiler*.csv
