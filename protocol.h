@@ -34,9 +34,9 @@
 #define ENC_HMAC_REJECTED           6
 #define ENC_INVALID_ACK             7
 
-void senderHello(field_t *sendPacket, digit_t *senderModExp, digit_t *senderSecret);
-int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp);
-int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *senderSecret, digit_t *receiverModExp, digit_t *senderModExp, unsigned char *senderPrivateExp);
+void senderHello(field_t *restrict sendPacket, digit_t *restrict senderModExp, digit_t *restrict senderSecret);
+int receiverHello(field_t *restrict sendPacket, digit_t *restrict receiverModExp, field_t *restrict receivedPacket, digit_t *restrict receiverSecret, digit_t *restrict senderModExp, unsigned char *restrict receiverPrivateExp);
+int senderAcknowledge(field_t *restrict SsendPacket, field_t *restrict receivedPacket, digit_t *restrict senderSecret, digit_t *restrict receiverModExp, digit_t *restrict senderModExp, unsigned char *restrict senderPrivateExp);
 
 void sendData(field_t *sendPacket);
 

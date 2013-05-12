@@ -9,7 +9,7 @@ void channel_construct() {
     memset(channel, 0, ENC_CHANNEL_CHARS*sizeof(field_t));
 }
 
-void channel_write(field_t *data, size_t length) {
+void channel_write(field_t *restrict data, size_t length) {
     memset(channel, 0x00, length);
 
     if ((rand() % 100) > ENC_DROP_RATE) {
@@ -21,7 +21,7 @@ void channel_write(field_t *data, size_t length) {
     }
 }
 
-void channel_read(field_t *data, size_t length) {
+void channel_read(field_t *restrict data, size_t length) {
     memcpy(data, channel, length);
 }
 

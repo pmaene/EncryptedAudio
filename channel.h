@@ -14,7 +14,7 @@
 #define ENC_DROP_RATE     0
 
 void channel_construct();
-void channel_write(field_t *data, size_t length);
-void channel_read(field_t *data, size_t length);
+void channel_write(field_t *restrict data, size_t length);
+void channel_read(field_t *restrict data, size_t length);
 
 #endif

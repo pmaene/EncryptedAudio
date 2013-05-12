@@ -49,23 +49,23 @@ struct sha256_ctx
 };
 
 void
-sha256_init(struct sha256_ctx *ctx);
+sha256_init(struct sha256_ctx *restrict ctx);
 
 void
-sha256_update(struct sha256_ctx *ctx,
+sha256_update(struct sha256_ctx *restrict ctx,
 	      unsigned length,
-	      const uint8_t *data);
+	      const uint8_t *restrict data);
 
 void
-sha256_digest(struct sha256_ctx *ctx,
+sha256_digest(struct sha256_ctx *restrict ctx,
 	      unsigned length,
-	      uint8_t *digest);
+	      uint8_t *restrict digest);
 
 /* Internal compression function. STATE points to 8 uint32_t words,
    DATA points to 64 bytes of input data, possibly unaligned, and K
    points to the table of constants. */
 void
-_nettle_sha256_compress(uint32_t *state, const uint8_t *data, const uint32_t *k);
+_nettle_sha256_compress(uint32_t *restrict state, const uint8_t *restrict data, const uint32_t *restrict k);
 
 #ifdef __cplusplus
 }
