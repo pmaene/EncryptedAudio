@@ -13,7 +13,7 @@
 /****************************************************************************/
 
 -stack 0x4000
--heap 0x4000
+-heap 0x2000
 
 MEMORY
 {
@@ -36,7 +36,7 @@ MEMORY
 
 SECTIONS
 {
-	.text          >  DDR2
+	.text          >  SHRAM
 	.stack         >  SHRAM
 	.bss           >  SHRAM
 	.cio           >  SHRAM
