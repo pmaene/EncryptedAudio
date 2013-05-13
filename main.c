@@ -36,10 +36,8 @@ int main(int argc, char **argv) {
 	struct encode_chunk_struct encode_chunk_right;
 	*/
 
-    // Initialize RNG
+    // Initializations
     srand(time(NULL));
-
-    
     _convFromOctets();
 
     // Construct
