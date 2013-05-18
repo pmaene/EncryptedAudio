@@ -14,16 +14,6 @@
 # GDB generates a temporary folder
 main.*/
 
-# Do not version temporary LaTeX files
-.texpadtmp/
-
-*.aux
-*.bbl
-*.blg
-*.log
-*.out
-*.pdf
-
 # Do not version compiled binaries
 main
 
