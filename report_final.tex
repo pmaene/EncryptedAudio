@@ -87,7 +87,33 @@ We decided to use SHA2 instead of SHA3 (which we chose in previous reports) beca
 \subsection{Data Encryption}
 
 \section{Optimizations}
-
+\subsection{Optimization Table}
+\begin{center}
+	\begin{tabular}{| l | c | r |}
+		\hline
+		Code stage 								& Number of Cycles 				& Code Gain \\ \hline
+		Base Code 								& $6,20662313 \cdot 10^{8}$ 	& $0\%$ 	\\
+		CRT Optimization 						& $4,35591090 \cdot 10^{8}$		& $29,82\%$ \\
+		USE64WITH32 Optimization 				& $4,29177952 \cdot 10^{8}$		& $1,03\%$	\\
+		Optimization of Conversion Functions	& $4,24002677 \cdot 10^{8}$		& $0,83\%$	\\
+		Restrict Optimization					& $1,80351722 \cdot 10^{8}$		& $39,26\%$ \\
+		\hline
+	\end{tabular}
+\end{center}
+\subsection{CRT Optimization}
+	The implementation of the Chinese Remainder Theorem is an algorithmic optimization and not a DSP specific one. 
+	\subsubsection{Example}
+		SOME THEORETICAL EXAMPLE HERE
+	\subsubsection{Impact of the Optimization}
+	\subsubsection{Reasoning Behind the Impact}
+\subsection{USE64WITH32 Optimization}
+	USE64WITH32 is a $\#$define statement in the BigDigits library we are using. If this switch is activated, 64-bit behavior is simulated in 32-bit environment.
+	\subsubsection{Example}
+		PASTE SOME RAW ASSEMBLY CODE HERE
+	\subsubsection{Impact of the Optimization}
+	\subsubsection{Reasoning Behind the Impact}
+\subsection{Optimization of Conversion Functions}
+	This optimization is again an algorithmic specific optimization. 
 \section{Porting and Integration}
 
 \section{Lessons Learnt}
