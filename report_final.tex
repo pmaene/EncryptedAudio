@@ -14,7 +14,7 @@
 \graphicspath{{./images/}}
 
 \title{P\&D Encryption---Final Report}
-\author{Pieter Maene en Stijn Meul}
+\author{Pieter Maene and Stijn Meul}
 \date{\today}
 
 \begin{document}
@@ -23,6 +23,68 @@
 \section{Overview}
 
 \section{Application Description}
+
+The application consists of two main parts: the handshake and the encryption of data packets. For the handshake we use the STS protocol, while the encryption is based on AES-CTR. In this section, we will cover both of them in depth.
+
+\subsection{Handshake}
+
+\subsubsection{Protocol Messages}
+In the Station-to-Station protocol, three messages will be exchanged between the sender and receiver. After this three-way handshake both DSPs will have enough information to calculate two keys (a 128-bit AES key, an 80-bit HMAC key) and a 64-bit nonce used in the CTR mode.
+
+\begin{enumerate}
+    \item The sender generates a random number $x$ and then sends $\alpha^x\ mod\ p$ to the receiver. This is shown in Table~\ref{tab:key_exchange_packet_senderhello}.
+    \item The receiver generates a random number $y$ and sends $\alpha^y\ mod\ p$ to the sender. We find the signature by concatenating both exponentials and calculating the HMAC using the derived key. Next the RSA signature of this data is calculated. Finally, this signature is then encrypted using the derived AES key and nonce. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
+    \item The sender acknowledges the message from the receiver by sending its signature to the receiver. To obtain this, we first concatenate both exponentials and calculate the HMAC using the derived key. Next the RSA signature of this data is calculated. This is shown in Table~\ref{tab:key_exchange_packet_senderacknowledge}. Here too, we encrypt the signature using the derived key and CTR nonce. This packet is fundamental to the protocol, as both the sender an receiver can use it to verify whether both have all the correct data.
+\end{enumerate}
+
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & KEY \\ \hline
+            1B & 156B \\ \hline
+            0x00 & $\alpha^x\mod{p}$ \\
+            \hline
+        \end{tabular}
+    \end{center}
+    \
+    \caption{Key Exchange Packet---SenderHello}
+    \label{tab:key_exchange_packet_senderhello}
+\end{table}
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & KEY & SIGNATURE \\ \hline
+            1B & 156B & 20B \\ \hline
+            0x01 & $\alpha^y\mod{p}$ & $\left(\text{SHA2}\left(\text{PKCS}\left(\alpha^y \big| \alpha^x \right)\right)\right)^{d_R}\mod{n_R}$\\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Key Exchange Packet---ReceiverHello}
+    \label{tab:key_exchange_packet_receiverhello}
+\end{table}
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & KEY & SIGNATURE \\ \hline
+            1B & 156B & 20B \\ \hline
+            0x02 & $\alpha^y\mod{p}$ & $\left(\text{SHA2}\left(\text{PKCS}\left(\alpha^x \big| \alpha^y \right)\right)\right)^{d_S}\mod{n_S}$\\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Key Exchange Packet---SenderAcknowledge}
+    \label{tab:key_exchange_packet_senderacknowledge}
+\end{table}
+
+We decided to use SHA2 instead of SHA3 (which we chose in previous reports) because there is no standardised RSA padding scheme (like PKCS for SHA2) available yet for this hash function. We evualated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).
+
+\subsubsection{Signature Calculation}
+
+\subsection{Data Encryption}
 
 \section{Optimizations}
 
