@@ -61,9 +61,9 @@ The application consists of two main parts: the handshake and the encryption of 
         \node [cloud] (sender) {Sender};
         \node [block, below of=sender] (senderHello) {senderHello\\\textit{\ \ getRandom()}};
         \node [inner, below of=senderHello] (iSenderHello) {};
-        \node [block, below of=iSenderHello] (senderAcknowledge) {senderAcknowledge\\\textit{\ \ getRandom()}};
+        \node [block, below of=iSenderHello] (senderAcknowledge) {senderAcknowledge\\\textit{\ \ \_verify()}\\\textit{\ \ \_sign\_crt()}\\\textit{\ \ \_deriveKeys()}};
         \node [cloud, right of=sender] (receiver) {Receiver};
-        \node [block, below of=receiver, node distance=3cm] (receiverHello) {receiverHello\\\textit{\ \ getRandom()}};
+        \node [block, below of=receiver, node distance=3cm] (receiverHello) {receiverHello\\\textit{\ \ getRandom()}\\\textit{\ \ \_sign\_crt()}\\\textit{\ \ \_deriveKeys()}};
         \node [inner, below of=receiverHello] (iReceiverHello) {};
         \node [block, below of=iReceiverHello] (checkSenderAcknowledge) {checkSenderAcknowledge\\\textit{\ \ \_verify()}};
         
@@ -80,7 +80,8 @@ The application consists of two main parts: the handshake and the encryption of 
 \end{figure}
 
 \subsubsection{Protocol Messages}
-In the Station-to-Station protocol, three messages will be exchanged between the sender and receiver. After this three-way handshake both DSPs will have enough information to calculate two keys (a 128-bit AES key, an 80-bit HMAC key) and a 64-bit nonce used in the CTR mode.
+
+In the Station-to-Station protocol, three messages will be exchanged between the sender and receiver. After this three-way handshake both DSPs will have enough information to derice all necessary keys.
 
 \begin{enumerate}
     \item The sender generates a random number $x$ and then sends $\alpha^x\ mod\ p$ to the receiver. This is shown in Table~\ref{tab:key_exchange_packet_senderhello}.
@@ -91,7 +92,7 @@ In the Station-to-Station protocol, three messages will be exchanged between the
 
 \begin{table}[H]
     \begin{center}
-        \begin{tabular}{| c | c | c | c | c |}
+        \begin{tabular}{| c | c |}
             \hline
             TAG & KEY \\ \hline\hline
             1B & 156B \\ \hline
@@ -100,35 +101,35 @@ In the Station-to-Station protocol, three messages will be exchanged between the
         \end{tabular}
     \end{center}
     \
-    \caption{Key Exchange Packet---SenderHello}
+    \caption{Key Exchange Packet---SenderHello [Bytes]}
     \label{tab:key_exchange_packet_senderhello}
 \end{table}
 \begin{table}[H]
     \begin{center}
-        \begin{tabular}{| c | c | c | c | c |}
+        \begin{tabular}{| c | c | c |}
             \hline
             TAG & KEY & SIGNATURE \\ \hline\hline
             1B & 156B & 20B \\ \hline
-            0x01 & $\alpha^y\mod{p}$ & $\text{AES}_\text{K}\left(\left(\text{SHA2}\left(\text{PKCS}\left(\alpha^y\small|\alpha^x\right)\right)\right)^{d_R}\mod{n_R}\right)$\\
+            0x01 & $\alpha^y\mod{p}$ & $\text{AES}_\text{K}\left(\left(\text{SHA-256}\left(\text{PKCS}\left(\alpha^y\small|\alpha^x\right)\right)\right)^{d_R}\mod{n_R}\right)$\\
             \hline
         \end{tabular}
     \end{center}
     
-    \caption{Key Exchange Packet---ReceiverHello}
+    \caption{Key Exchange Packet---ReceiverHello [Bytes]}
     \label{tab:key_exchange_packet_receiverhello}
 \end{table}
 \begin{table}[H]
     \begin{center}
-        \begin{tabular}{| c | c | c | c | c |}
+        \begin{tabular}{| c | c |}
             \hline
-            TAG & KEY & SIGNATURE \\ \hline\hline
-            1B & 156B & 20B \\ \hline
-            0x02 & $\alpha^y\mod{p}$ & $\text{AES}_\text{K}\left(\left(\text{SHA2}\left(\text{PKCS}\left(\alpha^x \small|\alpha^y\right)\right)\right)^{d_S}\mod{n_S}\right)$\\
+            TAG & SIGNATURE \\ \hline\hline
+            1B & 20B \\ \hline
+            0x02 & $\text{AES}_\text{K}\left(\left(\text{SHA-256}\left(\text{PKCS}\left(\alpha^x \small|\alpha^y\right)\right)\right)^{d_S}\mod{n_S}\right)$\\
             \hline
         \end{tabular}
     \end{center}
 
-    \caption{Key Exchange Packet---SenderAcknowledge}
+    \caption{Key Exchange Packet---SenderAcknowledge [Bytes]}
     \label{tab:key_exchange_packet_senderacknowledge}
 \end{table}
 
@@ -136,11 +137,23 @@ We decided to use SHA2 instead of SHA3 (which we chose in previous reports) beca
 
 This is a rather slow, mainly because there are a lot of modular exponentiations (both in calculating the Diffie-Hellman exponentions and the RSA Sign
 
-\subsubsection{Signature Calculation}
+\subsubsection{Signatures}
 
-The signature calculation is the part of the handshake that takes the longest. This is because the RSA algorithm requires modular exponentations of large primes. 
+The calculation of an RSA signature is standardised in RFC3447. We implemented the RSASSA-PKCS1-v1\_5 algorithm, using SHA-256 to calculate the hash. Finally, the STS protocol requires us to encrypt the signature. For this we use AES in CTR mode with the derived key and nonce. The counter value is set to zero for this encryption.\\
+
+We switched to SHA-256 instead of SHA-3 (which we chose in previous reports) because there is no standardised RSA padding scheme available yet for this hash function. We evaluated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).
+
+\subsection{Key Derivation}
+\label{par:key_derivation}
+
+After the key exchange is done, we can derive the two keys (a 128-bit AES key, an 80-bit HMAC key) and the 64-bit nonce used in the CTR block cipher mode (see Paragraph~\ref{par:data_encryption}). These derivations are obtained by calculating SHA-256 hashes of the shared key with a 1, 2 and 3 appended at the end. Finally, for each key the required number of bits is selected from the hash.
 
 \subsection{Data Encryption}
+\label{par:data_encryption}
+
+Because of the realtime character of the application, it is not possible to use modes which introduce a dependency between blocks. This restriction is imposed because some blocks might get lost during transmission. In a speech application lost blocks are not really an obstacle as long as enough blocks still arive at the receiver.\\
+
+The mean advantage of the CTR mode is the fact that it can be parallelised. To decrypt a block, you only need the nonce and the counter value. There are no other dependencies. This means that packets can be decrypted immediately after receiving them. Another advantage is that it only uses the AES encryption function for both encrypting and decrypting the data.
 
 \begin{figure}[h]
     \centering
@@ -148,6 +161,39 @@ The signature calculation is the part of the handshake that takes the longest. T
     \caption{CTR Encryption---Source: Wikipedia}
     \label{fig:ctr_encryption}
 \end{figure}
+
+In the final design, the input to the AES encryption function is given in Table~\ref{tab:ctr_mode_aes_encryption_input}. As we saw in Paragraph~\ref{par:key_derivation}, the 64-bit nonce is derived from the shared key. Furthermore, we actually have two counter: one for the packets and for the blocks inside this packet. The former denotes the current packet and is transmitted along with the data (see Table~\ref{tab:data_packet}). We take care to restart the handshake when this counter wraps around. This is necessary, because otherwise if a repeat of a given plaintext would result in the same ciphertext. The latter is required because each plaintext block can only be 128 bits long. To encrypt larger packets, we need this second counter value to have a unique encryption result.
+
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{| c | c | c |}
+            \hline
+            Nonce & Packet Counter & Block Counter \\ \hline
+            8B & 4B & 4B \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    \caption{CTR Mode---AES Encryption Input [Bytes]}
+    \label{tab:ctr_mode_aes_encryption_input}
+\end{table}
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & COUNTER & DATA & HMAC \\ \hline
+            1B & 4B & 128B & 20B \\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Data Packet}
+    \label{tab:data_packet}
+\end{table}
+
+\subsection{HMAC}
+
+The authenticity of a data packet is asserted using an HMAC. This code is based on keyed-hash messages and is standardised in FIPS 198-1. We again use SHA-256 to calculate the hashes, which is one of the approved functions by NIST. We chose to use an HMAC because it allows for secure and fast message authentication.
 
 \section{Optimizations}
 
