@@ -172,7 +172,7 @@ The Chinese Remainder Theorem uses the fact that both prime numbers $p$ and $q$ 
 
 For the practical implementation Garner's algorithm is used. As both exponentiations have no data dependencies, they can be parallelized completely. To show this parallelization practically, we have implemented these two exponentiations using pthreads on CentOS. As the OMAP-L138 board does not have an OS which is supporting threads this is more difficult to implement on the board. If the ARM processor could be used as well, it would be possible to do one exponentiation on the DSP and another one on the DSP. \\
 
-It should also be noted that the given Diffie⁻Hellman parameters are a faster sub-group from what could be given. This should be taken into account when evaluating the cycle count as with other parameters the execution time would increase.\\
+It should also be noted that the given Diffie⁻Hellman parameters are a faster sub-group from what could be given. This should be taken into account when evaluating the cycle count as with other parameters the execution time would increase.
 
 \subsection{USE64WITH32 Optimization}
 USE64\_WITH32 is a $\#$define statement in the BigDigits library we are using. If this switch is activated, 64-bit behavior is simulated in 32-bit environment in C.
@@ -188,16 +188,16 @@ The impact of this optimization is quite large as the multiply function is calle
 \subsection{Optimization of Conversion Functions}
 This optimization is more an improvement of our code than a real DSP optimization. The optimization was applied in the handshake functions of the code located in protocol.c.\\
 
-All the contents of the field\_t type (the type we use for packets) are passed as char types even if the functions in the bigdigits library require a digit\_t as input. Before the conversion optimization all these digit\_t variables were first converted from digits to chars using the mpConvToOctets() function in the bigdigits library. The next function in the handshake then reconverted all these chars to digit\_t types using \textit{mpConvFromOctets()} so they could be used by the bigdigits library.\\
+All the contents of the \textbf{field\_t} type (the type we use for packets) are passed as char types even if the functions in the bigdigits library require a digit\_t as input. Before the conversion optimization all these digit\_t variables were first converted from digits to chars using the mpConvToOctets() function in the bigdigits library. The next function in the handshake then reconverted all these chars to \textbf{digit\_t} types using \textit{mpConvFromOctets()} so they could be used by the bigdigits library.\\
 
 This conversion and reconversion of these large variables are not only cumbersome for the calculation time, they are also very inefficient in memory usage as each average pointer variable is around 150 bytes long and each conversion required a temporary variable as a destination for the conversion.\\
 
-The optimization is just a cast of the digit\_t variable to a char so it can be added to the packet of type field\_t. The bytes are then interpreted incorrectly but this is of no importance as they are casted back to digit\_t before they are used again.\\
+The optimization is just a cast of the \textbf{digit\_t} variable to a char so it can be added to the packet of type \textbf{field\_t}. The bytes are then interpreted incorrectly but this is of no importance as they are casted back to \textbf{digit\_t} before they are used again.
 
 \subsubsection{Example}
-The following C snippet demonstrates the senderHello() function before the optimization:
+The following C snippet demonstrates the \textit{senderHello()} function before the optimization:
 \lstinputlisting[language=C]{source/senderHelloNoOptimization.c}
-The following C snippet demonstrates the senderHello() function after the optimization:
+The following C snippet demonstrates the \textit{senderHello()} function after the optimization:
 \lstinputlisting[language=C]{source/senderHelloConversionOptimization.c}
 
 \subsubsection{Impact of the Optimization}
@@ -223,14 +223,15 @@ As the average pointer variable in our code has a length of approximately 150 by
 \section{Porting and Integration}
 
 \subsection{Porting from Linux to CCS}
-One of the errors we encountered during the porting from Linux to CCS was that the length of arrays need to be a constant. This was quickly solved as the variable length we used in some functions was just to make our code easy to customize. Overall the same lengths were used throughout the code, so they could be easily replaced by constants.\\
-
-\subsection{Porting from CCS to the Board}
+One of the errors we encountered during the porting from Linux to CCS was that the length of arrays need to be a constant. This was quickly solved as the variable length we used in some functions was just to make our code easy to customize. Overall the same lengths were used throughout the code, so they could be easily replaced by constants.
 
 \subsection{Integration with Speech}
 Integration with the speech group went very fluently as we already foresaw possible issues. To simplify integration with the speech group, we implemented a shared buffer and a modified flag. Every time a variable is written to this shared buffer, the modified flag is set to true. Every time a variable is read from the shared buffer, this modified flag is set back to false. In this way, we (=the crypto group) know when we can read the next data sequence from speech to start encrypting. The speech group knows when their last packet is read out for encryption when the modified flag is set to false.\\
 
-Another parameter that needed to be checked was that the SRAM was still large enough to combine the code of both groups.\\
+Another parameter that needed to be checked was that the SRAM was still large enough to combine the code of both groups.
+
+\subsection{Porting from CCS to the Board}
+Porting our seperate code from CSS to the Board was not very difficult. When our code was combined with the code of the speech group, porting became more of a challenge as we encountered some memory issues. Apparently the memory size of both codes was too big to fit in SRAM. After a long and hard day of debugging the conclusion was that our providence striked back as the buffer size was unrealisticly high to fit on the DSP. After changing these buffer sizes to the minimum needed for the speech group, everything worked correctly.
 
 \section{Lessons Learnt}
 
