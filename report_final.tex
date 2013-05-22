@@ -166,12 +166,11 @@ The signature calculation is the part of the handshake that takes the longest. T
 \end{center}
 
 \subsection{CRT Optimization}
-The implementation of the Chinese Remainder Theorem is an algorithmic optimization and not a DSP specific one. 
+The implementation of the Chinese Remainder Theorem is an algorithmic optimization and not a DSP specific one.\\
 
-\subsubsection{Example}
-SOME THEORETICAL EXAMPLE HERE
+The Chinese Remainder Theorem uses the fact that both prime numbers $p$ and $q$ are known. This gives the possibility to calculate two seperate exponentiations of half the length of the original one. In theory this would make the exponentiation four times faster. As both results need to be recombined again, the practical implementation is a little slower.\\
 
-\subsubsection{Impact of the Optimization}
+For the practical implementation Garner's algorithm is used. As both exponentiations have no data dependencies, they can be parallelized completely. To show this parallelization practically, we have implemented these two exponentiations using pthreads on CentOS. As the OMAP-L138 board does not have an OS which is supporting threads this is more difficult to implement on the board. If the ARM processor could be used as well, it would be possible to do one exponentiation on the DSP and another one on the DSP. \\
 
 \subsection{USE64WITH32 Optimization}
 USE64\_WITH32 is a $\#$define statement in the BigDigits library we are using. If this switch is activated, 64-bit behavior is simulated in 32-bit environment in C.
