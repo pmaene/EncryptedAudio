@@ -134,16 +134,18 @@ In the Station-to-Station protocol, three messages will be exchanged between the
 
 The code we wrote to simulate a communication channel has the ability to drop packets. The drop rate is controlled through a constant in \texttt{channel.h}. We implemented the handshake as an FSM: the states are defined in an \textbf{enum} and we then use a \textbf{switch} over these states to execute the different protocol messages. This way, when a packet is dropped, we are able to restart the handshake right where it left off and resend the lost packet.\\
 
-We know from the beginning the handshake would be the slowest part of the application. This is mainly due to the modular exponentiations in STS protocol and the RSA signature. The former is executed once to calculate $\alpha^x\ mod\ p$ and $\alpha^y\ mod\ p$ (both the sender and receiver cache their respective result to avoid recalculation). The latter is described in more detail in Paragraph~\ref{par:signature}.
+We knew from the start that the handshake would be the slowest part of the application. This is mainly due to the modular exponentiations in STS protocol and the RSA signature. The former is executed once to calculate $\alpha^x\ mod\ p$ and $\alpha^y\ mod\ p$ (both the sender and receiver cache their respective result to avoid recalculation). The latter is described in more detail in Paragraph~\ref{par:signature}.
 
 \subsubsection{Signature}
 \label{par:signature}
 
-The calculation of an RSA signature is standardised in RFC3447. We implemented the RSASSA-PKCS1-v1\_5 algorithm, using SHA-2 to calculate the hash. Finally, the STS protocol requires us to encrypt the signature. For this we use AES in CTR mode with the derived key and nonce. The counter value is set to zero for this step.\\
+The calculation of an RSA signature is standardised in RFC3447. We implemented the RSASSA-PKCS1-v1\_5 algorithm, using SHA-2 to calculate the hash. Finally, the STS protocol requires us to encrypt the signature. For this we use AES in CTR mode with the derived key and nonce. The counter value is set to zero for this encryption.\\
 
-We decided to use SHA-2 instead of SHA-3 (which we chose in previous reports) because there is no standardised RSA padding scheme (like PKCS for SHA-2) available yet for this hash function. We evualated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).
+We switched to SHA-2 instead of SHA-3 (which we chose in previous reports) because there is no standardised RSA padding scheme available yet for this hash function. We evaluated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).
 
 \subsection{Data Encryption}
+
+After the key exchange is done, we have all the necessary information to start encrypting data. For this, we chose to implement AES with 
 
 \begin{figure}[h]
     \centering
