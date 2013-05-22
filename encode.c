@@ -3,11 +3,13 @@
 #include "globals.h"
 #include "codec.h"
 #include "encode.h"
-#include "functions.h"
 
-void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, struct encode_chunk_struct * chunk_right, short encoded[BUFFERSIZE])
+#define CONV(signal, index, filter) (signal)[(index)]*(filter)[0] + (signal)[(index)-1]*(filter)[1] + (signal)[(index)-2]*(filter)[2] + (signal)[(index)-3]*(filter)[3] + (signal)[(index)-4]*(filter)[4] + (signal)[(index)-5]*(filter)[5] + (signal)[(index)-6]*(filter)[6] + (signal)[(index)-7]*(filter)[7] + (signal)[(index)-8]*(filter)[8] + (signal)[(index)-9]*(filter)[9];
+#define SUMABS(signal) abs((signal[0])) + abs((signal[1])) + abs((signal[2])) + abs((signal[3])) + abs((signal[4])) + abs((signal[5])) + abs((signal[6])) + abs((signal[7])) + abs((signal[8])) + abs((signal[9]));
+
+void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * restrict chunk_left, struct encode_chunk_struct * restrict chunk_right, short encoded[BUFFERSIZE])
 {
-    short i, j, e, a;
+    short i, j, e;
     short encoded_tmp[BUFFERSIZE];
 
     short filter_even[FLENGTH_2] = ANALYSISFILTER_EVEN;
@@ -15,116 +17,131 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
     int t1;
     int t2;
 
+    div_t temp_div;
+    int temp_sum;
+
     /**************/
     /** Analysis **/
     /**************/
     // First shift buffers
     for (i = 0 ; i < FLENGTH_2 - 1 ; i++) {
-        chunk_left->even_subband_1[i] = chunk_left->even_subband_1[BUFFERSIZE_4 + i];
-        chunk_left->odd_subband_1[i] = chunk_left->odd_subband_1[BUFFERSIZE_4 + i];
+        e = BUFFERSIZE_4 + i;
+        chunk_left->even_subband_1[i] = chunk_left->even_subband_1[e];
+        chunk_left->odd_subband_1[i] = chunk_left->odd_subband_1[e];
 
-        chunk_right->even_subband_1[i] = chunk_right->even_subband_1[BUFFERSIZE_4 + i];
-        chunk_right->odd_subband_1[i] = chunk_right->odd_subband_1[BUFFERSIZE_4 + i];
+        chunk_right->even_subband_1[i] = chunk_right->even_subband_1[e];
+        chunk_right->odd_subband_1[i] = chunk_right->odd_subband_1[e];
 
-        chunk_left->even_subband_2a[i] = chunk_left->even_subband_2a[BUFFERSIZE_8 + i];
-        chunk_left->odd_subband_2a[i] = chunk_left->odd_subband_2a[BUFFERSIZE_8 + i];
+        e = BUFFERSIZE_8 + i;
+        chunk_left->even_subband_2a[i] = chunk_left->even_subband_2a[e];
+        chunk_left->odd_subband_2a[i] = chunk_left->odd_subband_2a[e];
 
-        chunk_left->even_subband_2c[i] = chunk_left->even_subband_2c[BUFFERSIZE_8 + i];
-        chunk_left->odd_subband_2c[i] = chunk_left->odd_subband_2c[BUFFERSIZE_8 + i];
+        chunk_left->even_subband_2c[i] = chunk_left->even_subband_2c[e];
+        chunk_left->odd_subband_2c[i] = chunk_left->odd_subband_2c[e];
 
-        chunk_right->even_subband_2a[i] = chunk_right->even_subband_2a[BUFFERSIZE_8 + i];
-        chunk_right->odd_subband_2a[i] = chunk_right->odd_subband_2a[BUFFERSIZE_8 + i];
+        chunk_right->even_subband_2a[i] = chunk_right->even_subband_2a[e];
+        chunk_right->odd_subband_2a[i] = chunk_right->odd_subband_2a[e];
 
-        chunk_right->even_subband_2c[i] = chunk_right->even_subband_2c[BUFFERSIZE_8 + i];
-        chunk_right->odd_subband_2c[i] = chunk_right->odd_subband_2c[BUFFERSIZE_8 + i];
+        chunk_right->even_subband_2c[i] = chunk_right->even_subband_2c[e];
+        chunk_right->odd_subband_2c[i] = chunk_right->odd_subband_2c[e];
     }
 
-    chunk_left->even_subband_1[FLENGTH_2 - 1] = buffer[0];
-    chunk_left->odd_subband_1[FLENGTH_2 - 1] = chunk_left->odd_1_lastvalue;
+    i = FLENGTH_2 - 1;
+    chunk_left->even_subband_1[i] = buffer[0];
+    chunk_left->odd_subband_1[i] = chunk_left->odd_1_lastvalue;
 
-    chunk_right->even_subband_1[FLENGTH_2 - 1] = buffer[1];
-    chunk_right->odd_subband_1[FLENGTH_2 - 1] = chunk_right->odd_1_lastvalue;
-
-    for (i = 1 ; i < BUFFERSIZE_4 ; i++) {
-        e = 4*i;
-        chunk_left->even_subband_1[i + FLENGTH_2 - 1] = buffer[e];
-        chunk_left->odd_subband_1[i + FLENGTH_2 - 1] = buffer[e - 2];
-
-        chunk_right->even_subband_1[i + FLENGTH_2 - 1] = buffer[e + 1];
-        chunk_right->odd_subband_1[i + FLENGTH_2 - 1] = buffer[e - 1];
-    }
+    chunk_right->even_subband_1[i] = buffer[1];
+    chunk_right->odd_subband_1[i] = chunk_right->odd_1_lastvalue;
 
     chunk_left->odd_1_lastvalue = buffer[BUFFERSIZE - 2];
     chunk_right->odd_1_lastvalue = buffer[BUFFERSIZE - 1];
 
     // Stage One: loop for i = 0
-    conv1(chunk_left->even_subband_1, filter_even, &t1, FLENGTH_2 - 1);
-	conv1(chunk_left->odd_subband_1, filter_odd, &t2, FLENGTH_2 - 1);
-    chunk_left->even_subband_2a[FLENGTH_2 - 1] = (t1 + t2) >> 16;
-    chunk_left->odd_subband_2a[FLENGTH_2 - 1] = chunk_left->odd_2a_lastvalue;
-    chunk_left->even_subband_2c[FLENGTH_2 - 1] = (t2 - t1) >> 16;
-    chunk_left->odd_subband_2c[FLENGTH_2 - 1] = chunk_left->odd_2c_lastvalue;
+    e = FLENGTH_2 - 1;
+    t1 = CONV(chunk_left->even_subband_1, e, filter_even);
+    t2 = CONV(chunk_left->odd_subband_1, e, filter_odd);
+    chunk_left->odd_subband_2a[e] = chunk_left->odd_2a_lastvalue;
+    chunk_left->odd_subband_2c[e] = chunk_left->odd_2c_lastvalue;
+    chunk_left->even_subband_2a[e] = (t1 + t2) >> 16;
+    chunk_left->even_subband_2c[e] = (t2 - t1) >> 16;
 
-	conv1(chunk_right->even_subband_1, filter_even, &t1, FLENGTH_2 - 1);
-	conv1(chunk_right->odd_subband_1, filter_odd, &t2, FLENGTH_2 - 1);
-    chunk_right->even_subband_2a[FLENGTH_2 - 1] = (t1 + t2) >> 16;
-    chunk_right->odd_subband_2a[FLENGTH_2 - 1] = chunk_right->odd_2a_lastvalue;
-    chunk_right->even_subband_2c[FLENGTH_2 - 1] = (t2 - t1) >> 16;
-    chunk_right->odd_subband_2c[FLENGTH_2 - 1] = chunk_right->odd_2c_lastvalue;
+    t1 = CONV(chunk_right->even_subband_1, e, filter_even);
+    t2 = CONV(chunk_right->odd_subband_1, e, filter_odd);
+    chunk_right->even_subband_2a[e] = (t1 + t2) >> 16;
+    chunk_right->even_subband_2c[e] = (t2 - t1) >> 16;
+    chunk_right->odd_subband_2a[e] = chunk_right->odd_2a_lastvalue;
+    chunk_right->odd_subband_2c[e] = chunk_right->odd_2c_lastvalue;
 
     for (i = 1 ; i < BUFFERSIZE_4 ; i+=2) {
+        e = i << 2;
+        j = i + FLENGTH_2 - 1;
+        chunk_left->even_subband_1[j] = buffer[e];
+        chunk_left->odd_subband_1[j] = buffer[e - 2];
+
+        chunk_right->even_subband_1[j] = buffer[e + 1];
+        chunk_right->odd_subband_1[j] = buffer[e - 1];
+
+        e = (i + 1) << 2;
+        j += 1;
+        chunk_left->even_subband_1[j] = buffer[e];
+        chunk_left->odd_subband_1[j] = buffer[e - 2];
+
+        chunk_right->even_subband_1[j] = buffer[e + 1];
+        chunk_right->odd_subband_1[j] = buffer[e - 1];
+
         // Stage One
         e = (i >> 1) + FLENGTH_2;
-        a = i + FLENGTH_2 - 1;
-        conv1(chunk_left->even_subband_1, filter_even, &t1, a);
-        conv1(chunk_left->odd_subband_1, filter_odd, &t2, a);
+        j -= 1;
+        t1 = CONV(chunk_left->even_subband_1, j, filter_even);
+        t2 = CONV(chunk_left->odd_subband_1, j, filter_odd);
 
-		chunk_left->odd_subband_2a[e] = (t1 + t2) >> 16;
-		chunk_left->odd_subband_2c[e] = (t2 - t1) >> 16;
+        chunk_left->odd_subband_2a[e] = (t1 + t2) >> 16;
+        chunk_left->odd_subband_2c[e] = (t2 - t1) >> 16;
 
-        conv1(chunk_right->even_subband_1, filter_even, &t1, a);
-        conv1(chunk_right->odd_subband_1, filter_odd, &t2, a);
+        t1 = CONV(chunk_right->even_subband_1, j, filter_even);
+        t2 = CONV(chunk_right->odd_subband_1, j, filter_odd);
 
-		chunk_right->odd_subband_2a[e] = (t1 + t2) >> 16;
-		chunk_right->odd_subband_2c[e] = (t2 - t1) >> 16;
+        chunk_right->odd_subband_2a[e] = (t1 + t2) >> 16;
+        chunk_right->odd_subband_2c[e] = (t2 - t1) >> 16;
 
-        a = a + 1;
+        if (i + 1 < BUFFERSIZE_4) {
+            j += 1;
+            t1 = CONV(chunk_left->even_subband_1, j, filter_even);
+            t2 = CONV(chunk_left->odd_subband_1, j, filter_odd);
 
-        conv1(chunk_left->even_subband_1, filter_even, &t1, a);
-		conv1(chunk_left->odd_subband_1, filter_odd, &t2, a);
+            chunk_left->even_subband_2a[e] = (t1 + t2) >> 16;
+            chunk_left->even_subband_2c[e] = (t2 - t1) >> 16;
 
-		chunk_left->even_subband_2a[e] = (t1 + t2) >> 16;
-		chunk_left->even_subband_2c[e] = (t2 - t1) >> 16;
+            t1 = CONV(chunk_right->even_subband_1, j, filter_even);
+            t2 = CONV(chunk_right->odd_subband_1, j, filter_odd);
 
-		conv1(chunk_right->even_subband_1, filter_even, &t1, a);
-		conv1(chunk_right->odd_subband_1, filter_odd, &t2, a);
-
-		chunk_right->even_subband_2a[e] = (t1 + t2) >> 16;
-		chunk_right->even_subband_2c[e] = (t2 - t1) >> 16;
+            chunk_right->even_subband_2a[e] = (t1 + t2) >> 16;
+            chunk_right->even_subband_2c[e] = (t2 - t1) >> 16;
+        }
 
         // Stage Two
-        j = 4*(i - 1);
+        j = (i - 1) << 2;
         e = e - 1;
-        conv2(chunk_left->even_subband_2a, filter_even, &t1, e);
-        conv2(chunk_left->odd_subband_2a, filter_odd, &t2, e);
+        t1 = CONV(chunk_left->even_subband_2a, e, filter_even);
+        t2 = CONV(chunk_left->odd_subband_2a, e, filter_odd);
 
         encoded_tmp[j] = (t1 + t2) >> 16;
         encoded_tmp[j+1] = (t2 - t1) >> 16;
 
-        conv2(chunk_left->even_subband_2c, filter_even, &t1, e);
-        conv2(chunk_left->odd_subband_2c, filter_odd, &t2, e);
+        t1 = CONV(chunk_left->even_subband_2c, e, filter_even);
+        t2 = CONV(chunk_left->odd_subband_2c, e, filter_odd);
 
         encoded_tmp[j+2] = (t1 + t2) >> 16;
         encoded_tmp[j+3] = (t2 - t1) >> 16;
 
-        conv2(chunk_right->even_subband_2a, filter_even, &t1, e);
-        conv2(chunk_right->odd_subband_2a, filter_odd, &t2, e);
+        t1 = CONV(chunk_right->even_subband_2a, e, filter_even);
+        t2 = CONV(chunk_right->odd_subband_2a, e, filter_odd);
 
         encoded_tmp[j+4] = (t1 + t2) >> 16;
         encoded_tmp[j+5] = (t2 - t1) >> 16;
 
-        conv2(chunk_right->even_subband_2c, filter_even, &t1, e);
-        conv2(chunk_right->odd_subband_2c, filter_odd, &t2, e);
+        t1 = CONV(chunk_right->even_subband_2c, e, filter_even);
+        t2 = CONV(chunk_right->odd_subband_2c, e, filter_odd);
 
         encoded_tmp[j+6] = (t1 + t2) >> 16;
         encoded_tmp[j+7] = (t2 - t1) >> 16;
@@ -137,31 +154,54 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
     chunk_right->odd_2c_lastvalue = chunk_right->odd_subband_2c[e];
 
     for (i = 0 ; i < BUFFERSIZE_8 ; i++) {
-        // Shift
-        for (j = QLENGTH - 1 ; j > 0 ; j--) {
-            chunk_left->diff_deq[0][j] = chunk_left->diff_deq[0][j - 1]; // Subband 1 Left
-            chunk_left->diff_deq[1][j] = chunk_left->diff_deq[1][j - 1]; // Subband 2 Left
-            chunk_left->diff_deq[2][j] = chunk_left->diff_deq[2][j - 1]; // Subband 3 Left
-            chunk_left->diff_deq[3][j] = chunk_left->diff_deq[3][j - 1]; // Subband 4 Left
-            chunk_right->diff_deq[0][j] = chunk_right->diff_deq[0][j - 1]; // Subband 1 Right
-            chunk_right->diff_deq[1][j] = chunk_right->diff_deq[1][j - 1]; // Subband 2 Right
-            chunk_right->diff_deq[2][j] = chunk_right->diff_deq[2][j - 1]; // Subband 3 Right
-            chunk_right->diff_deq[3][j] = chunk_right->diff_deq[3][j - 1]; // Subband 4 Right
+        chunk_left->diff_deq_index++;
+        e = i << 3;
+        // for roundDiv precalculation
+        temp_div = div(encoded_tmp[e] - chunk_left->prediction[0], chunk_left->Qstep[0]);
+
+        if (chunk_left->diff_deq_index >= QLENGTH) {
+            chunk_left->diff_deq_index = 0;
         }
 
         /*****************************/
         /** Encoding Subband 1 Left **/
         /*****************************/
-        e = 8*i;
-        encoded_tmp[e] = roundDiv((encoded_tmp[e] - chunk_left->prediction[0]), chunk_left->Qstep[0]);
+        // roundDiv
+        if((temp_div.rem << 1) > chunk_left->Qstep[0] && temp_div.quot > 0) {
+            encoded_tmp[e] = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > chunk_left->Qstep[0] && temp_div.quot < 0) {
+            encoded_tmp[e] = temp_div.quot - 1;
+        } else {
+            encoded_tmp[e] = temp_div.quot;
+        }
 
         if (encoded_tmp[e] > MAX_LEVEL_1) {
             encoded_tmp[e] = MAX_LEVEL_1;
         } else if (encoded_tmp[e] < MIN_LEVEL_1) {
             encoded_tmp[e] = MIN_LEVEL_1;
         }
-        chunk_left->diff_deq[0][0] = (short) (encoded_tmp[e] * chunk_left->Qstep[0]);
-        chunk_left->Qstep[0] = (short)((meanAbs(QLENGTH, chunk_left->diff_deq[0]) * PHI_1) >> 13);
+        chunk_left->diff_deq[0][chunk_left->diff_deq_index] = (short) (encoded_tmp[e] * chunk_left->Qstep[0]);
+
+        // meanAbs
+        temp_sum = SUMABS(chunk_left->diff_deq[0]);
+
+        temp_div = div(temp_sum, QLENGTH);
+
+        if((temp_div.rem << 1) > QLENGTH && temp_div.quot > 0) {
+            temp_sum = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > QLENGTH && temp_div.quot < 0) {
+            temp_sum = temp_div.quot - 1;
+        } else {
+            temp_sum = temp_div.quot;
+        }
+        chunk_left->Qstep[0] = (short)((temp_sum * PHI_1) >> 13);
+
+        // Precalculation subband 2 left
+        e += 1;
+        // roundDiv
+        temp_div = div(encoded_tmp[e] - chunk_left->prediction[1], chunk_left->Qstep[1]);
+
+        chunk_left->prediction[0] = (short)((MU_1*(chunk_left->diff_deq[0][chunk_left->diff_deq_index] + chunk_left->prediction[0])) >> 15);
 
         if (chunk_left->Qstep[0] < QMIN) {
             chunk_left->Qstep[0] = QMIN;
@@ -169,13 +209,16 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             chunk_left->Qstep[0] = QMAX_1;
         }
 
-        chunk_left->prediction[0] = (short)((MU_1*(chunk_left->diff_deq[0][0] + chunk_left->prediction[0])) >> 15);
-
         /*****************************/
         /** Encoding Subband 2 Left **/
         /*****************************/
-        e += 1;
-        encoded_tmp[e] = roundDiv((encoded_tmp[e] - chunk_left->prediction[1]), chunk_left->Qstep[1]);
+        if((temp_div.rem << 1) > chunk_left->Qstep[1] && temp_div.quot > 0) {
+            encoded_tmp[e] = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > chunk_left->Qstep[1] && temp_div.quot < 0) {
+            encoded_tmp[e] = temp_div.quot - 1;
+        } else {
+            encoded_tmp[e] = temp_div.quot;
+        }
 
         if (encoded_tmp[e] > MAX_LEVEL_2) {
             encoded_tmp[e] = MAX_LEVEL_2;
@@ -183,8 +226,28 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             encoded_tmp[e] = MIN_LEVEL_2;
         }
 
-        chunk_left->diff_deq[1][0] = (short) (encoded_tmp[e] * chunk_left->Qstep[1]);
-        chunk_left->Qstep[1] = (short)((meanAbs(QLENGTH, chunk_left->diff_deq[1]) * PHI_2) >> 13);
+        chunk_left->diff_deq[1][chunk_left->diff_deq_index] = (short) (encoded_tmp[e] * chunk_left->Qstep[1]);
+
+        // meanAbs
+        temp_sum = SUMABS(chunk_left->diff_deq[1]);
+
+        temp_div = div(temp_sum, QLENGTH);
+
+        if((temp_div.rem << 1) > QLENGTH && temp_div.quot > 0) {
+            temp_sum = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > QLENGTH && temp_div.quot < 0) {
+            temp_sum = temp_div.quot - 1;
+        } else {
+            temp_sum = temp_div.quot;
+        }
+        chunk_left->Qstep[1] = (short)((temp_sum * PHI_2) >> 13);
+
+        // Precalculation Subband 3 left
+        e += 1;
+        // roundDiv
+        temp_div = div(encoded_tmp[e] - chunk_left->prediction[2], chunk_left->Qstep[2]);
+
+        chunk_left->prediction[1] = (short)((MU_2*(chunk_left->diff_deq[1][chunk_left->diff_deq_index] + chunk_left->prediction[1])) >> 15);
 
         if (chunk_left->Qstep[1] < QMIN) {
             chunk_left->Qstep[1] = QMIN;
@@ -192,13 +255,16 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             chunk_left->Qstep[1] = QMAX_2;
         }
 
-        chunk_left->prediction[1] = (short)((MU_2*(chunk_left->diff_deq[1][0] + chunk_left->prediction[1])) >> 15);
-
         /*****************************/
         /** Encoding Subband 3 Left **/
         /*****************************/
-        e += 1;
-        encoded_tmp[e] = roundDiv((encoded_tmp[e] - chunk_left->prediction[2]), chunk_left->Qstep[2]);
+        if((temp_div.rem << 1) > chunk_left->Qstep[2] && temp_div.quot > 0) {
+            encoded_tmp[e] = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > chunk_left->Qstep[2] && temp_div.quot < 0) {
+            encoded_tmp[e] = temp_div.quot - 1;
+        } else {
+            encoded_tmp[e] = temp_div.quot;
+        }
 
         if (encoded_tmp[e] > MAX_LEVEL_3) {
             encoded_tmp[e] = MAX_LEVEL_3;
@@ -206,8 +272,28 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             encoded_tmp[e] = MIN_LEVEL_3;
         }
 
-        chunk_left->diff_deq[2][0] = (short) (encoded_tmp[e] * chunk_left->Qstep[2]);
-        chunk_left->Qstep[2] = (short)((meanAbs(QLENGTH, chunk_left->diff_deq[2]) * PHI_3) >> 13);
+        chunk_left->diff_deq[2][chunk_left->diff_deq_index] = (short) (encoded_tmp[e] * chunk_left->Qstep[2]);
+
+        // meanAbs
+        temp_sum = SUMABS(chunk_left->diff_deq[2]);
+
+        temp_div = div(temp_sum, QLENGTH);
+
+        if((temp_div.rem << 1) > QLENGTH && temp_div.quot > 0) {
+            temp_sum = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > QLENGTH && temp_div.quot < 0) {
+            temp_sum = temp_div.quot - 1;
+        } else {
+            temp_sum = temp_div.quot;
+        }
+        chunk_left->Qstep[2] = (short)((temp_sum * PHI_3) >> 13);
+
+        // Precalculation Subband 4 Left
+        e += 1;
+        // roundDiv
+        temp_div = div(encoded_tmp[e] - chunk_left->prediction[3], chunk_left->Qstep[3]);
+
+        chunk_left->prediction[2] = (short)((MU_3*(chunk_left->diff_deq[2][chunk_left->diff_deq_index] + chunk_left->prediction[2])) >> 15);
 
         if (chunk_left->Qstep[2] < QMIN) {
             chunk_left->Qstep[2] = QMIN;
@@ -215,13 +301,17 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             chunk_left->Qstep[2] = QMAX_3;
         }
 
-        chunk_left->prediction[2] = (short)((MU_3*(chunk_left->diff_deq[2][0] + chunk_left->prediction[2])) >> 15);
-
         /*****************************/
         /** Encoding Subband 4 Left **/
         /*****************************/
-        e += 1;
-        encoded_tmp[e] = roundDiv((encoded_tmp[e] - chunk_left->prediction[3]), chunk_left->Qstep[3]);
+
+        if((temp_div.rem << 1) > chunk_left->Qstep[3] && temp_div.quot > 0) {
+            encoded_tmp[e] = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > chunk_left->Qstep[3] && temp_div.quot < 0) {
+            encoded_tmp[e] = temp_div.quot - 1;
+        } else {
+            encoded_tmp[e] = temp_div.quot;
+        }
 
         if (encoded_tmp[e] > MAX_LEVEL_4) {
             encoded_tmp[e] = MAX_LEVEL_4;
@@ -229,8 +319,27 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             encoded_tmp[e] = MIN_LEVEL_4;
         }
 
-        chunk_left->diff_deq[3][0] = (short) (encoded_tmp[e] * chunk_left->Qstep[3]);
-        chunk_left->Qstep[3] = (short)((meanAbs(QLENGTH, chunk_left->diff_deq[3]) * PHI_4) >> 13);
+        chunk_left->diff_deq[3][chunk_left->diff_deq_index] = (short) (encoded_tmp[e] * chunk_left->Qstep[3]);
+        // meanAbs
+        temp_sum = SUMABS(chunk_left->diff_deq[3]);
+
+        temp_div = div(temp_sum, QLENGTH);
+
+        if((temp_div.rem << 1) > QLENGTH && temp_div.quot > 0) {
+            temp_sum = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > QLENGTH && temp_div.quot < 0) {
+            temp_sum = temp_div.quot - 1;
+        } else {
+            temp_sum = temp_div.quot;
+        }
+        chunk_left->Qstep[3] = (short)((temp_sum * PHI_4) >> 13);
+
+        // Precalculations Subband 1 Right
+        e += 1;
+        // roundDiv
+        temp_div = div(encoded_tmp[e] - chunk_right->prediction[0], chunk_right->Qstep[0]);
+
+        chunk_left->prediction[3] = (short)((MU_4*(chunk_left->diff_deq[3][chunk_left->diff_deq_index] + chunk_left->prediction[3])) >> 15);
 
         if (chunk_left->Qstep[3] < QMIN) {
             chunk_left->Qstep[3] = QMIN;
@@ -238,13 +347,17 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             chunk_left->Qstep[3] = QMAX_4;
         }
 
-        chunk_left->prediction[3] = (short)((MU_4*(chunk_left->diff_deq[3][0] + chunk_left->prediction[3])) >> 15);
-
         /******************************/
         /** Encoding Subband 1 Right **/
         /******************************/
-        e += 1;
-        encoded_tmp[e] = roundDiv((encoded_tmp[e] - chunk_right->prediction[0]), chunk_right->Qstep[0]);
+
+        if((temp_div.rem << 1) > chunk_right->Qstep[0] && temp_div.quot > 0) {
+            encoded_tmp[e] = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > chunk_right->Qstep[0] && temp_div.quot < 0) {
+            encoded_tmp[e] = temp_div.quot - 1;
+        } else {
+            encoded_tmp[e] = temp_div.quot;
+        }
 
         if (encoded_tmp[e] > MAX_LEVEL_1) {
             encoded_tmp[e] = MAX_LEVEL_1;
@@ -252,8 +365,28 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             encoded_tmp[e] = MIN_LEVEL_1;
         }
 
-        chunk_right->diff_deq[0][0] = (short) (encoded_tmp[e] * chunk_right->Qstep[0]);
-        chunk_right->Qstep[0] = (short)((meanAbs(QLENGTH, chunk_right->diff_deq[0]) * PHI_1) >> 13);
+        chunk_right->diff_deq[0][chunk_left->diff_deq_index] = (short) (encoded_tmp[e] * chunk_right->Qstep[0]);
+
+        // meanAbs
+        temp_sum = SUMABS(chunk_right->diff_deq[0]);
+
+        temp_div = div(temp_sum, QLENGTH);
+
+        if((temp_div.rem << 1) > QLENGTH && temp_div.quot > 0) {
+            temp_sum = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > QLENGTH && temp_div.quot < 0) {
+            temp_sum = temp_div.quot - 1;
+        } else {
+            temp_sum = temp_div.quot;
+        }
+        chunk_right->Qstep[0] = (short)((temp_sum * PHI_1) >> 13);
+
+        // Precalculation Subband 2 Right
+        e += 1;
+        // roundDiv
+        temp_div = div(encoded_tmp[e] - chunk_right->prediction[1], chunk_right->Qstep[1]);
+
+        chunk_right->prediction[0] = (short)((MU_1*(chunk_right->diff_deq[0][chunk_left->diff_deq_index] + chunk_right->prediction[0])) >> 15);
 
         if (chunk_right->Qstep[0] < QMIN) {
             chunk_right->Qstep[0] = QMIN;
@@ -261,13 +394,17 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             chunk_right->Qstep[0] = QMAX_1;
         }
 
-        chunk_right->prediction[0] = (short)((MU_1*(chunk_right->diff_deq[0][0] + chunk_right->prediction[0])) >> 15);
-
         /******************************/
         /** Encoding Subband 2 Right **/
         /******************************/
-        e += 1;
-        encoded_tmp[e] = roundDiv((encoded_tmp[e] - chunk_right->prediction[1]), chunk_right->Qstep[1]);
+
+        if((temp_div.rem << 1) > chunk_right->Qstep[1] && temp_div.quot > 0) {
+            encoded_tmp[e] = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > chunk_right->Qstep[1] && temp_div.quot < 0) {
+            encoded_tmp[e] = temp_div.quot - 1;
+        } else {
+            encoded_tmp[e] = temp_div.quot;
+        }
 
         if (encoded_tmp[e] > MAX_LEVEL_2) {
             encoded_tmp[e] = MAX_LEVEL_2;
@@ -275,8 +412,28 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             encoded_tmp[e] = MIN_LEVEL_2;
         }
 
-        chunk_right->diff_deq[1][0] = (short) (encoded_tmp[e] * chunk_right->Qstep[1]);
-        chunk_right->Qstep[1] = (short)((meanAbs(QLENGTH, chunk_right->diff_deq[1]) * PHI_2) >> 13);
+        chunk_right->diff_deq[1][chunk_left->diff_deq_index] = (short) (encoded_tmp[e] * chunk_right->Qstep[1]);
+
+        // meanAbs
+        temp_sum = SUMABS(chunk_right->diff_deq[1]);
+
+        temp_div = div(temp_sum, QLENGTH);
+
+        if((temp_div.rem << 1) > QLENGTH && temp_div.quot > 0) {
+            temp_sum = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > QLENGTH && temp_div.quot < 0) {
+            temp_sum = temp_div.quot - 1;
+        } else {
+            temp_sum = temp_div.quot;
+        }
+        chunk_right->Qstep[1] = (short)((temp_sum * PHI_2) >> 13);
+
+        // Precalculation Subband 3 Right
+        e += 1;
+        // roundDiv
+        temp_div = div(encoded_tmp[e] - chunk_right->prediction[2], chunk_right->Qstep[2]);
+
+        chunk_right->prediction[1] = (short)((MU_2*(chunk_right->diff_deq[1][chunk_left->diff_deq_index] + chunk_right->prediction[1])) >> 15);
 
         if (chunk_right->Qstep[1] < QMIN) {
             chunk_right->Qstep[1] = QMIN;
@@ -284,13 +441,17 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             chunk_right->Qstep[1] = QMAX_2;
         }
 
-        chunk_right->prediction[1] = (short)((MU_2*(chunk_right->diff_deq[1][0] + chunk_right->prediction[1])) >> 15);
-
         /******************************/
         /** Encoding Subband 3 Right **/
         /******************************/
-        e += 1;
-        encoded_tmp[e] = roundDiv((encoded_tmp[e] - chunk_right->prediction[2]), chunk_right->Qstep[2]);
+
+        if((temp_div.rem << 1) > chunk_right->Qstep[2] && temp_div.quot > 0) {
+            encoded_tmp[e] = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > chunk_right->Qstep[2] && temp_div.quot < 0) {
+            encoded_tmp[e] = temp_div.quot - 1;
+        } else {
+            encoded_tmp[e] = temp_div.quot;
+        }
 
         if (encoded_tmp[e] > MAX_LEVEL_3) {
             encoded_tmp[e] = MAX_LEVEL_3;
@@ -298,8 +459,29 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             encoded_tmp[e] = MIN_LEVEL_3;
         }
 
-        chunk_right->diff_deq[2][0] = (short) (encoded_tmp[e] * chunk_right->Qstep[2]);
-        chunk_right->Qstep[2] = (short)((meanAbs(QLENGTH, chunk_right->diff_deq[2]) * PHI_3) >> 13);
+        chunk_right->diff_deq[2][chunk_left->diff_deq_index] = (short) (encoded_tmp[e] * chunk_right->Qstep[2]);
+
+        // meanAbs
+        temp_sum = SUMABS(chunk_right->diff_deq[2]);
+
+        temp_div = div(temp_sum, QLENGTH);
+
+        if((temp_div.rem << 1) > QLENGTH && temp_div.quot > 0) {
+            temp_sum = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > QLENGTH && temp_div.quot < 0) {
+            temp_sum = temp_div.quot - 1;
+        } else {
+            temp_sum = temp_div.quot;
+        }
+
+        chunk_right->Qstep[2] = (short)((temp_sum * PHI_3) >> 13);
+
+        // Precalculation Subband 4 Right
+        e += 1;
+        // roundDiv
+        temp_div = div(encoded_tmp[e] - chunk_right->prediction[3], chunk_right->Qstep[3]);
+
+        chunk_right->prediction[2] = (short)((MU_3*(chunk_right->diff_deq[2][chunk_left->diff_deq_index] + chunk_right->prediction[2])) >> 15);
 
         if (chunk_right->Qstep[2] < QMIN) {
             chunk_right->Qstep[2] = QMIN;
@@ -307,13 +489,17 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             chunk_right->Qstep[2] = QMAX_3;
         }
 
-        chunk_right->prediction[2] = (short)((MU_3*(chunk_right->diff_deq[2][0] + chunk_right->prediction[2])) >> 15);
-
         /******************************/
         /** Encoding Subband 4 Right **/
         /******************************/
-        e += 1;
-        encoded_tmp[e] = roundDiv((encoded_tmp[e] - chunk_right->prediction[3]), chunk_right->Qstep[3]);
+
+        if((temp_div.rem << 1) > chunk_right->Qstep[3] && temp_div.quot > 0) {
+            encoded_tmp[e] = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > chunk_right->Qstep[3] && temp_div.quot < 0) {
+            encoded_tmp[e] = temp_div.quot - 1;
+        } else {
+            encoded_tmp[e] = temp_div.quot;
+        }
 
         if (encoded_tmp[e] > MAX_LEVEL_4) {
             encoded_tmp[e] = MAX_LEVEL_4;
@@ -321,16 +507,29 @@ void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, s
             encoded_tmp[e] = MIN_LEVEL_4;
         }
 
-        chunk_right->diff_deq[3][0] = (short) (encoded_tmp[e] * chunk_right->Qstep[3]);
-        chunk_right->Qstep[3] = (short)((meanAbs(QLENGTH, chunk_right->diff_deq[3]) * PHI_4) >> 13);
+        chunk_right->diff_deq[3][chunk_left->diff_deq_index] = (short) (encoded_tmp[e] * chunk_right->Qstep[3]);
+
+        // meanAbs
+        temp_sum = SUMABS(chunk_right->diff_deq[3]);
+
+        temp_div = div(temp_sum, QLENGTH);
+
+        if((temp_div.rem << 1) > QLENGTH && temp_div.quot > 0) {
+            temp_sum = temp_div.quot + 1;
+        } else if (-(temp_div.rem << 1) > QLENGTH && temp_div.quot < 0) {
+            temp_sum = temp_div.quot - 1;
+        } else {
+            temp_sum = temp_div.quot;
+        }
+        chunk_right->Qstep[3] = (short)((temp_sum * PHI_4) >> 13);
+
+        chunk_right->prediction[3] = (short)((MU_4*(chunk_right->diff_deq[3][chunk_left->diff_deq_index] + chunk_right->prediction[3])) >> 15);
 
         if (chunk_right->Qstep[3] < QMIN) {
             chunk_right->Qstep[3] = QMIN;
         } else if (chunk_right->Qstep[3] > QMAX_4) {
             chunk_right->Qstep[3] = QMAX_4;
         }
-
-        chunk_right->prediction[3] = (short)((MU_4*(chunk_right->diff_deq[3][0] + chunk_right->prediction[3])) >> 15);
     }
 
     /******************/

@@ -20,7 +20,7 @@
 #define PHI_1 2212
 #define PHI_2 4342
 #define PHI_3 10650
-#define PHI_4 13107 
+#define PHI_4 13107
 
 #define QMAX_1 1024
 #define QMAX_2 4096

@@ -15,6 +15,7 @@ struct encode_chunk_struct {
     short prediction[4];
     short Qstep[4];
     short diff_deq[4][QLENGTH];
+    short diff_deq_index;
 };
 
-void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * chunk_left, struct encode_chunk_struct * chunk_right, short encoded[BUFFERSIZE]);
+void encode(short buffer[BUFFERSIZE], struct encode_chunk_struct * restrict chunk_left, struct encode_chunk_struct * restrict chunk_right, short encoded[BUFFERSIZE]);

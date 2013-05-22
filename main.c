@@ -60,17 +60,29 @@ int main(int argc, char **argv) {
 	memset(&output, 0, sizeof(struct wavpcm_output));
 	output.resource = OUTPUTWAVFILE;
 
-	memset(&encode_chunk_left, 0, sizeof(struct encode_chunk_struct));
-	memset(&encode_chunk_right, 0, sizeof(struct encode_chunk_struct));
-	memset(&decode_chunk_left, 0, sizeof(struct decode_chunk_struct));
-	memset(&decode_chunk_right, 0, sizeof(struct decode_chunk_struct));
+	/* initialize structs */
+    memset(&encode_chunk_left, 0, sizeof(struct encode_chunk_struct));
+    memset(&encode_chunk_right, 0, sizeof(struct encode_chunk_struct));
+    memset(&decode_chunk_left, 0, sizeof(struct decode_chunk_struct));
+    memset(&decode_chunk_right, 0, sizeof(struct decode_chunk_struct));
 
-	for (bufPos = 0; bufPos < 4; bufPos++) {
-		encode_chunk_left.Qstep[bufPos] = QSTART;
-		encode_chunk_right.Qstep[bufPos] = QSTART;
-		decode_chunk_left.Qstep[bufPos] = QSTART;
-		decode_chunk_right.Qstep[bufPos] = QSTART;
-	}
+    /* initializing for quantisation */
+    encode_chunk_left.Qstep[0] = QSTART;
+    encode_chunk_right.Qstep[0] = QSTART;
+    decode_chunk_left.Qstep[0] = QSTART;
+    decode_chunk_right.Qstep[0] = QSTART;
+    encode_chunk_left.Qstep[1] = QSTART;
+    encode_chunk_right.Qstep[1] = QSTART;
+    decode_chunk_left.Qstep[1] = QSTART;
+    decode_chunk_right.Qstep[1] = QSTART;
+    encode_chunk_left.Qstep[2] = QSTART;
+    encode_chunk_right.Qstep[2] = QSTART;
+    decode_chunk_left.Qstep[2] = QSTART;
+    decode_chunk_right.Qstep[2] = QSTART;
+    encode_chunk_left.Qstep[3] = QSTART;
+    encode_chunk_right.Qstep[3] = QSTART;
+    decode_chunk_left.Qstep[3] = QSTART;
+    decode_chunk_right.Qstep[3] = QSTART;
 
 	wavpcm_input_open(&input);
 	wavpcm_output_copy_settings(&input, &output);
