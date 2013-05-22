@@ -54,9 +54,9 @@ SECTIONS
 	.cinit         >  SHRAM
 
   /* EABI sections */
-    .binit         >  SHRAM
+	.binit         >  SHRAM
 	.init_array    >  SHRAM
-    .neardata      >  SHRAM
+	.neardata      >  SHRAM
 	.fardata       >  SHRAM
 	.rodata        >  SHRAM
 	.c6xabi.exidx  >  SHRAM
