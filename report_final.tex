@@ -79,13 +79,14 @@ The application consists of two main parts: the handshake and the encryption of 
 \end{figure}
 
 \subsubsection{Protocol Messages}
+
 In the Station-to-Station protocol, three messages will be exchanged between the sender and receiver. After this three-way handshake both DSPs will have enough information to calculate two keys (a 128-bit AES key, an 80-bit HMAC key) and a 64-bit nonce used in the CTR mode.
 
 \begin{enumerate}
     \item The sender generates a random number $x$ and then sends $\alpha^x\ mod\ p$ to the receiver. This is shown in Table~\ref{tab:key_exchange_packet_senderhello}.
-    \item The receiver generates a random number $y$ and sends $\alpha^y\ mod\ p$ to the sender. We then calculate the RSA signature of the concatenation of $\alpha^y\ mod\ p$ and $\alpha^x\ mod\ p$. This signature is then encrypted using the derived key and nonce. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
-    \item The sender acknowledges the message from the receiver by sending its signature to the receiver, using the same procedure described previously. The only difference is that we now concatenate $\alpha^x\ mod\ p$ and $\alpha^y\ mod\ p$. This is shown in Table~\ref{tab:key_exchange_packet_senderacknowledge}.
-    \item The receiver checks this final message and verifies the signature. This way, it is able to assert the sender has received correctly too.
+    \item The receiver generates a random number $y$ and sends $\alpha^y\ mod\ p$ to the sender. We then calculate the RSA signature of the concatenation of $\alpha^y\ mod\ p$ and $\alpha^x\ mod\ p$. The signature is then encrypted before embedding it in the message. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
+    \item The sender acknowledges the message from the receiver by sending an encrypted signature to the receiver. This is obtained by concatenating $\alpha^x\ mod\ p$ and $\alpha^y\ mod\ p$ and applying the procedure described in Paragraph~\ref{par:signature}.
+    \item The receiver checks the last message from the sender and verifies the signature. After this step, both the sender and receiver know they both received all messages correctly.
 \end{enumerate}
 
 \begin{table}[H]
@@ -108,7 +109,7 @@ In the Station-to-Station protocol, three messages will be exchanged between the
             \hline
             TAG & KEY & SIGNATURE \\ \hline\hline
             1B & 156B & 20B \\ \hline
-            0x01 & $\alpha^y\mod{p}$ & $\text{AES}_\text{K}\left(\left(\text{SHA2}\left(\text{PKCS}\left(\alpha^y\small|\alpha^x\right)\right)\right)^{d_R}\mod{n_R}\right)$\\
+            0x01 & $\alpha^y\mod{p}$ & $\text{AES}_\text{K}\left(\left(\text{SHA-2}\left(\text{PKCS}\left(\alpha^y\small|\alpha^x\right)\right)\right)^{d_R}\mod{n_R}\right)$\\
             \hline
         \end{tabular}
     \end{center}
@@ -120,9 +121,9 @@ In the Station-to-Station protocol, three messages will be exchanged between the
     \begin{center}
         \begin{tabular}{| c | c | c | c | c |}
             \hline
-            TAG & KEY & SIGNATURE \\ \hline\hline
-            1B & 156B & 20B \\ \hline
-            0x02 & $\alpha^y\mod{p}$ & $\text{AES}_\text{K}\left(\left(\text{SHA2}\left(\text{PKCS}\left(\alpha^x \small|\alpha^y\right)\right)\right)^{d_S}\mod{n_S}\right)$\\
+            TAG & SIGNATURE \\ \hline\hline
+            1B & 20B \\ \hline
+            0x02 & $\text{AES}_\text{K}\left(\left(\text{SHA-2}\left(\text{PKCS}\left(\alpha^x \small|\alpha^y\right)\right)\right)^{d_S}\mod{n_S}\right)$\\
             \hline
         \end{tabular}
     \end{center}
@@ -131,13 +132,16 @@ In the Station-to-Station protocol, three messages will be exchanged between the
     \label{tab:key_exchange_packet_senderacknowledge}
 \end{table}
 
-We decided to use SHA2 instead of SHA3 (which we chose in previous reports) because there is no standardised RSA padding scheme (like PKCS for SHA2) available yet for this hash function. We evualated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).\\
+The code we wrote to simulate a communication channel has the ability to drop packets. The drop rate is controlled through a constant in \texttt{channel.h}. We implemented the handshake as an FSM: the states are defined in an \textbf{enum} and we then use a \textbf{switch} over these states to execute the different protocol messages. This way, when a packet is dropped, we are able to restart the handshake right where it left off and resend the lost packet.\\
 
-This is a rather slow, mainly because there are a lot of modular exponentiations (both in calculating the Diffie-Hellman exponentions and the RSA Sign
+We know from the beginning the handshake would be the slowest part of the application. This is mainly due to the modular exponentiations in STS protocol and the RSA signature. The former is executed once to calculate $\alpha^x\ mod\ p$ and $\alpha^y\ mod\ p$ (both the sender and receiver cache their respective result to avoid recalculation). The latter is described in more detail in Paragraph~\ref{par:signature}.
 
-\subsubsection{Signature Calculation}
+\subsubsection{Signature}
+\label{par:signature}
 
-The signature calculation is the part of the handshake that takes the longest. This is because the RSA algorithm requires modular exponentations of large primes. 
+The calculation of an RSA signature is standardised in RFC3447. We implemented the RSASSA-PKCS1-v1\_5 algorithm, using SHA-2 to calculate the hash. Finally, the STS protocol requires us to encrypt the signature. For this we use AES in CTR mode with the derived key and nonce. The counter value is set to zero for this step.\\
+
+We decided to use SHA-2 instead of SHA-3 (which we chose in previous reports) because there is no standardised RSA padding scheme (like PKCS for SHA-2) available yet for this hash function. We evualated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).
 
 \subsection{Data Encryption}
 
