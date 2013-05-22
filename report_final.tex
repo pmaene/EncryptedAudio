@@ -179,7 +179,7 @@ USE64\_WITH32 is a $\#$define statement in the BigDigits library we are using. I
 \subsubsection{Example}
 When the USE\_64WITH32 flag is set the following code is called for the multiply function. The performance gain can be seen as there is no seperate code to do the transfer of carry bits from one 32-bit variable to another.
 
-%\lstinputlisting[language=C]{source/use64.c}
+\lstinputlisting[language=C]{source/use64.c}
 
 \subsubsection{Impact of the Optimization}
 The impact of this optimization is quite large as the multiply function is called many times during the handshake. This gives an optimization of $1,85071223\cdot10^{8}$ cycles.
@@ -190,6 +190,17 @@ This optimization is more an improvement of our code than a real DSP optimizatio
 All the contents of the field\_t type (the type we use for packets) are passed as char types even if the functions in the bigdigits library require a digit\_t as input. Before the conversion optimization all these digit\_t variables were first converted from digits to chars using the mpConvToOctets() function in the bigdigits library. The next function in the handshake then reconverted all these chars to digit\_t types using \textit{mpConvFromOctets()} so they could be used by the bigdigits library.\\
 
 This conversion and reconversion of these large variables are not only cumbersome for the calculation time, they are also very inefficient in memory usage as each average pointer variable is around 150 bytes long and each conversion required a temporary variable as a destination for the conversion.\\
+
+The optimization is just a cast of the digit\_t variable to a char so it can be added to the packet of type field\_t. The bytes are then interpreted incorrectly but this is of no importance as they are casted back to digit\_t before they are used again.\\
+
+\subsubsection{Example}
+The following C snippet demonstrates the senderHello() function before the optimization:
+\lstinputlisting[language=C]{source/senderHelloNoOptimization.c}
+The following C snippet demonstrates the senderHello() function after the optimization:
+\lstinputlisting[language=C]{source/senderHelloConversionOptimization.c}
+
+\subsubsection{Impact of the Optimization}
+The conversion optimization gives a saving of $5,175275\cdot10^{6}$ cycles. Again this gain in cycles is this great because of the length of the variables. Also the memory usage is more efficient as we save a lot of temporary variables.
 
 \subsection{Restrict Optimization}
 
