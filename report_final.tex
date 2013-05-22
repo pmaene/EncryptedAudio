@@ -48,7 +48,7 @@
 \maketitle
 
 \section{Overview}
-In this report we discuss all the details of the P\&D project for Multimedia and Embedded Systems. First a description of our application is given. All design decisions and the complete architecture are described. In the next part of this report more details about optimizations and the implementation of the application are given. Finally all issues and difficulties about porting the resulting application to the DSP are given.
+In this report we discuss all the details of the P\&D project for Multimedia and Embedded Systems. First a description of our application is given. All design decisions and the complete architecture are described. In the next part of this report more details about optimizations and the implementation of the application are discussed. Finally all issues and difficulties about porting the resulting application to the DSP are given.
 
 \section{Application Description}
 
@@ -86,7 +86,7 @@ In the Station-to-Station protocol, three messages will be exchanged between the
 
 \begin{enumerate}
     \item The sender generates a random number $x$ and then sends $\alpha^x\ mod\ p$ to the receiver. This is shown in Table~\ref{tab:key_exchange_packet_senderhello}.
-    \item The receiver generates a random number $y$ and sends $\alpha^y\ mod\ p$ to the sender. We then calculate the RSA signature of the concatenation of $\alpha^y\ mod\ p$ and $\alpha^x\ mod\ p$. This signature is then encrypted using the derived key and nonce. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
+    \item The receiver generates a random number $y$ and sends $\alpha^y\ mod\ p$ to the sender. Then the RSA signature of the concatenation of $\alpha^y\ mod\ p$ and $\alpha^x\ mod\ p$ is calculated. This signature is then encrypted using the derived key and nonce. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
     \item The sender acknowledges the message by sending its signature to the receiver, using the same procedure described previously. The only difference is that we now concatenate $\alpha^x\ mod\ p$ and $\alpha^y\ mod\ p$. This is shown in Table~\ref{tab:key_exchange_packet_senderacknowledge}.
     \item The receiver checks this final message and verifies the signature. This way, it is able to assert the sender has received everything correctly too.
 \end{enumerate}
@@ -97,21 +97,21 @@ This handshake is the slowest part of the application, even after optimization. 
 
 \subsubsection{Signatures}
 
-The calculation of an RSA signature is standardised in RFC3447. We implemented the RSASSA-PKCS1-v1\_5 algorithm, using SHA-256 to calculate the hash. The STS protocol requires us to encrypt the signature. For this we use AES in CTR mode with the nonce and derived key. The counter value is set to zero for this encryption.\\
+The calculation of an RSA signature is standardized in RFC3447. We implemented the RSASSA-PKCS1-v1\_5 algorithm, using SHA-256 to calculate the hash. The STS protocol requires us to encrypt the signature. For this we use AES in CTR mode with the nonce and derived key. The counter value is set to zero for this encryption.\\
 
-We switched to SHA-256 instead of SHA-3 (which we chose in previous reports) because there is no standardised padding scheme available yet for this hash function. We evaluated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).
+We switched to SHA-256 instead of SHA-3 (which we chose in previous reports) because there is no standardized padding scheme available yet for this hash function. We evaluated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).
 
 \subsection{Key Derivation}
 \label{par:key_derivation}
 
-During the key exchange, we can derive the two keys (a 128-bit AES key, an 80-bit HMAC key) and the 64-bit nonce used in the CTR block cipher mode (see Paragraph~\ref{par:data_encryption}). These derivations are obtained by calculating SHA-256 hashes of the shared key with a 1, 2 and 3 appended at the end. Finally, for each key the required number of bits is selected from the hash.
+During the key exchange, the two keys (a 128-bit AES key, an 80-bit HMAC key) and the 64-bit nonce used in the CTR block cipher mode (see Paragraph~\ref{par:data_encryption}) can be derived. These derivations are obtained by calculating SHA-256 hashes of the shared key with a 1, 2 and 3 appended at the end. Finally, for each key the required number of bits is selected from the hash.
 
 \subsection{Data Encryption}
 \label{par:data_encryption}
 
 Because of the realtime character of the application, it is not possible to use modes which introduce a dependency between blocks. This restriction is imposed because some blocks might get lost during transmission. In a speech application lost blocks are not really an obstacle as long as enough blocks still arrive at the receiver.\\
 
-The main advantage of the CTR mode is the fact that it can be parallelised. To decrypt a block, you only need the nonce and the counter value. There are no other dependencies. This means that packets can be decrypted immediately after receiving them. Another advantage is that it only uses the AES encryption function for both encrypting and decrypting the data.\\
+The main advantage of the CTR mode is the fact that it can be parallelized. To decrypt a block, only the nonce and the counter value are needed. There are no other dependencies. This means that packets can be decrypted immediately after receiving them. Another advantage is that it only uses the AES encryption function for both encrypting and decrypting the data.\\
 
 \begin{figure}[h]
     \centering
@@ -138,7 +138,7 @@ In the final design, the input to the AES encryption function is given in Table~
 
 \subsection{HMAC}
 
-The authenticity of a data packet is asserted using an HMAC. This code is based on keyed-hash messages and is standardised in FIPS 198-1. We again use SHA-256 to calculate the hashes, which is one of the approved functions by NIST. We chose to use an HMAC because it allows for secure and fast message authentication.
+The authenticity of a data packet is asserted using an HMAC. This code is based on keyed-hash messages and is standardized in FIPS 198-1. We again use SHA-256 to calculate the hashes, which is one of the approved functions by NIST. We chose to use an HMAC because it allows for secure and fast message authentication.
 
 \section{Optimizations}
 
@@ -244,7 +244,7 @@ Another parameter that needed to be checked was that the SHRAM was still large e
 
 \subsection{Porting from CCS to the Board}
 
-Porting our seperate code from CSS to the Board was not very difficult. When our code was combined with that of the speech group, porting became more of a challenge as we encountered some memory issues. Apparently the memory size of both codes was too big to fit in SHRAM. After a long and hard day of debugging the conclusion was that our providence striked back as the buffer and channel sizes were unrealisticly high to fit on the DSP. After changing these to the minimum needed for the speech group, everything worked correctly.
+Porting our seperate code from CSS to the Board was not very difficult. When our code was combined with that of the speech group, porting became more of a challenge as we encountered some memory issues. Apparently the memory size of both codes was too big to fit in SHRAM. After a long and hard day of debugging the conclusion was that our providence struck back as the buffer and channel sizes were unrealisticly high to fit on the DSP. After changing these to the minimum needed for the speech group, everything worked correctly.
 
 \section{Conclusions}
 
