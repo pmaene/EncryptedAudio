@@ -132,13 +132,19 @@ We decided to use SHA2 instead of SHA3 (which we chose in previous reports) beca
 	\subsubsection{Impact of the Optimization}
 		The impact of this optimization is quite large as the multiply function is called many times during the handshake. This gives an optimization of $1,85071223\cdot10^{8}$ cycles.
 \subsection{Optimization of Conversion Functions}
-	This optimization is again an algorithmic specific optimization. 
+	This optimization is more an improvement of our code than a real DSP optimization. The optimization was applied in the handshake functions of the code located in protocol.c.\\
+	
+	All the contents of the field\_t type (the type we use for packets) are passed as char types even if the functions in the bigdigits library require a digit\_t as input. Before the conversion optimization all these digit\_t variables were first converted from digits to chars using the mpConvToOctets() function in the bigdigits library. The next function in the handshake then reconverted all these chars to digit\_t types using mpConvFromOctets() so they could be used by the bigdigits library.\\
+	
+	This conversion and reconversion of these large variables are not only cumbersome for the calculation time, they are also very inefficient in memory usage as each average pointer variable is around 150 bytes long and each conversion required a temporary variable as a destination for the conversion.\\
+	
+	
 \subsection{Restrict Optimization}
 	The addition of the restrict keyword in front of all our pointer variables is a real DSP optimization.
 	\subsubsection{Example}
 		The only changes that need to be made to implement the restrict optimization is adding the restrict keyword in front of all the pointer arguments in the function headers. An example of a function header with the restric keyword:
 		\lstinputlisting[language=C]{source/restrictheader.c}
-		An example of a function header before the restrict optimization:
+		An example of the same function header before the restrict optimization:
 		\lstinputlisting[language=C]{source/norestrictheader.c}
 	\subsubsection{Impact of the Optimization}
 	When the compiler is compiling code with a lot of pointer arguments, it is being very pessimistic about the content of the pointer arguments. For the compiler it is much safer to suppose all the contents of the pointer are changed during the function call except that in most implementations this assumption is too strong. When adding the restrict keyword in front of pointer arguments, the compiler supposes that only the current function is altering the values of the pointer. By doing so the compiler is able to parallelize most of the copying from and to that variable which gives a great improvement.\\
