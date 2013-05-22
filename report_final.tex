@@ -267,6 +267,15 @@ When the compiler is compiling code with a lot of pointer arguments, it is being
 
 As the average pointer variable in our code has a length of approximately 150 bytes, this optimization results in a much faster execution time. $2,43650955\cdot10^{8}$ cycles are saved by implementing this DSP optimization.
 
+\subsection{Load Double Word Optimization}
+The double word optimization was another optimization we tried to implement but did not give any significant improvements.
+
+\subsubsection{Example}
+\lstinputlisting[language=C]{source/nassert.c}
+
+\subsubsection{The Reason for Not Implementing}
+The reason we did not implement this is because of the \textbf{DATA\_ALIGN} pragma which can not be defined on a function level. As an attentive reader would remark the previous code snippet will give compilation errors as the pragma does not recognize the \textit{encryptedData} variable which is only defined on function level. As it would be too cumbersome for us as programmers to keep track of all our variables as they would be defined globally we chose not to implement this optimization.
+
 \section{Porting and Integration}
 
 \subsection{Porting from Linux to CCS}
@@ -280,15 +289,6 @@ Another parameter that needed to be checked was that the SRAM was still large en
 \subsection{Porting from CCS to the Board}
 Porting our seperate code from CSS to the Board was not very difficult. When our code was combined with the code of the speech group, porting became more of a challenge as we encountered some memory issues. Apparently the memory size of both codes was too big to fit in SRAM. After a long and hard day of debugging the conclusion was that our providence striked back as the buffer size was unrealisticly high to fit on the DSP. After changing these buffer sizes to the minimum needed for the speech group, everything worked correctly.
 
-\section{Load Double Word Optimization}
-The double word optimization was another optimization we tried to implement but did not give any significant improvements.
-
-\subsection{Example}
-\lstinputlisting[language=C]{source/nassert.c}
-
-\subsection{The Reason for Not Implementing}
-The reason we did not implement this is because of the \textbf{DATA\_ALIGN} pragma which can not be defined on a function level. As an attentive reader would remark the previous code snippet will give compilation errors as the pragma does not recognize the \textit{encryptedData} variable which is only defined on function level. As it would be too cumbersome for us as programmers to keep track of all our variables as they would be defined globally we chose not to implement this optimization.
-
 \section{Lessons Learnt}
 One of the more important lessons we have learned is that implementing an algorithm on an embedded system is not just writing some C code. For an embedded system the challenge only starts when the code is functioning correctly. Although our code did not lent itself for loop optimizations as the speechcode did, still a lot of improvement could be made by giving the compiler some hints for optimizations.\\
 
@@ -299,5 +299,6 @@ Although compilers are already quite smart, some optimizations like the \textbf{
 A final very important lesson is although the code of both teams is working correctly on its own, it does not guarantee a correct functioning system. Of course the rule of thumb in engineering is that it is always the other team's responsibility...
 
 \section{Conclusions}
+We designed our own encryption and decryption framework during this semester. More straightforward schemes were chosen for the implementation like an HMAC, CTR, RSA and AES as they are well known and fast to implement. During implementation a lot of optimizations for the DSP were tried. The CRT optimization and the restrict optimization gave rise to more significant improvements. During the porting process some practicalties were encountered which have been resolved successfully. This whole process gave resulted in hard work and sometimes a headache but in the end some valuable lessons could be learned.
 
 \end{document}
