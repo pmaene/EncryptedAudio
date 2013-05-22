@@ -47,6 +47,7 @@
 \maketitle
 
 \section{Overview}
+In this report we discuss all the details of the P\&D project for multimedia and embedded systems. First a description of our application is given. All design decisions and the complete architecture are described. In the next part of this report more details about optimizations and the implementation of the application are given. Finally all issues and difficulties about porting the resulting algorithm to the DSP are given.
 
 \section{Application Description}
 
@@ -232,6 +233,15 @@ Another parameter that needed to be checked was that the SRAM was still large en
 
 \subsection{Porting from CCS to the Board}
 Porting our seperate code from CSS to the Board was not very difficult. When our code was combined with the code of the speech group, porting became more of a challenge as we encountered some memory issues. Apparently the memory size of both codes was too big to fit in SRAM. After a long and hard day of debugging the conclusion was that our providence striked back as the buffer size was unrealisticly high to fit on the DSP. After changing these buffer sizes to the minimum needed for the speech group, everything worked correctly.
+
+\section{Load Double Word Optimization}
+The double word optimization was another optimization we tried to implement but did not give any significant improvements.
+
+\subsection{Example}
+\lstinputlisting[language=C]{source/nassert.c}
+
+\subsection{The Reason for Not Implementing}
+The reason we did not implement this is because of the \textbf{DATA\_ALIGN} pragma which can not be defined on a function level. As an attentive reader would remark the previous code snippet will give compilation errors as the pragma does not recognize the \textit{encryptedData} variable which is only defined on function level. As it would be too cumbersome for us as programmers to keep track of all our variables as they would be defined globally we chose not to implement this optimization.
 
 \section{Lessons Learnt}
 One of the more important lessons we have learned is that implementing an algorithm on an embedded system is not just writing some C code. For an embedded system the challenge only starts when the code is functioning correctly. Although our code did not lent itself for loop optimizations as the speechcode did, still a lot of improvement could be made by giving the compiler some hints for optimizations.\\
