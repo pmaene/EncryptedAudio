@@ -7,6 +7,7 @@
 
 # Do not version CCS's configuration
 .settings/
+*.ccxml
 
 # Gedit isn't very nice
 *~
