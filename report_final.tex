@@ -54,7 +54,8 @@ The application consists of two main parts: the handshake and the encryption of 
 
 \subsection{Handshake}
 
-\begin{center}
+\begin{figure}[h]
+    \centering
     \begin{tikzpicture}[auto, node distance=8cm, thick]
         \node [cloud] (sender) {Sender};
         \node [block, below of=sender] (senderHello) {senderHello\\\textit{\ \ getRandom()}};
@@ -72,7 +73,10 @@ The application consists of two main parts: the handshake and the encryption of 
         \path [arrow] (receiverHello) edge (checkSenderAcknowledge);
         \path [arrow] (senderAcknowledge) edge (iReceiverHello);
     \end{tikzpicture}
-\end{center}
+    
+    \caption{Handshake with Important Functions}
+    \label{fig:handshake_with_functions}
+\end{figure}
 
 \subsubsection{Protocol Messages}
 In the Station-to-Station protocol, three messages will be exchanged between the sender and receiver. After this three-way handshake both DSPs will have enough information to calculate two keys (a 128-bit AES key, an 80-bit HMAC key) and a 64-bit nonce used in the CTR mode.
@@ -122,14 +126,14 @@ In the Station-to-Station protocol, three messages will be exchanged between the
             \hline
         \end{tabular}
     \end{center}
-    
+
     \caption{Key Exchange Packet---SenderAcknowledge}
     \label{tab:key_exchange_packet_senderacknowledge}
 \end{table}
 
 We decided to use SHA2 instead of SHA3 (which we chose in previous reports) because there is no standardised RSA padding scheme (like PKCS for SHA2) available yet for this hash function. We evualated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).\\
 
-The handshake is rather slow, mainly because there are a lot of modular exponentiations (both in calculating the Diffie-Hellman exponentions and the RSA Sign
+This is a rather slow, mainly because there are a lot of modular exponentiations (both in calculating the Diffie-Hellman exponentions and the RSA Sign
 
 \subsubsection{Signature Calculation}
 
@@ -137,22 +141,30 @@ The signature calculation is the part of the handshake that takes the longest. T
 
 \subsection{Data Encryption}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.75]{ctr_encryption.png}
+    \caption{CTR Encryption---Source: Wikipedia}
+    \label{fig:ctr_encryption}
+\end{figure}
+
 \section{Optimizations}
 
 \subsection{Optimization Table}
 
 \begin{center}
-	\begin{tabular}{| l | c | r |}
-		\hline
-		Code Stage & Number of Cycles & Code Gain \\ \hline
-		Base Code & $6,20662313 \cdot 10^{8}$ 	& $0\%$ \\
-		CRT Optimization & $4,35591090 \cdot 10^{8}$ & $29,82\%$ \\
-		USE64WITH32 Optimization 	& $4,29177952 \cdot 10^{8}$ & $1,03\%$ \\
-		Optimization of Conversion Functions & $4,24002677 \cdot 10^{8}$ & $0,83\%$ \\
-		Restrict Optimization	 & $1,80351722 \cdot 10^{8}$ & $39,26\%$ \\
-		\hline
-	\end{tabular}
+    \begin{tabular}{| l | c | r |}
+        \hline
+        Code Stage & Number of Cycles & Code Gain \\ \hline
+        Base Code & $6,20662313 \cdot 10^{8}$ 	& $0\%$ \\
+        CRT Optimization & $4,35591090 \cdot 10^{8}$ & $29,82\%$ \\
+        USE64WITH32 Optimization 	& $4,29177952 \cdot 10^{8}$ & $1,03\%$ \\
+        Optimization of Conversion Functions & $4,24002677 \cdot 10^{8}$ & $0,83\%$ \\
+        Restrict Optimization	 & $1,80351722 \cdot 10^{8}$ & $39,26\%$ \\
+        \hline
+    \end{tabular}
 \end{center}
+
 \subsection{CRT Optimization}
 The implementation of the Chinese Remainder Theorem is an algorithmic optimization and not a DSP specific one. 
 
@@ -167,7 +179,7 @@ USE64\_WITH32 is a $\#$define statement in the BigDigits library we are using. I
 \subsubsection{Example}
 When the USE\_64WITH32 flag is set the following code is called for the multiply function. The performance gain can be seen as there is no seperate code to do the transfer of carry bits from one 32-bit variable to another.
 
-\lstinputlisting[language=C]{source/use64.c}
+%\lstinputlisting[language=C]{source/use64.c}
 
 \subsubsection{Impact of the Optimization}
 The impact of this optimization is quite large as the multiply function is called many times during the handshake. This gives an optimization of $1,85071223\cdot10^{8}$ cycles.
@@ -175,20 +187,21 @@ The impact of this optimization is quite large as the multiply function is calle
 \subsection{Optimization of Conversion Functions}
 This optimization is more an improvement of our code than a real DSP optimization. The optimization was applied in the handshake functions of the code located in protocol.c.\\
 
-All the contents of the field\_t type (the type we use for packets) are passed as char types even if the functions in the bigdigits library require a digit\_t as input. Before the conversion optimization all these digit\_t variables were first converted from digits to chars using the mpConvToOctets() function in the bigdigits library. The next function in the handshake then reconverted all these chars to digit\_t types using mpConvFromOctets() so they could be used by the bigdigits library.\\
+All the contents of the field\_t type (the type we use for packets) are passed as char types even if the functions in the bigdigits library require a digit\_t as input. Before the conversion optimization all these digit\_t variables were first converted from digits to chars using the mpConvToOctets() function in the bigdigits library. The next function in the handshake then reconverted all these chars to digit\_t types using \textit{mpConvFromOctets()} so they could be used by the bigdigits library.\\
 
 This conversion and reconversion of these large variables are not only cumbersome for the calculation time, they are also very inefficient in memory usage as each average pointer variable is around 150 bytes long and each conversion required a temporary variable as a destination for the conversion.\\
 
 \subsection{Restrict Optimization}
-The addition of the restrict keyword in front of all our pointer variables is a real DSP optimization.
+
+The addition of the \textbf{restrict} keyword to all our pointer variables is an intrinsic DSP optimization.
 
 \subsubsection{Example}
 The only changes that need to be made to implement the restrict optimization is adding the restrict keyword in front of all the pointer arguments in the function headers. An example of a function header with the restric keyword:
 
-\lstinputlisting[language=C]{source/restrictheader.c}
+%\lstinputlisting[language=C]{source/restrictheader.c}
 An example of the same function header before the restrict optimization:
 
-\lstinputlisting[language=C]{source/norestrictheader.c}
+%\lstinputlisting[language=C]{source/norestrictheader.c}
 
 \subsubsection{Impact of the Optimization}
 When the compiler is compiling code with a lot of pointer arguments, it is being very pessimistic about the content of the pointer arguments. For the compiler it is much safer to suppose all the contents of the pointer are changed during the function call except that in most implementations this assumption is too strong. When adding the restrict keyword in front of pointer arguments, the compiler supposes that only the current function is altering the values of the pointer. By doing so the compiler is able to parallelize most of the copying from and to that variable which gives a great improvement.\\
