@@ -11,7 +11,7 @@ void sender_construct();
 
 void sender_senderHello();
 int sender_senderAcknowledge();
-void sender_deriveKey(uint8_t aesKey[], uint8_t CTRNonce[], digit_t *modExp);
+void sender_deriveKeys(uint8_t aesKey[], uint8_t CTRNonce[], digit_t *modExp);
 int sender_sendData();
 
 #endif

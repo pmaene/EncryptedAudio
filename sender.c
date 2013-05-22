@@ -65,11 +65,11 @@ int sender_senderAcknowledge() {
     return returnStatus;
 }
 
-void sender_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
+void sender_deriveKeys(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
     #ifndef __ENC_NO_PRINTS__
-        printf("--> sender_deriveKey\n");
+        printf("--> sender_deriveKeys\n");
     #endif
 
     memcpy(sender_receiverModExp, modExp, ENC_PRIVATE_KEY_DIGITS);

@@ -57,11 +57,11 @@ int receiver_receiverHello() {
     return returnStatus;
 }
 
-void receiver_deriveKey(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
+void receiver_deriveKeys(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp) {
 	digit_t symmetricKey[ENC_PRIVATE_KEY_DIGITS];
 
     #ifndef __ENC_NO_PRINTS__
-        printf("--> receiver_deriveKey\n");
+        printf("--> receiver_deriveKeys\n");
     #endif
 
     memcpy(receiver_senderModExp, modExp, ENC_PRIVATE_KEY_DIGITS);

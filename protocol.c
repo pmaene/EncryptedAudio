@@ -57,7 +57,7 @@ int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receive
     mpConvFromOctets(senderModExp, ENC_PRIVATE_KEY_DIGITS, cSenderModExp, ENC_PRIVATE_KEY_CHARS);
 
     // Derive Keys
-    receiver_deriveKey(receiverAESKey, receiverCTRNonce, senderModExp);
+    receiver_deriveKeys(receiverAESKey, receiverCTRNonce, senderModExp);
 
     // Create Signature
     memset(signature, 0, sizeof(signature));
@@ -118,7 +118,7 @@ int senderAcknowledge(field_t *sendPacket, field_t *receivedPacket, digit_t *sen
     mpConvFromOctets(receiverModExp, ENC_PRIVATE_KEY_DIGITS, cReceiverModExp, ENC_PRIVATE_KEY_CHARS);
 
     //deriveKey from receiverModExp
-    sender_deriveKey(senderAESKey, senderCTRNonce, receiverModExp);
+    sender_deriveKeys(senderAESKey, senderCTRNonce, receiverModExp);
 
     // Decrypt signature
     memcpy(encryptedSignature, receivedPacket+ENC_PRIVATE_KEY_CHARS+1, ENC_ENCRYPTED_SIGNATURE_CHARS);
