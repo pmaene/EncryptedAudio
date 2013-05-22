@@ -244,7 +244,19 @@ Another parameter that needed to be checked was that the SHRAM was still large e
 
 \subsection{Porting from CCS to the Board}
 
-Porting our seperate code from CSS to the Board was not very difficult. When our code was combined with that of the speech group, porting became more of a challenge as we encountered some memory issues. Apparently the memory size of both codes was too big to fit in SHRAM. After a long and hard day of debugging the conclusion was that our providence struck back as the buffer and channel sizes were unrealisticly high to fit on the DSP. After changing these to the minimum needed for the speech group, everything worked correctly.
+Porting our seperate code from CSS to the Board was not very difficult. When our code was combined with that of the speech group, porting became more of a challenge as we encountered some memory issues. Apparently the memory size of both codes was too big to fit in SHRAM. After a long and hard day of debugging the conclusion was that our providence struck back as the buffer and channel sizes were unrealisticly high to fit on the DSP. After changing these to the minimum needed for the speech group, everything worked correctly.\\
+
+\section{Lessons Learnt}
+
+One of the more important lessons we have learned is that implementing an algorithm on an embedded system is not just writing some C code. For an embedded system the challenge only starts when the code is functioning correctly. Although our code did not lend itself for loop optimizations as the speech code did, still a lot of improvement could be made by giving the compiler some hints for optimizations.\\
+
+Another very important lesson we learned is that compilers are already pretty good at optimizing code. In our quest for hinting optimizations we never managed to achieve a better compilation time than the compiler could with level two optimizations enabled.\\
+
+Although compilers are already quite smart, it cannot achieve some optimizations---like the \textbf{restrict} keyword---on its own. Extensive knowledge of the algorithm together with the compiler's optimization knowledge are the road to a fast execution time.\\
+
+A final very important lesson is that although the code of both teams is working correctly on its own, it does not guarantee a correctly functioning system. Of course the rule of thumb in engineering is that it is always the other team's responsibility\ldots\\
+
+Logistically, we think the workload could be spread out a bit more evenly. During the first part of the semester there are three sessions a week. This is fine during the first few weeks, when you have to start building the application from the ground up. However, during the final weeks before the holiday there was less to do during some of them. It would be better if some sessions were moved back to the second part of the semester so that there is a bit more time to work on the DSPs. As a final remark, a deadline during the penultimate week of the semester would also be a better.
 
 \section{Conclusions}
 
