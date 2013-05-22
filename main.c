@@ -12,7 +12,6 @@
 #include "codec.h"
 #include "encode.h"
 #include "decode.h"
-#include "functions.h"
 
 void _handshake();
 void _transmit();
