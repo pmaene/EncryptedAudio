@@ -124,16 +124,26 @@ We decided to use SHA2 instead of SHA3 (which we chose in previous reports) beca
 	\subsubsection{Example}
 		SOME THEORETICAL EXAMPLE HERE
 	\subsubsection{Impact of the Optimization}
-	\subsubsection{Reasoning Behind the Impact}
 \subsection{USE64WITH32 Optimization}
-	USE64WITH32 is a $\#$define statement in the BigDigits library we are using. If this switch is activated, 64-bit behavior is simulated in 32-bit environment.
+	USE64\_WITH32 is a $\#$define statement in the BigDigits library we are using. If this switch is activated, 64-bit behavior is simulated in 32-bit environment in C.
 	\subsubsection{Example}
-		When the USE\_64WITH32 flag is set the following code is called for the multiply function.
+		When the USE\_64WITH32 flag is set the following code is called for the multiply function. The performance gain can be seen as there is no seperate code to do the transfer of carry bits from one 32-bit variable to another.
 		\lstinputlisting[language=C]{source/use64.c}
 	\subsubsection{Impact of the Optimization}
-	\subsubsection{Reasoning Behind the Impact}
+		The impact of this optimization is quite large as the multiply function is called many times during the handshake. This gives an optimization of $1,85071223\cdot10^{8}$ cycles.
 \subsection{Optimization of Conversion Functions}
 	This optimization is again an algorithmic specific optimization. 
+\subsection{Restrict Optimization}
+	The addition of the restrict keyword in front of all our pointer variables is a real DSP optimization.
+	\subsubsection{Example}
+		The only changes that need to be made to implement the restrict optimization is adding the restrict keyword in front of all the pointer arguments in the function headers. An example of a function header with the restric keyword:
+		\lstinputlisting[language=C]{source/restrictheader.c}
+		An example of a function header before the restrict optimization:
+		\lstinputlisting[language=C]{source/norestrictheader.c}
+	\subsubsection{Impact of the Optimization}
+	When the compiler is compiling code with a lot of pointer arguments, it is being very pessimistic about the content of the pointer arguments. For the compiler it is much safer to suppose all the contents of the pointer are changed during the function call except that in most implementations this assumption is too strong. When adding the restrict keyword in front of pointer arguments, the compiler supposes that only the current function is altering the values of the pointer. By doing so the compiler is able to parallelize most of the copying from and to that variable which gives a great improvement.\\
+	
+	As the average pointer variable in our code has a length of approximately 150 bytes, this optimization results in a much faster execution time. $2,43650955\cdot10^{8}$ cycles are saved by implementing this DSP optimization.
 \section{Porting and Integration}
 
 \section{Lessons Learnt}
