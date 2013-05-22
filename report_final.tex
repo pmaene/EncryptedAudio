@@ -10,6 +10,7 @@
 \usepackage{listings}
 \usepackage{color}
 \usepackage{tikz}
+\usepackage[toc,page]{appendix}
 
 \marginsize{2.5cm}{2.5cm}{1.5cm}{1.5cm}
 \setlength{\parindent}{0pt}
@@ -40,7 +41,7 @@
     captionpos=b,
     breaklines=true,
     xleftmargin=30pt,
-    basicstyle=\footnotesize\ttfamily, 
+    basicstyle=\ttfamily, 
     breakatwhitespace=true
 }
 
@@ -90,49 +91,6 @@ In the Station-to-Station protocol, three messages will be exchanged between the
     \item The receiver checks this final message and verifies the signature. This way, it is able to assert the sender has received correctly too.
 \end{enumerate}
 
-\begin{table}[H]
-    \begin{center}
-        \begin{tabular}{| c | c |}
-            \hline
-            TAG & KEY \\ \hline\hline
-            1B & 156B \\ \hline
-            0x00 & $\alpha^x\mod{p}$ \\
-            \hline
-        \end{tabular}
-    \end{center}
-    \
-    \caption{Key Exchange Packet---SenderHello [Bytes]}
-    \label{tab:key_exchange_packet_senderhello}
-\end{table}
-\begin{table}[H]
-    \begin{center}
-        \begin{tabular}{| c | c | c |}
-            \hline
-            TAG & KEY & SIGNATURE \\ \hline\hline
-            1B & 156B & 20B \\ \hline
-            0x01 & $\alpha^y\mod{p}$ & $\text{AES}_\text{K}\left(\left(\text{SHA-256}\left(\text{PKCS}\left(\alpha^y\small|\alpha^x\right)\right)\right)^{d_R}\mod{n_R}\right)$\\
-            \hline
-        \end{tabular}
-    \end{center}
-    
-    \caption{Key Exchange Packet---ReceiverHello [Bytes]}
-    \label{tab:key_exchange_packet_receiverhello}
-\end{table}
-\begin{table}[H]
-    \begin{center}
-        \begin{tabular}{| c | c |}
-            \hline
-            TAG & SIGNATURE \\ \hline\hline
-            1B & 20B \\ \hline
-            0x02 & $\text{AES}_\text{K}\left(\left(\text{SHA-256}\left(\text{PKCS}\left(\alpha^x \small|\alpha^y\right)\right)\right)^{d_S}\mod{n_S}\right)$\\
-            \hline
-        \end{tabular}
-    \end{center}
-
-    \caption{Key Exchange Packet---SenderAcknowledge [Bytes]}
-    \label{tab:key_exchange_packet_senderacknowledge}
-\end{table}
-
 We decided to use SHA2 instead of SHA3 (which we chose in previous reports) because there is no standardised RSA padding scheme (like PKCS for SHA2) available yet for this hash function. We evualated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).\\
 
 This is a rather slow, mainly because there are a lot of modular exponentiations (both in calculating the Diffie-Hellman exponentions and the RSA Sign
@@ -164,7 +122,7 @@ The mean advantage of the CTR mode is the fact that it can be parallelised. To d
 
 In the final design, the input to the AES encryption function is given in Table~\ref{tab:ctr_mode_aes_encryption_input}. As we saw in Paragraph~\ref{par:key_derivation}, the 64-bit nonce is derived from the shared key. Furthermore, we actually have two counter: one for the packets and for the blocks inside this packet. The former denotes the current packet and is transmitted along with the data (see Table~\ref{tab:data_packet}). We take care to restart the handshake when this counter wraps around. This is necessary, because otherwise if a repeat of a given plaintext would result in the same ciphertext. The latter is required because each plaintext block can only be 128 bits long. To encrypt larger packets, we need this second counter value to have a unique encryption result.
 
-\begin{table}[H]
+\begin{table}[h]
     \begin{center}
         \begin{tabular}{| c | c | c |}
             \hline
@@ -176,19 +134,6 @@ In the final design, the input to the AES encryption function is given in Table~
 
     \caption{CTR Mode---AES Encryption Input [Bytes]}
     \label{tab:ctr_mode_aes_encryption_input}
-\end{table}
-\begin{table}[H]
-    \begin{center}
-        \begin{tabular}{| c | c | c | c | c |}
-            \hline
-            TAG & COUNTER & DATA & HMAC \\ \hline
-            1B & 4B & 128B & 20B \\
-            \hline
-        \end{tabular}
-    \end{center}
-    
-    \caption{Data Packet}
-    \label{tab:data_packet}
 \end{table}
 
 \subsection{HMAC}
@@ -227,7 +172,7 @@ USE64\_WITH32 is a $\#$define statement in the BigDigits library we are using. I
 \subsubsection{Example}
 When the USE\_64WITH32 flag is set the following code is called for the multiply function. The performance gain can be seen as there is no seperate code to do the transfer of carry bits from one 32-bit variable to another.
 
-\lstinputlisting[language=C]{source/use64.c}
+\lstinputlisting{source/use64.c}
 
 \subsubsection{Impact of the Optimization}
 The impact of this optimization is quite large as the multiply function is called many times during the handshake. This gives an optimization of $1,85071223\cdot10^{8}$ cycles.
@@ -243,9 +188,9 @@ The optimization is just a cast of the \textbf{digit\_t} variable to a char so i
 
 \subsubsection{Example}
 The following C snippet demonstrates the \textit{senderHello()} function before the optimization:
-\lstinputlisting[language=C]{source/senderHelloNoOptimization.c}
+\lstinputlisting{source/senderHelloNoOptimization.c}
 The following C snippet demonstrates the \textit{senderHello()} function after the optimization:
-\lstinputlisting[language=C]{source/senderHelloConversionOptimization.c}
+\lstinputlisting{source/senderHelloConversionOptimization.c}
 
 \subsubsection{Impact of the Optimization}
 The conversion optimization gives a saving of $5,175275\cdot10^{6}$ cycles. Again this gain in cycles is this great because of the length of the variables. Also the memory usage is more efficient as we save a lot of temporary variables.
@@ -257,10 +202,10 @@ The addition of the \textbf{restrict} keyword to all our pointer variables is an
 \subsubsection{Example}
 The only changes that need to be made to implement the restrict optimization is adding the restrict keyword in front of all the pointer arguments in the function headers. An example of a function header with the restric keyword:
 
-\lstinputlisting[language=C]{source/restrictheader.c}
+\lstinputlisting{source/restrictheader.c}
 An example of the same function header before the restrict optimization:
 
-\lstinputlisting[language=C]{source/norestrictheader.c}
+\lstinputlisting{source/norestrictheader.c}
 
 \subsubsection{Impact of the Optimization}
 When the compiler is compiling code with a lot of pointer arguments, it is being very pessimistic about the content of the pointer arguments. For the compiler it is much safer to suppose all the contents of the pointer are changed during the function call except that in most implementations this assumption is too strong. When adding the restrict keyword in front of pointer arguments, the compiler supposes that only the current function is altering the values of the pointer. By doing so the compiler is able to parallelize most of the copying from and to that variable which gives a great improvement.\\
@@ -284,7 +229,7 @@ Porting our seperate code from CSS to the Board was not very difficult. When our
 The double word optimization was another optimization we tried to implement but did not give any significant improvements.
 
 \subsection{Example}
-\lstinputlisting[language=C]{source/nassert.c}
+\lstinputlisting{source/nassert.c}
 
 \subsection{The Reason for Not Implementing}
 The reason we did not implement this is because of the \textbf{DATA\_ALIGN} pragma which can not be defined on a function level. As an attentive reader would remark the previous code snippet will give compilation errors as the pragma does not recognize the \textit{encryptedData} variable which is only defined on function level. As it would be too cumbersome for us as programmers to keep track of all our variables as they would be defined globally we chose not to implement this optimization.
@@ -299,5 +244,90 @@ Although compilers are already quite smart, some optimizations like the \textbf{
 A final very important lesson is although the code of both teams is working correctly on its own, it does not guarantee a correct functioning system. Of course the rule of thumb in engineering is that it is always the other team's responsibility...
 
 \section{Conclusions}
+
+\newpage
+
+\begin{appendices}
+
+\section{Packets}
+
+\begin{table}[h!]
+    \begin{center}
+        \begin{tabular}{| c | c |}
+            \hline
+            TAG & KEY \\ \hline\hline
+            1B & 156B \\ \hline
+            0x00 & $\alpha^x\mod{p}$ \\
+            \hline
+        \end{tabular}
+    \end{center}
+    \
+    \caption{Key Exchange Packet---SenderHello [Bytes]}
+    \label{tab:key_exchange_packet_senderhello}
+\end{table}
+\begin{table}[h!]
+    \begin{center}
+        \begin{tabular}{| c | c | c |}
+            \hline
+            TAG & KEY & SIGNATURE \\ \hline\hline
+            1B & 156B & 20B \\ \hline
+            0x01 & $\alpha^y\mod{p}$ & $\text{AES}_\text{K}\left(\left(\text{SHA-256}\left(\text{PKCS}\left(\alpha^y\small|\alpha^x\right)\right)\right)^{d_R}\mod{n_R}\right)$\\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Key Exchange Packet---ReceiverHello [Bytes]}
+    \label{tab:key_exchange_packet_receiverhello}
+\end{table}
+\begin{table}[h!]
+    \begin{center}
+        \begin{tabular}{| c | c |}
+            \hline
+            TAG & SIGNATURE \\ \hline\hline
+            1B & 20B \\ \hline
+            0x02 & $\text{AES}_\text{K}\left(\left(\text{SHA-256}\left(\text{PKCS}\left(\alpha^x \small|\alpha^y\right)\right)\right)^{d_S}\mod{n_S}\right)$\\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    \caption{Key Exchange Packet---SenderAcknowledge [Bytes]}
+    \label{tab:key_exchange_packet_senderacknowledge}
+\end{table}
+\begin{table}[h!]
+    \begin{center}
+        \begin{tabular}{| c | c | c | c | c |}
+            \hline
+            TAG & COUNTER & DATA & HMAC \\ \hline
+            1B & 4B & 128B & 20B \\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    \caption{Data Packet [Bytes]}
+    \label{tab:data_packet}
+\end{table}
+
+\newpage
+
+\section{Function List}
+
+\subsection{buffer.c}
+
+\begin{lstlisting}[numbers=none, xleftmargin=0pt]
+void buffer\_construct();
+void buffer\_write(field\_t *restrict data, size\_t length);
+void buffer\_read(field\_t *restrict data, size\_t length);
+bool buffer\_isModified();
+\end{lstlisting}
+
+\subsection{channel.c}
+
+\begin{lstlisting}[numbers=none, xleftmargin=0pt]
+void channel_construct();
+void channel_write(field_t *restrict data, size_t length);
+void channel_read(field_t *restrict data, size_t length);
+\end{lstlisting}
+
+\end{appendices}
 
 \end{document}
