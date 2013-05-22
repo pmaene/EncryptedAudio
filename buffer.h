@@ -10,7 +10,7 @@
 #include "types.h"
 
 // Channel Parameters
-#define ENC_BUFFER_CHARS 8
+#define ENC_BUFFER_CHARS 128
 
 void buffer_construct();
 void buffer_write(field_t *restrict data, size_t length);

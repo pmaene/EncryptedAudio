@@ -10,7 +10,7 @@
 #include "types.h"
 
 // Channel Parameters
-#define ENC_CHANNEL_CHARS 512
+#define ENC_CHANNEL_CHARS 328
 #define ENC_DROP_RATE     0
 
 void channel_construct();

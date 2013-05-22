@@ -44,7 +44,7 @@ SECTIONS
 	.data          >  SHRAM
 	.switch        >  SHRAM
 	.sysmem        >  SHRAM
-	.far           >  SHRAM
+	.far           >  DDR2
     .args          >  SHRAM
 	.ppinfo        >  SHRAM
 	.ppdata        >  SHRAM
