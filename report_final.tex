@@ -48,11 +48,11 @@
 \maketitle
 
 \section{Overview}
-In this report we discuss all the details of the P\&D project for multimedia and embedded systems. First a description of our application is given. All design decisions and the complete architecture are described. In the next part of this report more details about optimizations and the implementation of the application are given. Finally all issues and difficulties about porting the resulting algorithm to the DSP are given.
+In this report we discuss all the details of the P\&D project for Multimedia and Embedded Systems. First a description of our application is given. All design decisions and the complete architecture are described. In the next part of this report more details about optimizations and the implementation of the application are given. Finally all issues and difficulties about porting the resulting application to the DSP are given.
 
 \section{Application Description}
 
-The application consists of two main parts: the handshake and the encryption of data packets. For the handshake we use the STS protocol, while the encryption is based on AES-CTR. In this section, we will cover both of them in depth.
+The application consists of two main parts: the handshake and the encryption of data packets. For the handshake we use the STS protocol while the encryption is based on AES-CTR. In this section, we will cover both of them in depth.
 
 \subsection{Handshake}
 
@@ -76,42 +76,42 @@ The application consists of two main parts: the handshake and the encryption of 
         \path [arrow] (senderAcknowledge) edge (iReceiverHello);
     \end{tikzpicture}
     
-    \caption{Handshake with Important Functions}
+    \caption{Handshake with Some Important Functions}
     \label{fig:handshake_with_functions}
 \end{figure}
 
 \subsubsection{Protocol Messages}
 
-In the Station-to-Station protocol, three messages will be exchanged between the sender and receiver. After this three-way handshake both DSPs will have enough information to derice all necessary keys.
+In the Station-to-Station protocol, three messages will be exchanged between the sender and receiver. After this three-way handshake both DSPs will have enough information to derive all necessary keys. This key exchange is listed as Protocol 12.57 in the Handbook of Applied Cryptography.
 
 \begin{enumerate}
     \item The sender generates a random number $x$ and then sends $\alpha^x\ mod\ p$ to the receiver. This is shown in Table~\ref{tab:key_exchange_packet_senderhello}.
     \item The receiver generates a random number $y$ and sends $\alpha^y\ mod\ p$ to the sender. We then calculate the RSA signature of the concatenation of $\alpha^y\ mod\ p$ and $\alpha^x\ mod\ p$. This signature is then encrypted using the derived key and nonce. This is shown in Table~\ref{tab:key_exchange_packet_receiverhello}.
-    \item The sender acknowledges the message from the receiver by sending its signature to the receiver, using the same procedure described previously. The only difference is that we now concatenate $\alpha^x\ mod\ p$ and $\alpha^y\ mod\ p$. This is shown in Table~\ref{tab:key_exchange_packet_senderacknowledge}.
-    \item The receiver checks this final message and verifies the signature. This way, it is able to assert the sender has received correctly too.
+    \item The sender acknowledges the message by sending its signature to the receiver, using the same procedure described previously. The only difference is that we now concatenate $\alpha^x\ mod\ p$ and $\alpha^y\ mod\ p$. This is shown in Table~\ref{tab:key_exchange_packet_senderacknowledge}.
+    \item The receiver checks this final message and verifies the signature. This way, it is able to assert the sender has received everything correctly too.
 \end{enumerate}
 
-We decided to use SHA2 instead of SHA3 (which we chose in previous reports) because there is no standardised RSA padding scheme (like PKCS for SHA2) available yet for this hash function. We evualated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).\\
+We decided to use SHA-256 instead of SHA3 (which we chose in previous reports) because there is no standardized RSA padding scheme (like PKCS for SHA-256) available yet for this hash function. We evualated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).\\
 
-This is a rather slow, mainly because there are a lot of modular exponentiations (both in calculating the Diffie-Hellman exponentions and the RSA Sign
+This handshake is the slowest part of the application, even after optimization. This is mainly because there are a lot of modular exponentiations (both in calculating the protocol messages and the RSA signature). However, as this is only done once for each session (or after the rare case the counter wraps around) this is not really an issue.
 
 \subsubsection{Signatures}
 
-The calculation of an RSA signature is standardised in RFC3447. We implemented the RSASSA-PKCS1-v1\_5 algorithm, using SHA-256 to calculate the hash. Finally, the STS protocol requires us to encrypt the signature. For this we use AES in CTR mode with the derived key and nonce. The counter value is set to zero for this encryption.\\
+The calculation of an RSA signature is standardised in RFC3447. We implemented the RSASSA-PKCS1-v1\_5 algorithm, using SHA-256 to calculate the hash. The STS protocol requires us to encrypt the signature. For this we use AES in CTR mode with the nonce and derived key. The counter value is set to zero for this encryption.\\
 
-We switched to SHA-256 instead of SHA-3 (which we chose in previous reports) because there is no standardised RSA padding scheme available yet for this hash function. We evaluated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).
+We switched to SHA-256 instead of SHA-3 (which we chose in previous reports) because there is no standardised padding scheme available yet for this hash function. We evaluated our RSA implementation using a test vector provided by Mikhail Fomichev and Shayan Kaman Zadeh (Crypto 8).
 
 \subsection{Key Derivation}
 \label{par:key_derivation}
 
-After the key exchange is done, we can derive the two keys (a 128-bit AES key, an 80-bit HMAC key) and the 64-bit nonce used in the CTR block cipher mode (see Paragraph~\ref{par:data_encryption}). These derivations are obtained by calculating SHA-256 hashes of the shared key with a 1, 2 and 3 appended at the end. Finally, for each key the required number of bits is selected from the hash.
+During the key exchange, we can derive the two keys (a 128-bit AES key, an 80-bit HMAC key) and the 64-bit nonce used in the CTR block cipher mode (see Paragraph~\ref{par:data_encryption}). These derivations are obtained by calculating SHA-256 hashes of the shared key with a 1, 2 and 3 appended at the end. Finally, for each key the required number of bits is selected from the hash.
 
 \subsection{Data Encryption}
 \label{par:data_encryption}
 
-Because of the realtime character of the application, it is not possible to use modes which introduce a dependency between blocks. This restriction is imposed because some blocks might get lost during transmission. In a speech application lost blocks are not really an obstacle as long as enough blocks still arive at the receiver.\\
+Because of the realtime character of the application, it is not possible to use modes which introduce a dependency between blocks. This restriction is imposed because some blocks might get lost during transmission. In a speech application lost blocks are not really an obstacle as long as enough blocks still arrive at the receiver.\\
 
-The mean advantage of the CTR mode is the fact that it can be parallelised. To decrypt a block, you only need the nonce and the counter value. There are no other dependencies. This means that packets can be decrypted immediately after receiving them. Another advantage is that it only uses the AES encryption function for both encrypting and decrypting the data.
+The main advantage of the CTR mode is the fact that it can be parallelised. To decrypt a block, you only need the nonce and the counter value. There are no other dependencies. This means that packets can be decrypted immediately after receiving them. Another advantage is that it only uses the AES encryption function for both encrypting and decrypting the data.\\
 
 \begin{figure}[h]
     \centering
@@ -120,7 +120,7 @@ The mean advantage of the CTR mode is the fact that it can be parallelised. To d
     \label{fig:ctr_encryption}
 \end{figure}
 
-In the final design, the input to the AES encryption function is given in Table~\ref{tab:ctr_mode_aes_encryption_input}. As we saw in Paragraph~\ref{par:key_derivation}, the 64-bit nonce is derived from the shared key. Furthermore, we actually have two counter: one for the packets and for the blocks inside this packet. The former denotes the current packet and is transmitted along with the data (see Table~\ref{tab:data_packet}). We take care to restart the handshake when this counter wraps around. This is necessary, because otherwise if a repeat of a given plaintext would result in the same ciphertext. The latter is required because each plaintext block can only be 128 bits long. To encrypt larger packets, we need this second counter value to have a unique encryption result.
+In the final design, the input to the AES encryption function is given in Table~\ref{tab:ctr_mode_aes_encryption_input}. As we saw in Paragraph~\ref{par:key_derivation}, the 64-bit nonce is derived from the shared key. We actually have two counters: one for the packets and one for the blocks inside this packet. The former denotes the current packet and is transmitted along with the data (see Table~\ref{tab:data_packet}). We take care to restart the handshake when this counter wraps around. This is necessary, because otherwise a repeat of a given plaintext would result in the same ciphertext. The latter is required because each plaintext block can only be 128 bits long. To encrypt larger packets, we need this second counter value to have a unique encryption result.
 
 \begin{table}[h]
     \begin{center}
@@ -148,118 +148,113 @@ The authenticity of a data packet is asserted using an HMAC. This code is based 
     \begin{tabular}{| l | c | r |}
         \hline
         Code Stage & Number of Cycles & Code Gain \\ \hline
-        Base Code & $6,20662313 \cdot 10^{8}$ 	& $0\%$ \\
-        CRT Optimization & $4,35591090 \cdot 10^{8}$ & $29,82\%$ \\
-        USE64WITH32 Optimization 	& $4,29177952 \cdot 10^{8}$ & $1,03\%$ \\
-        Optimization of Conversion Functions & $4,24002677 \cdot 10^{8}$ & $0,83\%$ \\
-        Restrict Optimization	 & $1,80351722 \cdot 10^{8}$ & $39,26\%$ \\
+        Base Code & $6.20662313 \cdot 10^{8}$ 	& $0\%$ \\
+        CRT Optimization & $4.35591090 \cdot 10^{8}$ & $29.82\%$ \\
+        USE64WITH32 Optimization 	& $4.29177952 \cdot 10^{8}$ & $1.47\%$ \\
+        Optimization of Conversion Functions & $4,24002677 \cdot 10^{8}$ & $1.21\%$ \\
+        Restrict Optimization	 & $3.84671468 \cdot 10^{8}$ & $9.28\%$ \\
         \hline
     \end{tabular}
 \end{center}
 
 \subsection{CRT Optimization}
-The implementation of the Chinese Remainder Theorem is an algorithmic optimization and not a DSP specific one.\\
 
-The Chinese Remainder Theorem uses the fact that both prime numbers $p$ and $q$ are known. This gives the possibility to calculate two seperate exponentiations of half the length of the original one. In theory this would make the exponentiation four times faster. As both results need to be recombined again, the practical implementation is a little slower.\\
+The implementation of the Chinese Remainder Theorem is an algorithmic optimization and not a DSP specific one. The Chinese Remainder Theorem uses the fact that both prime numbers $p$ and $q$ are known. This gives the possibility to calculate two seperate exponentiations of half the length of the original one. As both results need to be recombined again, the practical implementation offers about a threefold speed improvement.\\
 
-For the practical implementation Garner's algorithm is used. As both exponentiations have no data dependencies, they can be parallelized completely. To show this parallelization practically, we have implemented these two exponentiations using pthreads on CentOS. As the OMAP-L138 board does not have an OS which is supporting threads this is more difficult to implement on the board. If the ARM processor could be used as well, it would be possible to do one exponentiation on the DSP and another one on the DSP. \\
+For the practical implementation Garner's algorithm is used. As both exponentiations have no data dependencies, they can be parallelized completely. To show this parallelization practically, we have implemented these two exponentiations using pthreads on CentOS. As the OMAP-L138 board does not have an OS which supports threads this is more difficult to implement on the board. If the ARM processor could be used as well, it would be possible to do one exponentiation on the DSP and another one on the DSP.\\
 
-It should also be noted that the given Diffie⁻Hellman parameters are a faster sub-group from what could be given. This should be taken into account when evaluating the cycle count as with other parameters the execution time would increase.
+It should also be noted that the given Diffie-Hellman parameters are from a sub-group that allow for shorter secrets (the generated $x$ and $y$). This should be taken into account when evaluating the cycle count as for other parameters the execution time would increase.
 
-\subsection{USE64WITH32 Optimization}
-USE64\_WITH32 is a $\#$define statement in the BigDigits library we are using. If this switch is activated, 64-bit behavior is simulated in 32-bit environment in C.
+\subsection{USE\_64WITH32 Optimization}
+
+USE\_64WITH32 is a \textbf{\#define} statement in the BigDigits library we are using. If this switch is activated, 64-bit behavior is simulated on a 32-bit host in C.
 
 \subsubsection{Example}
+
 When the USE\_64WITH32 flag is set the following code is called for the multiply function. The performance gain can be seen as there is no seperate code to do the transfer of carry bits from one 32-bit variable to another.
 
 \lstinputlisting{source/use64.c}
 
 \subsubsection{Impact of the Optimization}
-The impact of this optimization is quite large as the multiply function is called many times during the handshake. This gives an optimization of $1,85071223\cdot10^{8}$ cycles.
+
+The impact of this optimization is quite large as the multiply function is called many times during the handshake. This gives an optimization of $1.85071223 \cdot 10^{6}$ cycles.
 
 \subsection{Optimization of Conversion Functions}
-This optimization is more an improvement of our code than a real DSP optimization. The optimization was applied in the handshake functions of the code located in protocol.c.\\
 
-All the contents of the \textbf{field\_t} type (the type we use for packets) are passed as char types even if the functions in the bigdigits library require a digit\_t as input. Before the conversion optimization all these digit\_t variables were first converted from digits to chars using the mpConvToOctets() function in the bigdigits library. The next function in the handshake then reconverted all these chars to \textbf{digit\_t} types using \textit{mpConvFromOctets()} so they could be used by the bigdigits library.\\
+This optimization is more of an improvement to our code than a real DSP optimization. The optimization was applied in the handshake functions of the code located in protocol.c.\\
 
-This conversion and reconversion of these large variables are not only cumbersome for the calculation time, they are also very inefficient in memory usage as each average pointer variable is around 150 bytes long and each conversion required a temporary variable as a destination for the conversion.\\
+All the contents of the \textbf{field\_t} type (the type we use for packets) are passed as char types even if the functions in the BigDigits library require a \textbf{digit\_t} as input. Before the conversion optimization all these \textbf{digit\_t} variables were first converted from digits to chars using the \textit{mpConvToOctets()} function in the BigDigits library. The next function in the handshake then reconverted all these chars to \textbf{digit\_t} types using \textit{mpConvFromOctets()} so they could be used by the BigDigits library.\\
 
-The optimization is just a cast of the \textbf{digit\_t} variable to a char so it can be added to the packet of type \textbf{field\_t}. The bytes are then interpreted incorrectly but this is of no importance as they are casted back to \textbf{digit\_t} before they are used again.
+This conversion and reconversion of these large variables is not only problematic for the calculation time, but they are also very inefficient in terms of memory usage as each average pointer variable is about 150 bytes long and each conversion required a temporary variable as a destination for the conversion.\\
+
+The optimization is just a cast of the \textbf{digit\_t} variable to a char so it can be added to the packet of type \textbf{field\_t}. The bytes are then interpreted incorrectly but this is of no importance as they are cast back to \textbf{digit\_t} before they are used again.
 
 \subsubsection{Example}
-The following C snippet demonstrates the \textit{senderHello()} function before the optimization:
+
+The following C snippet demonstrates the \textit{senderHello()} function before the optimization.
 \lstinputlisting{source/senderHelloNoOptimization.c}
-The following C snippet demonstrates the \textit{senderHello()} function after the optimization:
+
+The following C snippet demonstrates the \textit{senderHello()} function after the optimization.
 \lstinputlisting{source/senderHelloConversionOptimization.c}
 
 \subsubsection{Impact of the Optimization}
-The conversion optimization gives a saving of $5,175275\cdot10^{6}$ cycles. Again this gain in cycles is this great because of the length of the variables. Also the memory usage is more efficient as we save a lot of temporary variables.
+
+The conversion optimization gives a reduction of $5.175275 \cdot 10^{6}$ cycles. Again this gain in cycles is great because of the length of the variables. The memory usage is more efficient too as we save a lot of temporary variables.
 
 \subsection{Restrict Optimization}
 
 The addition of the \textbf{restrict} keyword to all our pointer variables is an intrinsic DSP optimization.
 
 \subsubsection{Example}
-The only changes that need to be made to implement the restrict optimization is adding the restrict keyword in front of all the pointer arguments in the function headers. An example of a function header with the restric keyword:
 
+The only changes that need to be made to implement the \textbf{restrict} optimization is adding the \textbf{restrict} keyword in front of all the pointer arguments in the function headers. An example of a function header with the \textbf{restrict} keyword.
 \lstinputlisting{source/restrictheader.c}
-An example of the same function header before the restrict optimization:
 
+An example of the same function header before the \textbf{restrict} optimization.
 \lstinputlisting{source/norestrictheader.c}
 
 \subsubsection{Impact of the Optimization}
-When the compiler is compiling code with a lot of pointer arguments, it is being very pessimistic about the content of the pointer arguments. For the compiler it is much safer to suppose all the contents of the pointer are changed during the function call except that in most implementations this assumption is too strong. When adding the restrict keyword in front of pointer arguments, the compiler supposes that only the current function is altering the values of the pointer. By doing so the compiler is able to parallelize most of the copying from and to that variable which gives a great improvement.\\
 
-As the average pointer variable in our code has a length of approximately 150 bytes, this optimization results in a much faster execution time. $2,43650955\cdot10^{8}$ cycles are saved by implementing this DSP optimization.
+When the compiler is compiling code with a lot of pointer arguments, it is being very pessimistic about the content of the pointer arguments. For the compiler it is much safer to assume all the contents of the pointer are changed during the function call. However, in most implementations this assumption is too strong. When adding the restrict keyword in front of pointer arguments, the compiler assumes that only the current function is altering the values of the pointer. By doing so the compiler is able to parallelize most of the copying from and to that variable which gives a great improvement.\\
+
+As the average pointer variable in our code has a length of approximately 150 bytes, this optimization results in a much faster execution time. $3.9331209 \cdot 10^{7}$ cycles are saved by implementing this DSP optimization.
 
 \subsection{Load Double Word Optimization}
 The double word optimization was another optimization we tried to implement but did not give any significant improvements.
 
 \subsubsection{Example}
+
 \lstinputlisting[language=C]{source/nassert.c}
 
-\subsubsection{The Reason for Not Implementing}
-The reason we did not implement this is because of the \textbf{DATA\_ALIGN} pragma which can not be defined on a function level. As an attentive reader would remark the previous code snippet will give compilation errors as the pragma does not recognize the \textit{encryptedData} variable which is only defined on function level. As it would be too cumbersome for us as programmers to keep track of all our variables as they would be defined globally we chose not to implement this optimization.
+\subsubsection{Reason for Not Implementing}
+
+The reason we did not implement this is because of the \textbf{DATA\_ALIGN} pragma which cannot be defined on a function level. As an attentive reader would note, the previous code snippet will give compilation errors as the pragma does not recognize the \textit{encryptedData} variable which is only defined inside the function scope. As it would be too cumbersome for us as programmers to keep track of all our variables if they would be defined globally, we chose not to implement this optimization.
 
 \section{Porting and Integration}
 
 \subsection{Porting from Linux to CCS}
-One of the errors we encountered during the porting from Linux to CCS was that the length of arrays need to be a constant. This was quickly solved as the variable length we used in some functions was just to make our code easy to customize. Overall the same lengths were used throughout the code, so they could be easily replaced by constants.
+
+One of the errors we encountered during the porting from Linux to CCS was that the length of arrays needed to be a constant. This was quickly solved as the variable length we used in some functions was just to make our code easy to customize. Overall the same lengths were used throughout the code, so they could be easily replaced by constants (which were readily available in our source).
 
 \subsection{Integration with Speech}
-Integration with the speech group went very fluently as we already foresaw possible issues. To simplify integration with the speech group, we implemented a shared buffer and a modified flag. Every time a variable is written to this shared buffer, the modified flag is set to true. Every time a variable is read from the shared buffer, this modified flag is set back to false. In this way, we (=the crypto group) know when we can read the next data sequence from speech to start encrypting. The speech group knows when their last packet is read out for encryption when the modified flag is set to false.\\
 
-Another parameter that needed to be checked was that the SRAM was still large enough to combine the code of both groups.
+Integration with the speech group went very fluently as we already foresaw possible issues. To simplify this step, we implemented a shared buffer with a modified flag. Every time a variable is written to this shared buffer, the flag is set to true. Every time a variable is read from the shared buffer, it is set back to false. This way, we (the crypto group) know when we can read the next data sequence from the speech group to start encrypting. The speech group knows when their data has been completely read out for encryption when the modified flag is set to false.\\
+
+Another parameter that needed to be checked was that the SHRAM was still large enough to combine the code of both groups.
 
 \subsection{Porting from CCS to the Board}
-Porting our seperate code from CSS to the Board was not very difficult. When our code was combined with the code of the speech group, porting became more of a challenge as we encountered some memory issues. Apparently the memory size of both codes was too big to fit in SRAM. After a long and hard day of debugging the conclusion was that our providence striked back as the buffer size was unrealisticly high to fit on the DSP. After changing these buffer sizes to the minimum needed for the speech group, everything worked correctly.
 
-\section{Load Double Word Optimization}
-The double word optimization was another optimization we tried to implement but did not give any significant improvements.
-
-\subsection{Example}
-\lstinputlisting{source/nassert.c}
-
-\subsection{The Reason for Not Implementing}
-The reason we did not implement this is because of the \textbf{DATA\_ALIGN} pragma which can not be defined on a function level. As an attentive reader would remark the previous code snippet will give compilation errors as the pragma does not recognize the \textit{encryptedData} variable which is only defined on function level. As it would be too cumbersome for us as programmers to keep track of all our variables as they would be defined globally we chose not to implement this optimization.
-
-\section{Lessons Learnt}
-One of the more important lessons we have learned is that implementing an algorithm on an embedded system is not just writing some C code. For an embedded system the challenge only starts when the code is functioning correctly. Although our code did not lent itself for loop optimizations as the speechcode did, still a lot of improvement could be made by giving the compiler some hints for optimizations.\\
-
-Another very important lesson we learned is that compilers are already pretty good at optimizing code. In our quest for optimizations we never managed to achieve a better compilation time than the compiler could with level two optimizations enabled. \\
-
-Although compilers are already quite smart, some optimizations like the \textbf{restrict} keyword can never be achieved by a compiler on its own. The knowledge of the algorithm together with the compilers optimization knowledge are the road to a fast execution time.\\
-
-A final very important lesson is although the code of both teams is working correctly on its own, it does not guarantee a correct functioning system. Of course the rule of thumb in engineering is that it is always the other team's responsibility...
+Porting our seperate code from CSS to the Board was not very difficult. When our code was combined with that of the speech group, porting became more of a challenge as we encountered some memory issues. Apparently the memory size of both codes was too big to fit in SHRAM. After a long and hard day of debugging the conclusion was that our providence striked back as the buffer and channel sizes were unrealisticly high to fit on the DSP. After changing these to the minimum needed for the speech group, everything worked correctly.
 
 \section{Conclusions}
-We designed our own encryption and decryption framework during this semester. More straightforward schemes were chosen for the implementation like an HMAC, CTR, RSA and AES as they are well known and fast to implement. During implementation a lot of optimizations for the DSP were tried. The CRT optimization and the restrict optimization gave rise to more significant improvements. During the porting process some practicalties were encountered which have been resolved successfully. This whole process gave resulted in hard work and sometimes a headache but in the end some valuable lessons could be learned.
+
+We designed our own encryption and decryption framework during this semester. More straightforward schemes were chosen for the implementation: HMAC, CTR, RSA and AES are well known and straightforward to implement. During implementation a lot of optimizations for the DSP were tried. The CRT optimization and the \textbf{restrict} optimization gave rise to more significant improvements. During the porting process some practicalities were encountered which have been resolved successfully. This whole process resulted in hard work and sometimes a headache but in the end some valuable lessons about writing code for embedded systems were be learned.
 
 \newpage
 
 \begin{appendices}
 
-\section{Packets}
+\section{Packet Structures}
 
 \begin{table}[h!]
     \begin{center}
@@ -321,21 +316,85 @@ We designed our own encryption and decryption framework during this semester. Mo
 
 \section{Function List}
 
+This appendix offers a list of all public APIs, which are used throughout the project. These functions are always defined in the corresponding header file and implemented in the listed file. For the sake of readability, we removed the \textbf{restrict} keyword from all pointer parameters.
+
 \subsection{buffer.c}
 
 \begin{lstlisting}[numbers=none, xleftmargin=0pt]
-void buffer\_construct();
-void buffer\_write(field\_t *restrict data, size\_t length);
-void buffer\_read(field\_t *restrict data, size\_t length);
-bool buffer\_isModified();
+void buffer_construct();
+void buffer_write(field_t *data, size_t length);
+void buffer_read(field_t *data, size_t length);
+bool buffer_isModified();
 \end{lstlisting}
 
 \subsection{channel.c}
 
 \begin{lstlisting}[numbers=none, xleftmargin=0pt]
 void channel_construct();
-void channel_write(field_t *restrict data, size_t length);
-void channel_read(field_t *restrict data, size_t length);
+void channel_write(field_t *data, size_t length);
+void channel_read(field_t *data, size_t length);
+\end{lstlisting}
+
+\subsection{crt.c}
+
+\begin{lstlisting}[numbers=none, xleftmargin=0pt]
+void crtModExp(digit_t *result, digit_t *x, digit_t *e, digit_t *p, digit_t *q);
+\end{lstlisting}
+
+\subsection{crypto.c}
+
+\begin{lstlisting}[numbers=none, xleftmargin=0pt]
+void _calculateSymmetricKey(digit_t *key, digit_t *modExpResult, digit_t *secret);
+void _deriveKeys(uint8_t *aesKey, uint8_t *hashKey, uint8_t *CTRKey, digit_t *symmetricKey);
+
+void _hmac(uint8_t *hmac, uint8_t *data, uint8_t *key);
+
+void _sign(digit_t *signature, uint8_t *message, digit_t *privateExponent, digit_t *modulus);
+void _sign_crt(digit_t *signature, digit_t *message, digit_t *privateExponent, digit_t *p, digit_t *q);
+int _verify(digit_t *signature, uint8_t *message, digit_t *publicExponent, digit_t *modulus);
+
+void _encryptData(unsigned char *encryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToEncrypt, size_t dataSize);
+void _decryptData(unsigned char *decryptedData, uint8_t *aesKey, uint8_t *nonce, uint32_t packetCounter, unsigned char *dataToDecrypt, size_t dataSize);
+\end{lstlisting}
+
+\subsection{protocol.c}
+
+\begin{lstlisting}[numbers=none, xleftmargin=0pt]
+void senderHello(field_t *sendPacket, digit_t *senderModExp, digit_t *senderSecret);
+int receiverHello(field_t *sendPacket, digit_t *receiverModExp, field_t *receivedPacket, digit_t *receiverSecret, digit_t *senderModExp, unsigned char *receiverPrivateExp);
+int senderAcknowledge(field_t *SsendPacket, field_t *receivedPacket, digit_t *senderSecret, digit_t *receiverModExp, digit_t *senderModExp, unsigned char *senderPrivateExp);
+
+void sendData(field_t *sendPacket);
+
+int increaseCounter(uint32_t *counter);
+\end{lstlisting}
+
+\subsection{random.c}
+
+\begin{lstlisting}[numbers=none, xleftmargin=0pt]
+void getRandomDigit(digit_t *randomDigit);
+\end{lstlisting}
+
+\subsection{receiver.c}
+
+\begin{lstlisting}[numbers=none, xleftmargin=0pt]
+void receiver_construct();
+
+int receiver_receiverHello();
+void receiver_deriveKeys(uint8_t *aesKey, uint8_t *CTRNonce, digit_t *modExp);
+int receiver_receiveData();
+int receiver_checkSenderAcknowledge();
+\end{lstlisting}
+
+\subsection{sender.c}
+
+\begin{lstlisting}[numbers=none, xleftmargin=0pt]
+void sender_construct();
+
+void sender_senderHello();
+int sender_senderAcknowledge();
+void sender_deriveKeys(uint8_t aesKey[], uint8_t CTRNonce[], digit_t *modExp);
+int sender_sendData();
 \end{lstlisting}
 
 \end{appendices}
