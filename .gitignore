@@ -11,7 +11,8 @@
 # Gedit isn't very nice
 *~
 
-# GDB generates a temporary folder
+# Do not version compiled binaries
+main
 main.*/
 
 # Do not version generated files
