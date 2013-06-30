@@ -1,4 +1,4 @@
-# OS X is not nice
+# Exclude the custom folder attributes file
 .DS_Store
 
 # Do not version temporary LaTeX files
