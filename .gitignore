@@ -12,11 +12,9 @@
 # Gedit isn't very nice
 *~
 
-# GDB generates a temporary folder
-main.*/
-
 # Do not version compiled binaries
 main
+main.*/
 
 Debug/
 Release/
