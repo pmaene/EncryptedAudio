@@ -1,4 +1,4 @@
 Encryption
 ==========
 
-This is branch is used for the final report.
+This branch is used for the final report.
