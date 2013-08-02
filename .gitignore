@@ -1,11 +1,4 @@
-# Exclude the custom folder attributes file
-.DS_Store
-
-# Do not version SublimeText's configuration and workspace
-*.sublime-project
-*.sublime-workspace
-
-# Do not version CCS's configuration
+# Code Composer Studio
 .settings/
 *.ccxml
 
