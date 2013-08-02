@@ -2,7 +2,7 @@
 .settings/
 *.ccxml
 
-# Gedit isn't very nice
+# Gedit
 *~
 
 # Do not version compiled binaries
